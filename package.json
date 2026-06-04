@@ -1,0 +1,41 @@
+{
+  "name": "chains",
+  "version": "0.1.0",
+  "type": "module",
+  "sideEffects": false,
+  "description": "Blockchain data dictionary — canonical chain info, aliases, inter-lib bridges, address validation",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.mts"
+    },
+    "./data": {
+      "import": "./dist/data.mjs",
+      "types": "./dist/data.d.mts"
+    }
+  },
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "obuild",
+    "dev": "obuild --watch",
+    "fmt": "oxlint . --fix && oxfmt .",
+    "fmt:check": "oxlint . && oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "obuild": "^0.2.0",
+    "oxfmt": "^0.1.0",
+    "oxlint": "^0.16.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  }
+}
