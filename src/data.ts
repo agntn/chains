@@ -16,7 +16,7 @@
  * - Chainlist / EIP-155
  */
 
-import type { Chain, ChainInfo } from "./types.js"
+import type { Chain, ChainInfo } from "./types.js";
 
 // ─── Data ───────────────────────────────────────────────────────────────────
 
@@ -148,6 +148,16 @@ export const CHAIN_DATA: Record<Chain, ChainInfo> = {
     explorer: "https://scrollscan.com",
     rpcDefault: "https://scroll-rpc.publicnode.com",
   },
+  bera: {
+    name: "Berachain",
+    symbol: "BERA",
+    bip44: 60,
+    chainId: "0x138de",
+    type: "evm",
+    caip2: "eip155:80094",
+    explorer: "https://berascan.com",
+    rpcDefault: "https://rpc.berachain.com",
+  },
 
   // ─── Non-EVM ─────────────────────────────────────────────────────────────
   bitcoin: {
@@ -204,7 +214,14 @@ export const CHAIN_DATA: Record<Chain, ChainInfo> = {
     explorer: "https://tronscan.org",
     rpcDefault: undefined,
   },
-}
+  oct: {
+    name: "Octra",
+    symbol: "OCT",
+    type: "octra",
+    explorer: "https://octrascan.io",
+    rpcDefault: "https://octra.network/rpc",
+  },
+};
 
 // ─── Aliases ────────────────────────────────────────────────────────────────
 
@@ -252,6 +269,9 @@ export const CHAIN_ALIASES: Record<string, Chain> = {
   "zksync-era": "zksync",
   // scroll
   scroll: "scroll",
+  // berachain
+  bera: "bera",
+  berachain: "bera",
   // bitcoin
   bitcoin: "bitcoin",
   btc: "bitcoin",
@@ -268,7 +288,10 @@ export const CHAIN_ALIASES: Record<string, Chain> = {
   // tron
   tron: "tron",
   trx: "tron",
-}
+  // octra
+  oct: "oct",
+  octra: "oct",
+};
 
 // ─── Inter-lib bridge maps ─────────────────────────────────────────────────
 
@@ -277,8 +300,9 @@ export const CHAIN_ALIASES: Record<string, Chain> = {
  * blocex uses 3-letter lowercase (same as canonical, except for one difference).
  */
 export function blocexChain(chain: Chain): string {
+  if (chain === "oct") throw new Error("Unsupported blocex chain: oct");
   // blocex uses the same 3-letter keys: eth, base, arbitrum, etc.
-  return chain
+  return chain;
 }
 
 /**
@@ -286,6 +310,7 @@ export function blocexChain(chain: Chain): string {
  * rpcx uses full lowercase names: "ethereum", "bitcoin", "solana"
  */
 export function rpcxChain(chain: Chain): string {
+  if (chain === "oct") throw new Error("Unsupported rpcx chain: oct");
   const map: Partial<Record<Chain, string>> = {
     eth: "ethereum",
     bsc: "ethereum", // no dedicated rpcx provider
@@ -296,10 +321,11 @@ export function rpcxChain(chain: Chain): string {
     linea: "ethereum",
     zksync: "ethereum",
     scroll: "ethereum",
+    bera: "berachain",
     bitcoin: "bitcoin",
     solana: "solana",
-  }
-  return map[chain] ?? "ethereum"
+  };
+  return map[chain] ?? "ethereum";
 }
 
 /**
@@ -308,6 +334,7 @@ export function rpcxChain(chain: Chain): string {
  * EVM L2s fall back to "ethereum" key derivation (same BIP44).
  */
 export function ubichainChain(chain: Chain): string {
+  if (chain === "oct") throw new Error("Unsupported ubichain chain: oct");
   const map: Partial<Record<Chain, string>> = {
     eth: "ethereum",
     base: "base",
@@ -321,14 +348,15 @@ export function ubichainChain(chain: Chain): string {
     linea: "ethereum",
     zksync: "ethereum",
     scroll: "ethereum",
+    bera: "ethereum",
     bitcoin: "bitcoin",
     solana: "solana",
     aptos: "aptos",
     sui: "sui",
     ton: "ethereum", // fallback — no ubichain ton yet
     tron: "tron",
-  }
-  return map[chain] ?? "ethereum"
+  };
+  return map[chain] ?? "ethereum";
 }
 
 /**
@@ -342,8 +370,8 @@ export function webriChain(chain: Chain): string | undefined {
     arbitrum: "arbitrum",
     optimism: "optimism",
     solana: "solana",
-  }
-  return map[chain]
+  };
+  return map[chain];
 }
 
 /**
@@ -351,7 +379,8 @@ export function webriChain(chain: Chain): string | undefined {
  * tokrisk uses the same 3-letter keys (identical to canonical).
  */
 export function tokriskChain(chain: Chain): string {
-  return chain
+  if (chain === "oct") throw new Error("Unsupported tokrisk chain: oct");
+  return chain;
 }
 
 /**
@@ -359,33 +388,38 @@ export function tokriskChain(chain: Chain): string {
  * chainpex uses blocex chain keys (3-letter, same as canonical).
  */
 export function chainpexChain(chain: Chain): string {
-  return chain
+  if (chain === "oct") throw new Error("Unsupported chainpex chain: oct");
+  return chain;
 }
 
 // ─── Type guards ───────────────────────────────────────────────────────────
 
 export function isEvm(chain: Chain): boolean {
-  return CHAIN_DATA[chain]!.type === "evm"
+  return CHAIN_DATA[chain]!.type === "evm";
 }
 
 export function isSolana(chain: Chain): boolean {
-  return CHAIN_DATA[chain]!.type === "solana"
+  return CHAIN_DATA[chain]!.type === "solana";
 }
 
 export function isUtxo(chain: Chain): boolean {
-  return CHAIN_DATA[chain]!.type === "utxo"
+  return CHAIN_DATA[chain]!.type === "utxo";
 }
 
 export function isMove(chain: Chain): boolean {
-  return CHAIN_DATA[chain]!.type === "move"
+  return CHAIN_DATA[chain]!.type === "move";
 }
 
 export function isTon(chain: Chain): boolean {
-  return CHAIN_DATA[chain]!.type === "ton"
+  return CHAIN_DATA[chain]!.type === "ton";
 }
 
 export function isTron(chain: Chain): boolean {
-  return CHAIN_DATA[chain]!.type === "tron"
+  return CHAIN_DATA[chain]!.type === "tron";
+}
+
+export function isOctra(chain: Chain): boolean {
+  return CHAIN_DATA[chain]!.type === "octra";
 }
 
 // ─── Normalize ──────────────────────────────────────────────────────────────
@@ -397,19 +431,19 @@ export function isTron(chain: Chain): boolean {
  * Throws on unknown input.
  */
 export function normalizeChain(input?: string): Chain {
-  if (!input) return "eth"
-  const lower = input.toLowerCase().trim()
-  const alias = CHAIN_ALIASES[lower]
-  if (alias) return alias
-  throw new Error(`Unsupported chain: ${input}`)
+  if (!input) return "eth";
+  const lower = input.toLowerCase().trim();
+  const alias = CHAIN_ALIASES[lower];
+  if (alias) return alias;
+  throw new Error(`Unsupported chain: ${input}`);
 }
 
 // ─── Address validation ────────────────────────────────────────────────────
 
-const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/
-const SOLANA_ADDRESS = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/
-const BITCOIN_ADDRESS =
-  /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-zA-HJ-NP-Z0-9]{39,59}$/
+const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/;
+const SOLANA_ADDRESS = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+const OCTRA_ADDRESS = /^oct[1-9A-HJ-NP-Za-km-z]{43,45}$/;
+const BITCOIN_ADDRESS = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-zA-HJ-NP-Z0-9]{39,59}$/;
 
 /**
  * Validate an EVM (0x + 40 hex) address.
@@ -417,9 +451,9 @@ const BITCOIN_ADDRESS =
  */
 export function assertEvmAddress(address: string): string {
   if (!EVM_ADDRESS.test(address)) {
-    throw new Error(`Invalid EVM address: ${address}`)
+    throw new Error(`Invalid EVM address: ${address}`);
   }
-  return address
+  return address;
 }
 
 /**
@@ -428,9 +462,20 @@ export function assertEvmAddress(address: string): string {
  */
 export function assertSolanaAddress(address: string): string {
   if (!SOLANA_ADDRESS.test(address)) {
-    throw new Error(`Invalid Solana address: ${address}`)
+    throw new Error(`Invalid Solana address: ${address}`);
   }
-  return address
+  return address;
+}
+
+/**
+ * Validate an Octra mainnet address.
+ * Throws on malformed input.
+ */
+export function assertOctraAddress(address: string): string {
+  if (!OCTRA_ADDRESS.test(address)) {
+    throw new Error(`Invalid Octra address: ${address}`);
+  }
+  return address;
 }
 
 /**
@@ -439,7 +484,7 @@ export function assertSolanaAddress(address: string): string {
  */
 export function assertBitcoinAddress(address: string): string {
   if (!BITCOIN_ADDRESS.test(address)) {
-    throw new Error(`Invalid Bitcoin address: ${address}`)
+    throw new Error(`Invalid Bitcoin address: ${address}`);
   }
-  return address
+  return address;
 }

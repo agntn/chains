@@ -2,7 +2,7 @@
  * chains — Public API
  */
 
-export type { Chain, ChainInfo, ChainType } from "./types.js"
+export type { Chain, ChainInfo, ChainType } from "./types.js";
 export {
   CHAIN_DATA,
   CHAIN_ALIASES,
@@ -21,9 +21,11 @@ export {
   isMove,
   isTon,
   isTron,
+  isOctra,
   // address validation
   assertEvmAddress,
   assertSolanaAddress,
   assertBitcoinAddress,
-} from "./data.js"
-export { version } from "./version.js"
+  assertOctraAddress,
+} from "./data.js";
+export { version } from "./version.js";
