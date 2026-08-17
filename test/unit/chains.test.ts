@@ -1,71 +1,99 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import {
-  CHAIN_DATA,
-  CHAIN_ALIASES,
-  normalizeChain,
-  isEvm,
-  isSolana,
-  isUtxo,
-  isMove,
-  isTon,
-  isTron,
-  isOctra,
-} from "../../src/index.ts";
-import {
-  blocexChain,
-  rpcxChain,
-  ubichainChain,
-  webriChain,
-  tokriskChain,
-  chainpexChain,
-} from "../../src/index.ts";
-import {
-  assertEvmAddress,
-  assertSolanaAddress,
-  assertBitcoinAddress,
-  assertOctraAddress,
+  AddressValidationUnsupportedError,
+  Arbitrum,
+  Bitcoin,
+  Chain,
+  ChainsError,
+  Ethereum,
+  EVM,
+  InvalidAddressError,
+  Octra,
+  Solana,
+  UnsupportedChainError,
+  chains,
+  create,
+  getChain,
+  has,
 } from "../../src/index.ts";
 
-// ─── CHAIN_DATA ─────────────────────────────────────────────────────────────
-
-describe("CHAIN_DATA", () => {
-  it("has all expected chains", () => {
-    const keys = Object.keys(CHAIN_DATA);
-    expect(keys).toContain("eth");
-    expect(keys).toContain("bitcoin");
-    expect(keys).toContain("solana");
-    expect(keys).toContain("base");
-    expect(keys).toContain("arbitrum");
-    expect(keys).toContain("optimism");
-    expect(keys).toContain("polygon");
-    expect(keys).toContain("bsc");
-    expect(keys).toContain("avalanche");
-    expect(keys).toContain("fantom");
-    expect(keys).toContain("gnosis");
-    expect(keys).toContain("linea");
-    expect(keys).toContain("zksync");
-    expect(keys).toContain("scroll");
-    expect(keys).toContain("aptos");
-    expect(keys).toContain("sui");
-    expect(keys).toContain("ton");
-    expect(keys).toContain("tron");
-    expect(keys).toContain("oct");
+describe("chain registry", () => {
+  it("self-registers every concrete chain class", () => {
+    expect(chains()).toEqual([
+      "eth",
+      "base",
+      "arbitrum",
+      "optimism",
+      "polygon",
+      "bsc",
+      "avalanche",
+      "fantom",
+      "gnosis",
+      "linea",
+      "zksync",
+      "scroll",
+      "bera",
+      "bitcoin",
+      "solana",
+      "aptos",
+      "sui",
+      "ton",
+      "tron",
+      "oct",
+    ]);
+    expect(has("eth")).toBe(true);
   });
 
-  it("has all required fields for ethereum", () => {
-    const eth = CHAIN_DATA.eth!;
-    expect(eth.name).toBe("Ethereum");
-    expect(eth.symbol).toBe("ETH");
-    expect(eth.bip44).toBe(60);
-    expect(eth.chainId).toBe("0x1");
-    expect(eth.type).toBe("evm");
-    expect(eth.caip2).toBe("eip155:1");
-    expect(eth.explorer).toContain("etherscan");
+  it("constructs a fresh concrete instance", () => {
+    const first = create("eth");
+    const second = create("eth");
+    expect(first).toBeInstanceOf(Ethereum);
+    expect(first).toBeInstanceOf(EVM);
+    expect(first).toBeInstanceOf(Chain);
+    expect(first).not.toBe(second);
   });
 
-  it("describes Octra without inventing unregistered identifiers", () => {
-    const octra = CHAIN_DATA.oct!;
+  it("preserves concrete runtime identities", () => {
+    expect(create("arbitrum")).toBeInstanceOf(Arbitrum);
+    expect(create("bitcoin")).toBeInstanceOf(Bitcoin);
+    expect(create("solana")).toBeInstanceOf(Solana);
+    expect(create("oct")).toBeInstanceOf(Octra);
+  });
+});
+
+describe("chain metadata", () => {
+  it("is owned by the concrete class", () => {
+    expect(create("eth")).toMatchObject({
+      key: "eth",
+      name: "Ethereum",
+      symbol: "ETH",
+      bip44: 60,
+      chainId: "0x1",
+      type: "evm",
+      caip2: "eip155:1",
+      explorer: "https://etherscan.io",
+    });
+  });
+
+  it("keeps CAIP-2 references within the 32-character limit", () => {
+    for (const key of chains()) {
+      const { caip2 } = create(key);
+      if (!caip2) continue;
+      const [namespace, reference] = caip2.split(":");
+      expect(namespace, caip2).toMatch(/^[-a-z0-9]{3,8}$/);
+      expect(reference, caip2).toMatch(/^[-_a-zA-Z0-9]{1,32}$/);
+    }
+  });
+
+  it("carries the truncated Solana genesis hash", () => {
+    expect(create("solana").caip2).toBe("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp");
+  });
+
+  it("does not invent unregistered Octra identifiers", () => {
+    const octra = create("oct");
     expect(octra).toMatchObject({
+      key: "oct",
       name: "Octra",
       symbol: "OCT",
       type: "octra",
@@ -75,224 +103,78 @@ describe("CHAIN_DATA", () => {
     expect(octra.bip44).toBeUndefined();
     expect(octra.caip2).toBeUndefined();
   });
-
-  it("has correct chainId for each EVM chain", () => {
-    const checks: Record<string, string> = {
-      eth: "0x1",
-      base: "0x2105",
-      arbitrum: "0xa4b1",
-      optimism: "0xa",
-      polygon: "0x89",
-      bsc: "0x38",
-      avalanche: "0xa86a",
-      fantom: "0xfa",
-      gnosis: "0x64",
-      linea: "0xe704",
-      zksync: "0x144",
-      scroll: "0x82750",
-    };
-    for (const [key, expected] of Object.entries(checks)) {
-      expect(CHAIN_DATA[key as keyof typeof CHAIN_DATA]!.chainId).toBe(expected);
-    }
-  });
-
-  it("has correct bip44 for non-EVM chains", () => {
-    expect(CHAIN_DATA.bitcoin!.bip44).toBe(0);
-    expect(CHAIN_DATA.solana!.bip44).toBe(501);
-    expect(CHAIN_DATA.aptos!.bip44).toBe(637);
-    expect(CHAIN_DATA.sui!.bip44).toBe(784);
-    expect(CHAIN_DATA.ton!.bip44).toBe(607);
-    expect(CHAIN_DATA.tron!.bip44).toBe(195);
-  });
-
-  it("has correct type for each chain", () => {
-    expect(isEvm("eth")).toBe(true);
-    expect(isEvm("base")).toBe(true);
-    expect(isEvm("bitcoin")).toBe(false);
-    expect(isEvm("solana")).toBe(false);
-
-    expect(isSolana("solana")).toBe(true);
-    expect(isSolana("eth")).toBe(false);
-
-    expect(isUtxo("bitcoin")).toBe(true);
-    expect(isUtxo("eth")).toBe(false);
-
-    expect(isMove("aptos")).toBe(true);
-    expect(isMove("sui")).toBe(true);
-    expect(isMove("eth")).toBe(false);
-
-    expect(isTon("ton")).toBe(true);
-    expect(isTon("eth")).toBe(false);
-
-    expect(isTron("tron")).toBe(true);
-    expect(isTron("eth")).toBe(false);
-
-    expect(isOctra("oct")).toBe(true);
-    expect(isOctra("eth")).toBe(false);
-  });
 });
 
-// ─── normalizeChain ─────────────────────────────────────────────────────────
-
-describe("normalizeChain", () => {
-  it("returns eth for undefined", () => {
-    expect(normalizeChain()).toBe("eth");
+describe("chain resolution", () => {
+  it("resolves aliases to concrete classes", () => {
+    expect(getChain()).toBeInstanceOf(Ethereum);
+    expect(getChain("Ethereum")).toBeInstanceOf(Ethereum);
+    expect(getChain("matic").key).toBe("polygon");
+    expect(getChain("BTC")).toBeInstanceOf(Bitcoin);
+    expect(getChain("octra")).toBeInstanceOf(Octra);
   });
 
-  it("returns eth for empty string", () => {
-    expect(normalizeChain("")).toBe("eth");
+  it("rejects unknown chains", () => {
+    expect(() => getChain("foobar")).toThrow("Unsupported chain: foobar");
   });
 
-  it("handles 3-letter canonical keys", () => {
-    expect(normalizeChain("eth")).toBe("eth");
-    expect(normalizeChain("btc")).toBe("bitcoin");
-    expect(normalizeChain("sol")).toBe("solana");
-    expect(normalizeChain("oct")).toBe("oct");
-  });
-
-  it("handles full names", () => {
-    expect(normalizeChain("ethereum")).toBe("eth");
-    expect(normalizeChain("bitcoin")).toBe("bitcoin");
-    expect(normalizeChain("solana")).toBe("solana");
-    expect(normalizeChain("polygon")).toBe("polygon");
-    expect(normalizeChain("octra")).toBe("oct");
-  });
-
-  it("handles aliases", () => {
-    expect(normalizeChain("matic")).toBe("polygon");
-    expect(normalizeChain("bnb")).toBe("bsc");
-    expect(normalizeChain("avax")).toBe("avalanche");
-    expect(normalizeChain("arb")).toBe("arbitrum");
-    expect(normalizeChain("xdai")).toBe("gnosis");
-  });
-
-  it("handles case insensitivity", () => {
-    expect(normalizeChain("ETH")).toBe("eth");
-    expect(normalizeChain("Ethereum")).toBe("eth");
-    expect(normalizeChain("MATIC")).toBe("polygon");
-  });
-
-  it("throws for unknown chain", () => {
-    expect(() => normalizeChain("foobar")).toThrow("Unsupported chain: foobar");
-  });
-
-  it("has all expected key variants in CHAIN_ALIASES", () => {
-    // Every canonical chain should have at least itself as alias
-    for (const key of Object.keys(CHAIN_DATA)) {
-      expect(CHAIN_ALIASES[key]).toBe(key);
+  it("rejects inherited object properties as aliases", () => {
+    for (const inherited of ["constructor", "__proto__", "tostring", "hasownproperty"]) {
+      expect(() => getChain(inherited)).toThrow(`Unsupported chain: ${inherited}`);
     }
   });
 });
 
-// ─── Inter-lib bridges ──────────────────────────────────────────────────────
-
-describe("inter-lib bridges", () => {
-  it("blocexChain returns 3-letter keys", () => {
-    expect(blocexChain("eth")).toBe("eth");
-    expect(blocexChain("bitcoin")).toBe("bitcoin");
-    expect(blocexChain("solana")).toBe("solana");
+describe("address validation", () => {
+  it("is inherited by concrete EVM chains", () => {
+    const ethereum = create("eth");
+    const address = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
+    expect(ethereum.assertAddress(address)).toBe(address);
+    expect(() => ethereum.assertAddress("0x0000")).toThrow("Invalid EVM address");
   });
 
-  it("rpcxChain returns correct names", () => {
-    expect(rpcxChain("eth")).toBe("ethereum");
-    expect(rpcxChain("bitcoin")).toBe("bitcoin");
-    expect(rpcxChain("solana")).toBe("solana");
-    expect(rpcxChain("polygon")).toBe("polygon");
-  });
-
-  it("ubichainChain returns correct names", () => {
-    expect(ubichainChain("eth")).toBe("ethereum");
-    expect(ubichainChain("bitcoin")).toBe("bitcoin");
-    expect(ubichainChain("solana")).toBe("solana");
-    expect(ubichainChain("base")).toBe("base");
-    expect(ubichainChain("aptos")).toBe("aptos");
-  });
-
-  it("webriChain returns correct names", () => {
-    expect(webriChain("eth")).toBe("ethereum");
-    expect(webriChain("solana")).toBe("solana");
-    expect(webriChain("ton")).toBeUndefined();
-  });
-
-  it("tokriskChain returns 3-letter keys", () => {
-    expect(tokriskChain("eth")).toBe("eth");
-    expect(tokriskChain("solana")).toBe("solana");
-  });
-
-  it("chainpexChain returns 3-letter keys", () => {
-    expect(chainpexChain("eth")).toBe("eth");
-    expect(chainpexChain("solana")).toBe("solana");
-  });
-
-  it("never routes unsupported Octra requests to another chain", () => {
-    expect(() => blocexChain("oct")).toThrow("Unsupported blocex chain: oct");
-    expect(() => rpcxChain("oct")).toThrow("Unsupported rpcx chain: oct");
-    expect(() => ubichainChain("oct")).toThrow("Unsupported ubichain chain: oct");
-    expect(webriChain("oct")).toBeUndefined();
-    expect(() => tokriskChain("oct")).toThrow("Unsupported tokrisk chain: oct");
-    expect(() => chainpexChain("oct")).toThrow("Unsupported chainpex chain: oct");
-  });
-});
-
-// ─── Address validation ────────────────────────────────────────────────────
-
-describe("assertEvmAddress", () => {
-  it("accepts valid EVM addresses", () => {
-    expect(assertEvmAddress("0x0000000000000000000000000000000000000000")).toBe(
-      "0x0000000000000000000000000000000000000000",
+  it("uses chain-family validators", () => {
+    expect(create("bitcoin").assertAddress("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")).toBe(
+      "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
     );
-    expect(assertEvmAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984")).toBe(
-      "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
-    );
-  });
-
-  it("rejects invalid EVM addresses", () => {
-    expect(() => assertEvmAddress("0x0000")).toThrow();
-    expect(() => assertEvmAddress("not-an-address")).toThrow();
-    expect(() => assertEvmAddress("")).toThrow();
-  });
-});
-
-describe("assertSolanaAddress", () => {
-  it("accepts valid Solana addresses", () => {
-    expect(assertSolanaAddress("11111111111111111111111111111111")).toBe(
-      "11111111111111111111111111111111",
-    );
-    expect(assertSolanaAddress("So11111111111111111111111111111111111111112")).toBe(
+    expect(create("solana").assertAddress("So11111111111111111111111111111111111111112")).toBe(
       "So11111111111111111111111111111111111111112",
     );
   });
 
-  it("rejects invalid Solana addresses", () => {
-    expect(() => assertSolanaAddress("0x0000")).toThrow();
-    expect(() => assertSolanaAddress("")).toThrow();
-  });
-});
-
-describe("assertBitcoinAddress", () => {
-  it("accepts valid legacy Bitcoin addresses", () => {
-    // P2PKH
-    expect(assertBitcoinAddress("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")).toBe(
-      "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+  it("rejects validation for unsupported families", () => {
+    expect(() => create("aptos").assertAddress("0x1")).toThrow(
+      "Address validation is not supported for aptos",
     );
   });
+});
 
-  it("rejects invalid Bitcoin addresses", () => {
-    expect(() => assertBitcoinAddress("0x0000")).toThrow();
-    expect(() => assertBitcoinAddress("")).toThrow();
-    expect(() => assertBitcoinAddress("abc")).toThrow();
+describe("agent extensions", () => {
+  it("keeps the OMP copy identical to the Pi extension", () => {
+    const pi = readFileSync(new URL("../../packages/pi/extensions/chains.ts", import.meta.url));
+    const omp = readFileSync(new URL("../../packages/omp/extensions/chains.ts", import.meta.url));
+    expect(omp.toString()).toBe(pi.toString());
   });
 });
 
-describe("assertOctraAddress", () => {
-  it("accepts valid Octra addresses", () => {
-    const address = "oct94XE6CZkMmqA796M99NBPXibHWrMnrbdNTAR78sPbz7d";
-    expect(assertOctraAddress(address)).toBe(address);
+describe("error hierarchy", () => {
+  it("throws typed errors that all descend from ChainsError", () => {
+    expect(() => getChain("foobar")).toThrow(UnsupportedChainError);
+    expect(() => getChain("foobar")).toThrow(ChainsError);
+    expect(() => create("eth").assertAddress("0x0")).toThrow(InvalidAddressError);
+    expect(() => create("aptos").assertAddress("0x1")).toThrow(AddressValidationUnsupportedError);
   });
 
-  it("rejects malformed Octra addresses", () => {
-    expect(() => assertOctraAddress("oct0invalid")).toThrow();
-    expect(() => assertOctraAddress("oct94XE6CZkMmqA796M99NBPXibHWrMnrbdNTAR78sPbz")).toThrow();
-    expect(() => assertOctraAddress("")).toThrow();
+  it("carries structured context instead of only a message", () => {
+    try {
+      create("bitcoin").assertAddress("nope");
+      expect.unreachable("should have thrown");
+    } catch (error) {
+      expect(error).toBeInstanceOf(InvalidAddressError);
+      const invalid = error as InvalidAddressError;
+      expect(invalid.chain).toBe("Bitcoin");
+      expect(invalid.address).toBe("nope");
+      expect(invalid.name).toBe("InvalidAddressError");
+    }
   });
 });

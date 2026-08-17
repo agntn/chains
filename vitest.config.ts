@@ -1,4 +1,5 @@
-import { defineConfig } from "vitest/config"
+import { fileURLToPath } from "node:url";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
@@ -6,7 +7,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      chains: "/home/oritwoen/Projekty/oritwoen/chains/src/index.ts",
+      // Point the package's own name at source, so tests never validate a stale dist
+      // through Node's self-reference resolution.
+      "@agntn/chains": fileURLToPath(new URL("./src/index.ts", import.meta.url)),
     },
   },
-})
+});

@@ -1,0 +1,15 @@
+import { EVM } from "../core/chain.js";
+import { register } from "../core/registry.js";
+
+export class Berachain extends EVM {
+  static readonly key = "bera" as const;
+  readonly name = "Berachain";
+  readonly symbol = "BERA";
+  readonly explorer = "https://berascan.com";
+  readonly bip44 = 60;
+  readonly chainId = "0x138de";
+  readonly caip2 = "eip155:80094";
+  readonly rpcDefault = "https://rpc.berachain.com";
+}
+
+register(Berachain);

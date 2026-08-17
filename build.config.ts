@@ -1,8 +1,5 @@
-import { defineBuildConfig } from "obuild/config"
+import { defineBuildConfig } from "obuild/config";
 
 export default defineBuildConfig({
-  entries: ["src/index.ts", "src/data.ts"],
-  declaration: true,
-  clean: true,
-  failOnWarn: false,
-})
+  entries: ["src/index.ts", "src/cli.ts"],
+});

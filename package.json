@@ -1,41 +1,84 @@
 {
-  "name": "chains",
+  "name": "@agntn/chains",
   "version": "0.1.0",
+  "description": "Canonical blockchain classes with registry, aliases, and address validation",
+  "homepage": "https://github.com/agntn/chains#readme",
+  "bugs": "https://github.com/agntn/chains/issues",
+  "license": "MIT",
+  "author": "oritwoen (https://github.com/oritwoen)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agntn/chains.git"
+  },
+  "bin": {
+    "chains": "./dist/cli.mjs"
+  },
+  "files": [
+    "dist",
+    "packages/pi/extensions",
+    "packages/omp/extensions"
+  ],
   "type": "module",
-  "sideEffects": false,
-  "description": "Blockchain data dictionary — canonical chain info, aliases, inter-lib bridges, address validation",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.mts"
-    },
-    "./data": {
-      "import": "./dist/data.mjs",
-      "types": "./dist/data.d.mts"
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
     }
   },
-  "main": "dist/index.mjs",
-  "types": "dist/index.d.mts",
-  "files": [
-    "dist"
-  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "obuild",
-    "dev": "obuild --watch",
-    "fmt": "oxlint . --fix && oxfmt .",
+    "dev": "obuild --stub",
+    "fmt": "oxlint . --fix && oxfmt --write .",
     "fmt:check": "oxlint . && oxfmt --check .",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && pnpm build && tsc --noEmit -p tsconfig.extensions.json",
+    "prepack": "pnpm run build",
+    "release": "pnpm test && pnpm build && changelogen --release --push"
+  },
+  "dependencies": {
+    "citty": "0.2.2",
+    "consola": "3.4.2"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "obuild": "^0.2.0",
-    "oxfmt": "^0.1.0",
-    "oxlint": "^0.16.0",
-    "typescript": "^5.8.0",
-    "vitest": "^3.0.0"
+    "@earendil-works/pi-coding-agent": "0.84.2",
+    "@types/node": "26.2.0",
+    "changelogen": "0.6.2",
+    "obuild": "0.4.38",
+    "oxfmt": "0.63.0",
+    "oxlint": "1.78.0",
+    "typebox": "1.3.15",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": ">=0.84.2 <1",
+    "typebox": ">=1.3.14 <2"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.22.0",
+  "omp": {
+    "extensions": [
+      "./packages/omp/extensions/chains.ts"
+    ]
+  },
+  "pi": {
+    "extensions": [
+      "./packages/pi/extensions/chains.ts"
+    ]
   }
 }
