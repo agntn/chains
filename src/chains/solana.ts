@@ -1,3 +1,4 @@
+import { decodeBase58 } from "../core/base58.js";
 import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 import { register } from "../core/registry.js";
@@ -13,7 +14,10 @@ export class Solana extends Chain {
   readonly rpcDefault = "https://api.mainnet-beta.solana.com";
 
   override assertAddress(address: string): string {
-    if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address)) {
+    // An account is a 32-byte Ed25519 public key. A character-length window cannot
+    // stand in for that: 34-character Bitcoin and TRON addresses decode to 25 bytes
+    // and would pass one, while the 32-character System Program is a real account.
+    if (decodeBase58(address)?.length !== 32) {
       throw new InvalidAddressError("Solana", address);
     }
     return address;
