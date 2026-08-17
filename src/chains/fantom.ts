@@ -9,7 +9,7 @@ export class Fantom extends EVM {
   readonly bip44 = 60;
   readonly chainId = "0xfa";
   readonly caip2 = "eip155:250";
-  readonly rpcDefault = "https://fantom-rpc.publicnode.com";
+  readonly rpcDefault = "https://rpc.fantom.network";
 }
 
 register(Fantom);

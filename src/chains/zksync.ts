@@ -9,7 +9,7 @@ export class ZkSync extends EVM {
   readonly bip44 = 60;
   readonly chainId = "0x144";
   readonly caip2 = "eip155:324";
-  readonly rpcDefault = "https://zksync-era-rpc.publicnode.com";
+  readonly rpcDefault = "https://mainnet.era.zksync.io";
 }
 
 register(ZkSync);
