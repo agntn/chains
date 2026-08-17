@@ -6,7 +6,7 @@ Every web3 library I write needs the same handful of facts: Polygon's chain ID, 
 
 ## Stack
 
-TypeScript, ESM-only. The core imports nothing at runtime. The CLI adds `citty` and `consola`, and the agent extensions need `typebox` and `@earendil-works/pi-coding-agent`.
+TypeScript, ESM-only. The core imports nothing at runtime. The CLI adds `citty` and `consola`, the MCP server adds `@modelcontextprotocol/sdk`, and the agent extensions need `typebox` and `@earendil-works/pi-coding-agent`. The MCP server and the extensions describe their parameters with the same `typebox` schemas.
 
 ## Installation
 
@@ -75,18 +75,22 @@ Registration runs on side-effect imports. Set `sideEffects: false` and the bundl
 - `has(key)` checks whether a class is registered
 - `getChain(input?)` takes a key, symbol, or alias and gives you an instance, defaulting to Ethereum
 
-`getChain` matches keys, symbols, and the aliases people actually type, so `matic`, `btc` and `arb` all work. Full display names don't. `Arbitrum One` throws `UnsupportedChainError`, because nobody types that.
+`getChain` matches keys, symbols, and the aliases people actually type, so `matic`, `btc` and `arb` all work. Display names work too, read straight off the registered classes, so whatever `chain.name` prints resolves back to the same chain — `Arbitrum One`, `BNB Chain`, `zkSync Era`. That round trip matters for agents, which get a name out of one call and put it into the next. Symbols stay out of the automatic index: six chains report `ETH`, so matching on them would depend on registration order.
+
+`getChain()` with no argument still means Ethereum. `getChain("")` or a blank string does not — that is a caller mistake, and it throws rather than quietly answering about the wrong chain.
 
 ### Instance behavior
 
-`chain.assertAddress(address)` returns the address when it fits the chain's format and throws when it doesn't. It's a format check, not a checksum, and not proof the address exists on chain. Chains without a validator throw instead of quietly saying yes. A false green light costs more than a false alarm when the caller is about to send funds.
+`chain.assertAddress(address)` returns the address when it fits the chain's format and throws when it doesn't. It's a format check, not a checksum, and not proof the address exists on chain. Chains without a validator throw instead of quietly saying yes — `chain.validatesAddress` tells you which ones those are before you ask. A false green light costs more than a false alarm when the caller is about to send funds.
+
+Two of the validators do more than match a shape, because a shape is not enough. Solana decodes base58 and requires exactly 32 bytes: character length cannot separate an account from a Bitcoin or TRON address, since those are 34 characters and 25 bytes, while the System Program is 32 characters and 32 bytes. Bitcoin's bech32 branch uses the BIP-173 charset, which has no `1`, `b`, `i` or `o`, and treats all-lowercase and all-uppercase as valid while rejecting mixed case — uppercase is what QR encoders emit, so rejecting it would fail addresses that spend fine.
 
 ### Errors
 
 Everything thrown here descends from `ChainsError`, so you catch one type and read fields instead of parsing message strings.
 
 - `UnknownChainError` when `create()` got a key with no registered class, carries `.key`
-- `UnsupportedChainError` when `getChain()` got input matching no alias, carries `.input`
+- `UnsupportedChainError` when `getChain()` got input matching no alias or name, carries `.input`; the message quotes the value, so blank and control-character input stays visible in a log
 - `InvalidAddressError` when an address failed its format check, carries `.address` and `.chain`
 - `AddressValidationUnsupportedError` when the chain has no validator, carries `.chain`
 
@@ -103,11 +107,35 @@ chains validate eth 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984
 
 `resolve`, `info` and `validate` print a message and exit 1 when they fail. `list` warns and exits 0 when a `--type` filter matches nothing, so don't use it as a check in a script.
 
+## MCP server
+
+```bash
+chains mcp
+```
+
+Speaks MCP over stdio and exposes the same three tools as the agent extensions: `chains_lookup`, `chains_validate_address` and `chains_list`. Point a client at it:
+
+```json
+{
+  "mcpServers": {
+    "chains": { "command": "npx", "args": ["-y", "@agntn/chains", "mcp"] }
+  }
+}
+```
+
+An MCP client sees the text a tool returns and nothing else, so the text carries the whole answer: every metadata field on a hit, and the registered keys when resolution fails, so the next call has somewhere to go. `chains_list` is there for the same reason — without it the only way to learn what the registry holds is to send a value you expect to fail. Absent fields say so out loud (`bip44: none`) rather than vanishing, because a missing coin type reads as "not shown" and invites the caller to supply one from memory.
+
+A rejected address is an answer, not a tool error. Only an unresolvable chain or a chain with no validator sets `isError`, because then nothing was checked.
+
+`createMcpServer()` is exported from `@agntn/chains/mcp` for hosts that bring their own transport.
+
 ## Agent extensions
 
-Pi and OMP extensions live in `packages/pi/extensions` and `packages/omp/extensions`. They expose `chains_lookup` for resolving a chain into its metadata and `chains_validate_address` for checking an address.
+Pi and OMP extensions live in `packages/pi/extensions` and `packages/omp/extensions`. They expose `chains_lookup` for resolving a chain into its metadata, `chains_validate_address` for checking an address, and `chains_list` for the registry.
 
-Both prefer the built library and fall back to source only when `dist/` is missing, because the internal imports use `.js` specifiers that a plain TypeScript-stripping runtime can't resolve back to `.ts`. Without `pnpm build` the tools still register and the first call dies with a module-resolution error.
+All three surfaces call the executors in `src/tool-operations.ts`, so the MCP server and the two extensions answer identically. The extensions add the details the harnesses render; MCP drops them and keeps the text.
+
+The extensions prefer the built executors and fall back to source only when `dist/` is missing, because the internal imports use `.js` specifiers that a plain TypeScript-stripping runtime can't resolve back to `.ts`. Without `pnpm build` the tools still register and the first call dies with a module-resolution error.
 
 ## Not in scope
 
