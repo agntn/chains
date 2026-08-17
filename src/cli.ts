@@ -14,6 +14,7 @@ const main = defineCommand({
     resolve: () => import("./commands/resolve.js").then((m) => m.default),
     validate: () => import("./commands/validate.js").then((m) => m.default),
     list: () => import("./commands/list.js").then((m) => m.default),
+    mcp: () => import("./commands/mcp.js").then((m) => m.default),
   },
 });
 

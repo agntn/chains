@@ -4,54 +4,29 @@ import { fileURLToPath } from "node:url";
 import type { AgentToolResult, ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 
-import type * as ChainsModule from "../../../dist/index.d.mts";
+import type * as ChainsTools from "../../../dist/tool-operations.d.mts";
 
-const distributionModuleUrl = new URL("../../../dist/index.mjs", import.meta.url);
-const sourceModuleUrl = new URL("../../../src/index.ts", import.meta.url);
-let chainsModulePromise: Promise<typeof ChainsModule> | undefined;
+const distributionModuleUrl = new URL("../../../dist/tool-operations.mjs", import.meta.url);
+const sourceModuleUrl = new URL("../../../src/tool-operations.ts", import.meta.url);
+let toolOperationsPromise: Promise<typeof ChainsTools> | undefined;
 
 /**
- * Loads the built library, falling back to source only when dist is absent.
+ * Loads the built tool executors, falling back to source only when dist is absent.
  *
- * Dist comes first because the library's internal imports use `.js` specifiers
- * under NodeNext resolution, which a bare TypeScript-stripping runtime cannot
- * resolve back to `.ts` files. Run `pnpm build` before loading the extension
+ * The executors are shared with the MCP server, so the tool answers stay identical
+ * across surfaces. Dist comes first because the library's internal imports use `.js`
+ * specifiers under NodeNext resolution, which a bare TypeScript-stripping runtime
+ * cannot resolve back to `.ts` files. Run `pnpm build` before loading the extension
  * from a working tree.
  */
-function loadLibrary(): Promise<typeof ChainsModule> {
-  chainsModulePromise ??= import(
+function loadToolOperations(): Promise<typeof ChainsTools> {
+  toolOperationsPromise ??= import(
     existsSync(fileURLToPath(distributionModuleUrl))
       ? distributionModuleUrl.href
       : sourceModuleUrl.href
-  ) as Promise<typeof ChainsModule>;
+  ) as Promise<typeof ChainsTools>;
 
-  return chainsModulePromise;
-}
-
-interface ChainLookup {
-  key: string;
-  name: string;
-  symbol: string;
-  type: string;
-  bip44?: number;
-  chainId?: string;
-  caip2?: string;
-  explorer: string;
-  rpcDefault?: string;
-}
-
-/** Returned when the input matched no known chain. */
-interface LookupFailure {
-  error: string;
-  input: string;
-}
-
-interface AddressCheck {
-  /** Canonical key, or null when the chain itself could not be resolved. */
-  chain: string | null;
-  address: string;
-  valid: boolean;
-  reason?: string;
+  return toolOperationsPromise;
 }
 
 export default function chainsExtension(pi: ExtensionAPI): void {
@@ -73,48 +48,13 @@ export default function chainsExtension(pi: ExtensionAPI): void {
         maxLength: 64,
       }),
     }),
-    async execute(_toolCallId, params): Promise<AgentToolResult<ChainLookup | LookupFailure>> {
-      const { getChain, ChainsError } = await loadLibrary();
-
-      try {
-        const chain = getChain(params.chain);
-
-        const details: ChainLookup = {
-          key: chain.key,
-          name: chain.name,
-          symbol: chain.symbol,
-          type: chain.type,
-          bip44: chain.bip44,
-          chainId: chain.chainId,
-          caip2: chain.caip2,
-          explorer: chain.explorer,
-          rpcDefault: chain.rpcDefault,
-        };
-
-        const lines = [
-          `${details.name} (${details.key})`,
-          `symbol: ${details.symbol}`,
-          `type: ${details.type}`,
-          details.chainId ? `chainId: ${details.chainId}` : undefined,
-          details.caip2 ? `caip2: ${details.caip2}` : undefined,
-          details.bip44 === undefined ? undefined : `bip44: ${details.bip44}`,
-          `explorer: ${details.explorer}`,
-          details.rpcDefault ? `rpc: ${details.rpcDefault}` : undefined,
-        ].filter(Boolean);
-
-        return {
-          content: [{ type: "text", text: lines.join("\n") }],
-          details,
-        };
-      } catch (error) {
-        if (error instanceof ChainsError) {
-          return {
-            content: [{ type: "text", text: error.message }],
-            details: { error: error.message, input: params.chain },
-          };
-        }
-        throw error;
-      }
+    async execute(
+      _toolCallId,
+      params,
+    ): Promise<AgentToolResult<ChainsTools.ChainLookup | ChainsTools.LookupFailure>> {
+      const { lookupChain } = await loadToolOperations();
+      const { content, details } = lookupChain(params.chain);
+      return { content, details };
     },
   });
 
@@ -140,51 +80,36 @@ export default function chainsExtension(pi: ExtensionAPI): void {
         maxLength: 256,
       }),
     }),
-    async execute(_toolCallId, params): Promise<AgentToolResult<AddressCheck>> {
-      const { getChain, ChainsError } = await loadLibrary();
+    async execute(_toolCallId, params): Promise<AgentToolResult<ChainsTools.AddressCheck>> {
+      const { validateChainAddress } = await loadToolOperations();
+      const { content, details } = validateChainAddress(params.chain, params.address);
+      return { content, details };
+    },
+  });
 
-      try {
-        const chain = getChain(params.chain);
-        try {
-          chain.assertAddress(params.address);
-          const details: AddressCheck = {
-            chain: chain.key,
-            address: params.address,
-            valid: true,
-          };
-          return {
-            content: [{ type: "text", text: `Valid ${chain.name} address` }],
-            details,
-          };
-        } catch (error) {
-          if (error instanceof ChainsError) {
-            const details: AddressCheck = {
-              chain: chain.key,
-              address: params.address,
-              valid: false,
-              reason: error.message,
-            };
-            return {
-              content: [{ type: "text", text: error.message }],
-              details,
-            };
-          }
-          throw error;
-        }
-      } catch (error) {
-        if (error instanceof ChainsError) {
-          return {
-            content: [{ type: "text", text: error.message }],
-            details: {
-              chain: null,
-              address: params.address,
-              valid: false,
-              reason: error.message,
-            },
-          };
-        }
-        throw error;
-      }
+  pi.registerTool({
+    name: "chains_list",
+    label: "List Chains",
+    description: "List every registered blockchain, optionally narrowed to one family",
+    promptSnippet:
+      "Use chains_list to see which blockchains are available, instead of guessing a chain name.",
+    promptGuidelines: [
+      "Families are evm, utxo, solana, move, ton, tron and octra.",
+      "Every key and name it prints resolves in chains_lookup.",
+    ],
+    parameters: Type.Object({
+      family: Type.Optional(
+        Type.String({
+          description: "Chain family to filter by (for example: evm, utxo, solana, move)",
+          minLength: 1,
+          maxLength: 32,
+        }),
+      ),
+    }),
+    async execute(_toolCallId, params): Promise<AgentToolResult<ChainsTools.ChainListing>> {
+      const { listChains } = await loadToolOperations();
+      const { content, details } = listChains(params.family);
+      return { content, details };
     },
   });
 }

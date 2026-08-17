@@ -4,6 +4,7 @@ import { resolveOrFail } from "./shared.js";
 
 export default defineCommand({
   meta: {
+    name: "resolve",
     description: "Resolve a name, symbol, or alias to its canonical chain key",
   },
   args: {

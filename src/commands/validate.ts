@@ -5,6 +5,7 @@ import { resolveOrFail } from "./shared.js";
 
 export default defineCommand({
   meta: {
+    name: "validate",
     description: "Validate an address against a chain's format rules",
   },
   args: {

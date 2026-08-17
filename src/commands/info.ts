@@ -4,6 +4,7 @@ import { resolveOrFail } from "./shared.js";
 
 export default defineCommand({
   meta: {
+    name: "info",
     description: "Show canonical metadata for a chain",
   },
   args: {

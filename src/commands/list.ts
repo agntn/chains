@@ -4,6 +4,7 @@ import { chains, create } from "../index.js";
 
 export default defineCommand({
   meta: {
+    name: "list",
     description: "List every registered chain",
   },
   args: {
