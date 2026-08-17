@@ -1,77 +1,36 @@
-# AGENTS.md — chains
+# AGENTS.md - chains
 
-Scope: blockchain data dictionary — canonical chain info, normalize, inter-lib bridges, address validation.
+Scope: canonical blockchain classes, aliases, and address validation.
 
 ## Key files
 
-- `src/types.ts` — `Chain`, `ChainInfo`, `ChainType` types
-- `src/data.ts` — `CHAIN_DATA`, `CHAIN_ALIASES`, normalize, bridges, guards, assert
-- `src/index.ts` — re-export all public API
-- `src/version.ts` — version string
-- `test/unit/chains.test.ts` — 25 tests (data, aliases, bridges, guards, validation)
+- `src/core/chain.ts` holds `Chain` and the shared family abstractions
+- `src/core/errors.ts` holds the `ChainsError` hierarchy. Never throw a raw `Error`
+- `src/core/registry.ts` is the constructor registry
+- `src/core/resolve.ts` owns the aliases and `getChain`
+- `src/chains/*.ts` is one concrete blockchain class per file
+- `src/index.ts` is the public API and the registration entrypoint
+- `src/cli.ts` plus `src/commands/*.ts` is the citty CLI: `info`, `resolve`, `validate`, `list`
+- `packages/{pi,omp}/extensions/chains.ts` are the agent tools. The OMP file is a full copy, never a re-export
+- `src/version.ts` is the version string
+- `test/unit/chains.test.ts` covers hierarchy, registry, metadata, and validation
 
 ## Shape
 
-Transformer-registry (pure data, no HTTP, no config, no API keys). See [agnostic-library-shapes](../../.aei/wiki/concepts/engineering/agnostic-library-shapes.md).
+Constructor registry. Concrete blockchain classes own their metadata and behavior, the registry owns constructors and hands back instances.
 
 ## Conventions
 
-- ESM-only, 0 runtime deps (pure data + regex)
-- Build: `obuild` (unbuild wrapper), entries: `src/index.ts` + `src/data.ts`
-- Lint/format: `oxlint` + `oxfmt` (`pnpm run fmt`)
-- Test: vitest (`pnpm run test`)
-- `noUncheckedIndexedAccess: true` — use `!` when indexing `CHAIN_DATA`/`CHAIN_ALIASES` with known keys
-- `verbatimModuleSyntax: true` — type imports use `import type`
-- Canonical chain key = 3-letter lowercase string
+- ESM-only. The core imports nothing at runtime, the CLI adds `citty` and `consola`, the extensions need `typebox` and `@earendil-works/pi-coding-agent`
+- Build with `obuild`, entries `src/index.ts` and `src/cli.ts`. `obuild` 0.4 accepts only `cwd`, `entries` and `hooks`, everything else is silently ignored
+- Never set `sideEffects: false`. Registration runs on side-effect imports, so tree-shaking would leave the registry empty
+- Extensions load `dist/`, so `pnpm build` has to run before `tsc -p tsconfig.extensions.json`
+- Lint and format with `oxlint` plus `oxfmt` (`pnpm run fmt`)
+- Test with vitest (`pnpm run test`)
+- `verbatimModuleSyntax: true`, so type imports use `import type`
+- Canonical chain key is a lowercase `ChainKey`
+- Use contextual class names: `EVM extends Chain`, `Ethereum extends EVM`. Do not repeat `Chain` in subclass names
 
 ## Not in scope
 
-RPC calls, wallet creation, transaction building. Those live in rpcx/ubichain/webri.
-
-## Inter-lib bridges
-
-`rpcxChain()`, `blocexChain()`, etc. map canonical `Chain` → library-specific key. If a new library needs a different key, add a bridge here, not a parallel alias in the consuming library.
-
-<!-- gitnexus:start -->
-# GitNexus — Code Intelligence
-
-This project is indexed by GitNexus as **chains** (58 symbols, 71 relationships, 0 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
-
-> Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
-
-## Always Do
-
-- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
-- **MUST run `detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows. For regression review, compare against the default branch: `detect_changes({scope: "compare", base_ref: "main"})`.
-- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
-- When exploring unfamiliar code, use `query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
-- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `context({name: "symbolName"})`.
-
-## Never Do
-
-- NEVER edit a function, class, or method without first running `impact` on it.
-- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
-- NEVER rename symbols with find-and-replace — use `rename` which understands the call graph.
-- NEVER commit changes without running `detect_changes()` to check affected scope.
-
-## Resources
-
-| Resource | Use for |
-|----------|---------|
-| `gitnexus://repo/chains/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/chains/clusters` | All functional areas |
-| `gitnexus://repo/chains/processes` | All execution flows |
-| `gitnexus://repo/chains/process/{name}` | Step-by-step execution trace |
-
-## CLI
-
-| Task | Read this skill file |
-|------|---------------------|
-| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
-| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
-| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
-| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
-| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
-
-<!-- gitnexus:end -->
+RPC calls, wallet creation, transaction building. Those live in rpcx, ubichain and webri.
