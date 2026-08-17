@@ -1,7 +1,7 @@
 import type { Chain } from "./chain.js";
 import { UnsupportedChainError } from "./errors.js";
 import type { ChainKey } from "./types.js";
-import { create } from "./registry.js";
+import { chains, create } from "./registry.js";
 const aliases: Readonly<Record<string, ChainKey>> = {
   eth: "eth",
   ethereum: "eth",
@@ -45,10 +45,28 @@ const aliases: Readonly<Record<string, ChainKey>> = {
   oct: "oct",
   octra: "oct",
 };
+/**
+ * Matches a display name against the registry rather than a second hand-written table.
+ *
+ * The lookup tools print `name`, and the obvious next call feeds that name back in.
+ * Reading names off the registered classes keeps that round trip working for chains
+ * added later, and for renames, without anyone remembering to edit the alias table.
+ * Symbols stay out of it: six chains report ETH, so indexing them would make the
+ * answer depend on registration order.
+ */
+function keyByName(name: string): ChainKey | undefined {
+  for (const key of chains()) {
+    if (create(key).name.toLowerCase() === name) return key;
+  }
+  return undefined;
+}
+
 export function getChain(input?: string): Chain {
-  if (!input) return create("eth");
+  if (input === undefined) return create("eth");
   const alias = input.toLowerCase().trim();
-  const key = Object.hasOwn(aliases, alias) ? aliases[alias] : undefined;
+  // An empty or blank string is a caller mistake, not a request for the default.
+  if (!alias) throw new UnsupportedChainError(input);
+  const key = (Object.hasOwn(aliases, alias) ? aliases[alias] : undefined) ?? keyByName(alias);
   if (!key) throw new UnsupportedChainError(input);
   return create(key);
 }

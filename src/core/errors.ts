@@ -24,7 +24,9 @@ export class UnsupportedChainError extends ChainsError {
   readonly input: string;
 
   constructor(input: string) {
-    super(`Unsupported chain: ${input}`);
+    // Quoted so whitespace-only and control-character input stays visible in logs
+    // instead of producing a message with an invisible or line-broken subject.
+    super(`Unsupported chain: ${JSON.stringify(input)}`);
     this.name = "UnsupportedChainError";
     this.input = input;
   }

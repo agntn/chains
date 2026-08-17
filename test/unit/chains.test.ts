@@ -115,12 +115,12 @@ describe("chain resolution", () => {
   });
 
   it("rejects unknown chains", () => {
-    expect(() => getChain("foobar")).toThrow("Unsupported chain: foobar");
+    expect(() => getChain("foobar")).toThrow('Unsupported chain: "foobar"');
   });
 
   it("rejects inherited object properties as aliases", () => {
     for (const inherited of ["constructor", "__proto__", "tostring", "hasownproperty"]) {
-      expect(() => getChain(inherited)).toThrow(`Unsupported chain: ${inherited}`);
+      expect(() => getChain(inherited)).toThrow(`Unsupported chain: ${JSON.stringify(inherited)}`);
     }
   });
 });
@@ -175,6 +175,137 @@ describe("error hierarchy", () => {
       expect(invalid.chain).toBe("Bitcoin");
       expect(invalid.address).toBe("nope");
       expect(invalid.name).toBe("InvalidAddressError");
+    }
+  });
+});
+
+describe("metadata cross-checks", () => {
+  it("agrees between chainId and the CAIP-2 reference on every EVM chain", () => {
+    // The two encode the same number in different bases, so a typo in one shows up
+    // as a disagreement rather than as anything a type or a lint rule can see.
+    // Linea shipped 0xe704 (Goerli) against eip155:59144 (mainnet) until this ran.
+    const mismatches = chains()
+      .map((key) => create(key))
+      .filter((chain) => chain.chainId && chain.caip2?.startsWith("eip155:"))
+      .filter(
+        (chain) =>
+          Number.parseInt(chain.chainId as string, 16) !==
+          Number(chain.caip2?.slice("eip155:".length)),
+      )
+      .map((chain) => `${chain.key}: ${chain.chainId} vs ${chain.caip2}`);
+
+    expect(mismatches).toEqual([]);
+  });
+
+  it("declares an https explorer and RPC for every chain that has one", () => {
+    for (const chain of chains().map((key) => create(key))) {
+      expect(chain.explorer).toMatch(/^https:\/\//);
+      if (chain.rpcDefault) expect(chain.rpcDefault).toMatch(/^https:\/\//);
+    }
+  });
+});
+
+describe("display name resolution", () => {
+  it("round-trips every registered name back to its own key", () => {
+    // chains_lookup prints `name`, and the obvious next call feeds it back in.
+    for (const key of chains()) {
+      const chain = create(key);
+      expect(getChain(chain.name).key).toBe(key);
+      expect(getChain(chain.name.toUpperCase()).key).toBe(key);
+    }
+  });
+
+  it("still prefers the curated alias table over a name match", () => {
+    expect(getChain("eth").key).toBe("eth");
+    expect(getChain("matic").key).toBe("polygon");
+  });
+
+  it("treats blank input as a mistake but no input as the default", () => {
+    expect(getChain().key).toBe("eth");
+    expect(() => getChain("")).toThrow(UnsupportedChainError);
+    expect(() => getChain("   ")).toThrow(UnsupportedChainError);
+    // Quoted, so a blank subject stays visible in a log line.
+    expect(() => getChain("   ")).toThrow('Unsupported chain: "   "');
+  });
+});
+
+describe("Solana address validation", () => {
+  const solana = create("solana");
+
+  it("accepts real accounts across the full base58 length range", () => {
+    // All three decode to 32 bytes; the System Program is all zero bytes, which
+    // base58 writes as 32 ones, so a character-length window cannot cover them.
+    expect(solana.assertAddress("11111111111111111111111111111111")).toBeTruthy();
+    expect(solana.assertAddress("So11111111111111111111111111111111111111112")).toBeTruthy();
+    expect(solana.assertAddress("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")).toBeTruthy();
+  });
+
+  it("rejects addresses from other base58 chains", () => {
+    // 25-byte payloads: the old {32,44} window called all three valid Solana.
+    expect(() => solana.assertAddress("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => solana.assertAddress("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => solana.assertAddress("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")).toThrow(
+      InvalidAddressError,
+    );
+  });
+
+  it("rejects non-base58 characters", () => {
+    expect(() => solana.assertAddress("0OIl0OIl0OIl0OIl0OIl0OIl0OIl0OIl")).toThrow(
+      InvalidAddressError,
+    );
+  });
+});
+
+describe("Bitcoin address validation", () => {
+  const bitcoin = create("bitcoin");
+
+  it("accepts both legal bech32 cases, including the BIP-173 uppercase vector", () => {
+    // Uppercase is what QR encoders emit, so rejecting it breaks scanned addresses.
+    expect(bitcoin.assertAddress("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")).toBeTruthy();
+    expect(bitcoin.assertAddress("BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4")).toBeTruthy();
+    expect(
+      bitcoin.assertAddress("bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297"),
+    ).toBeTruthy();
+  });
+
+  it("rejects mixed case, which BIP-173 makes invalid", () => {
+    expect(() => bitcoin.assertAddress("bc1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4")).toThrow(
+      InvalidAddressError,
+    );
+  });
+
+  it("rejects characters outside the bech32 charset", () => {
+    // b, i, o and 1 are not in the charset; the old pattern accepted them.
+    expect(() => bitcoin.assertAddress("bc1biobiobiobiobiobiobiobiobiobiobiobiobio")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => bitcoin.assertAddress("bc1bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")).toThrow(
+      InvalidAddressError,
+    );
+  });
+
+  it("still accepts legacy base58 addresses", () => {
+    expect(bitcoin.assertAddress("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")).toBeTruthy();
+    expect(bitcoin.assertAddress("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy")).toBeTruthy();
+  });
+});
+
+describe("validator capability", () => {
+  it("reports which chains can check an address at all", () => {
+    const without = chains()
+      .map((key) => create(key))
+      .filter((chain) => !chain.validatesAddress)
+      .map((chain) => chain.key);
+
+    expect(without).toEqual(["aptos", "sui", "ton", "tron"]);
+    for (const key of without) {
+      expect(() => create(key).assertAddress("anything")).toThrow(
+        AddressValidationUnsupportedError,
+      );
     }
   });
 });

@@ -20,6 +20,17 @@ export abstract class Chain implements ChainInfo {
     return (this.constructor as ChainConstructor).key;
   }
 
+  /**
+   * Whether this chain carries its own address format check.
+   *
+   * The base implementation only throws, so a chain that never overrode it cannot
+   * answer address questions at all. Callers deserve to know that before they ask,
+   * rather than by catching the failure.
+   */
+  get validatesAddress(): boolean {
+    return this.assertAddress !== Chain.prototype.assertAddress;
+  }
+
   assertAddress(_address: string): string {
     throw new AddressValidationUnsupportedError(this.key);
   }
