@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.2.1
+
+[compare changes](https://github.com/agntn/chains/compare/v0.2.0...v0.2.1)
+
+### 🩹 Fixes
+
+- **ci:** Change `gitChecks` to `false` ([1511ca8](https://github.com/agntn/chains/commit/1511ca8))
+
+### ❤️ Contributors
+
+- Oritwoen ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.2.0
 
 
