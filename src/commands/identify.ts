@@ -20,7 +20,7 @@ export default defineCommand({
     },
   },
   run({ args }) {
-    const { matches, unchecked } = identify(args.address);
+    const { matches, unchecked } = identify(args.address.trim());
 
     if (args.json) {
       consola.log(
