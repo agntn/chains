@@ -312,6 +312,20 @@ describe("Bitcoin address validation", () => {
     expect(bitcoin.assertAddress("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")).toBeTruthy();
     expect(bitcoin.assertAddress("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy")).toBeTruthy();
   });
+
+  /**
+   * Base58Check is 25 bytes: version, 20-byte hash, checksum. The System
+   * Program is a 32-byte key that fits the old character-length window, and the
+   * TRON address is 25 bytes under version 0x41 - decoding rejects both.
+   */
+  it("rejects base58 payloads with the wrong byte length or version", () => {
+    expect(() => bitcoin.assertAddress("11111111111111111111111111111111")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => bitcoin.assertAddress("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")).toThrow(
+      InvalidAddressError,
+    );
+  });
 });
 
 describe("address identification", () => {
@@ -336,10 +350,14 @@ describe("address identification", () => {
     expect(unchecked.map((chain) => chain.key)).toEqual(["aptos", "sui", "ton", "tron"]);
   });
 
-  it("reports every format an ambiguous address satisfies", () => {
+  /**
+   * The System Program sat inside Bitcoin's old character-length window, so
+   * identify used to report a false bitcoin match here. Decoding settles it.
+   */
+  it("attributes the Solana System Program to Solana alone", () => {
     const { matches } = identify("11111111111111111111111111111111");
 
-    expect(matches.map((chain) => chain.key)).toEqual(["bitcoin", "solana"]);
+    expect(matches.map((chain) => chain.key)).toEqual(["solana"]);
   });
 });
 

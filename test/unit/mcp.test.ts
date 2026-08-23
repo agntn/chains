@@ -139,11 +139,10 @@ describe("chains MCP server", () => {
   });
 
   /**
-   * The System Program is 32 ones: a real 32-byte Solana account that also fits
-   * the legacy base58 Bitcoin pattern. Reporting both is the honest answer, and
-   * the caveat line exists exactly for this overlap.
+   * The System Program is 32 ones: a 32-byte Solana account that fit Bitcoin's
+   * old character-length window. Decoding keeps the false utxo match out.
    */
-  it("reports every chain whose format an ambiguous address satisfies", async () => {
+  it("does not report a base58 look-alike as a second chain", async () => {
     const client = await connectTestClient();
 
     const response = await client.callTool({
@@ -152,9 +151,9 @@ describe("chains MCP server", () => {
     });
 
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain("matches 2 of 16 checked chains");
-    expect(part?.text).toContain("utxo (1): bitcoin");
+    expect(part?.text).toContain("matches 1 of 16 checked chains");
     expect(part?.text).toContain("solana (1): solana");
+    expect(part?.text).not.toContain("utxo");
   });
 
   it("treats an address matching nothing as an answer, not a tool error", async () => {
