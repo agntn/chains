@@ -412,11 +412,18 @@ describe("Move address validation", () => {
     expect(sui.assertAddress(`0x${"0".repeat(63)}5`)).toBeTruthy();
   });
 
-  it("rejects short forms, and with them every EVM address", () => {
-    expect(() => aptos.assertAddress("0x1")).toThrow(InvalidAddressError);
+  it("accepts the AIP-40 short form of the special addresses", () => {
+    expect(aptos.assertAddress("0x1")).toBe("0x1");
+    expect(sui.assertAddress("0x2")).toBe("0x2");
+  });
+
+  /** Only 1 or 64 digits pass; dropped leading zeros would admit EVM addresses. */
+  it("rejects intermediate short forms, and with them every EVM address", () => {
+    expect(() => aptos.assertAddress("0x12")).toThrow(InvalidAddressError);
     expect(() => sui.assertAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984")).toThrow(
       InvalidAddressError,
     );
+    expect(() => aptos.assertAddress(`0x${"0".repeat(62)}1`)).toThrow(InvalidAddressError);
   });
 });
 
@@ -468,6 +475,12 @@ describe("address identification", () => {
 
   it("narrows a 32-byte hex address to the move family", () => {
     const { matches } = identify(`0x${"0".repeat(63)}1`);
+
+    expect(matches.map((chain) => chain.key)).toEqual(["aptos", "sui"]);
+  });
+
+  it("narrows the short special-address form to the move family too", () => {
+    const { matches } = identify("0x1");
 
     expect(matches.map((chain) => chain.key)).toEqual(["aptos", "sui"]);
   });

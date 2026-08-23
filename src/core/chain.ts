@@ -47,11 +47,13 @@ export abstract class EVM extends Chain {
 }
 
 /**
- * All 32 bytes written out. AIP-40 keeps a short form for the handful of special
- * addresses, but accepting dropped leading zeros would make every EVM address a
+ * All 32 bytes written out, or the one-digit short form AIP-40 defines for the
+ * special addresses 0x0 through 0xf - that is how the framework address 0x1 is
+ * actually written, on Sui as much as on Aptos. Anything in between stays
+ * rejected: accepting dropped leading zeros would make every EVM address a
  * valid move address too, and identify would report a family nobody asked about.
  */
-const MOVE_ADDRESS = /^0x[0-9a-fA-F]{64}$/;
+const MOVE_ADDRESS = /^0x([0-9a-fA-F]{64}|[0-9a-fA-F])$/;
 
 export abstract class Move extends Chain {
   readonly type = "move" as const;
