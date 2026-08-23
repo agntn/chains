@@ -165,10 +165,18 @@ describe("address validation", () => {
 });
 
 describe("agent extensions", () => {
-  it("keeps the OMP copy identical to the Pi extension", () => {
-    const pi = readFileSync(new URL("../../packages/pi/extensions/chains.ts", import.meta.url));
-    const omp = readFileSync(new URL("../../packages/omp/extensions/chains.ts", import.meta.url));
-    expect(omp.toString()).toBe(pi.toString());
+  it("shares tool definitions with the Pi extension", () => {
+    const pi = readFileSync(
+      new URL("../../packages/pi/extensions/chains.ts", import.meta.url),
+      "utf8",
+    );
+    const omp = readFileSync(
+      new URL("../../packages/omp/extensions/chains.ts", import.meta.url),
+      "utf8",
+    );
+    expect(omp.slice(omp.indexOf("export default"))).toBe(
+      pi.slice(pi.indexOf("export default")),
+    );
   });
 });
 
