@@ -11,7 +11,7 @@ Scope: canonical blockchain classes, aliases, and address validation.
 - `src/core/base58.ts` decodes base58 for chains whose address is a key of a known byte length
 - `src/chains/*.ts` is one concrete blockchain class per file
 - `src/index.ts` is the public API and the registration entrypoint
-- `src/cli.ts` plus `src/commands/*.ts` is the citty CLI: `info`, `resolve`, `validate`, `list`, `mcp`
+- `src/cli.ts` plus `src/commands/*.ts` is the citty CLI: `info`, `resolve`, `validate`, `identify`, `list`, `mcp`
 - `src/tool-operations.ts` holds the tool executors shared by MCP, Pi and OMP. No surface reimplements an operation
 - `src/mcp.ts` exports `createMcpServer()`, `src/commands/mcp.ts` runs it over stdio
 - `packages/{pi,omp}/extensions/chains.ts` are the agent tools. The OMP file is a full copy, never a re-export

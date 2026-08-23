@@ -94,7 +94,7 @@ Everything thrown here descends from `ChainsError`, so you catch one type and re
 - `InvalidAddressError` when an address failed its format check, carries `.address` and `.chain`
 - `AddressValidationUnsupportedError` when the chain has no validator, carries `.chain`
 
-Careful with `.chain` on `InvalidAddressError`: it names the validator that rejected the address, not the chain you asked about. Every EVM chain reports `"EVM"`, because they share one validator. Use the key you passed to `create()` if you need to know which chain it was.
+`.chain` holds the canonical key on both, the same value `create()` takes. It used to name whatever read well in the message - `"EVM"` for all thirteen EVM chains, a display name elsewhere - which made the field useless as an identifier.
 
 ## CLI
 
@@ -103,9 +103,10 @@ chains list --type evm            # every registered EVM chain
 chains info matic                 # canonical metadata, add --json for a machine
 chains resolve btc                # bitcoin
 chains validate eth 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984
+chains identify 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984   # which chains accept this format
 ```
 
-`resolve`, `info` and `validate` print a message and exit 1 when they fail. `list` warns and exits 0 when a `--type` filter matches nothing, so don't use it as a check in a script.
+`resolve`, `info` and `validate` print a message and exit 1 when they fail. `list` warns and exits 0 when a `--type` filter matches nothing, so don't use it as a check in a script. `identify` exits 0 even when nothing matches, because that is an answer too.
 
 ## MCP server
 
@@ -113,7 +114,7 @@ chains validate eth 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984
 chains mcp
 ```
 
-Speaks MCP over stdio and exposes the same three tools as the agent extensions: `chains_lookup`, `chains_validate_address` and `chains_list`. Point a client at it:
+Speaks MCP over stdio and exposes the same four tools as the agent extensions: `chains_lookup`, `chains_validate_address`, `chains_identify_address` and `chains_list`. Point a client at it:
 
 ```json
 {
@@ -127,11 +128,13 @@ An MCP client sees the text a tool returns and nothing else, so the text carries
 
 A rejected address is an answer, not a tool error. Only an unresolvable chain or a chain with no validator sets `isError`, because then nothing was checked.
 
+`chains_identify_address` turns validation around: it runs an address of unknown origin through every validator at once and reports the chains that accept the format, grouped by family. Chains without a validator are named as unchecked rather than skipped, so a TRON address matching nothing does not read as proof the address is fake. A match narrows the family and no more - one EVM address is valid on all thirteen EVM chains.
+
 `createMcpServer()` is exported from `@agntn/chains/mcp` for hosts that bring their own transport.
 
 ## Agent extensions
 
-Pi and OMP extensions live in `packages/pi/extensions` and `packages/omp/extensions`. They expose `chains_lookup` for resolving a chain into its metadata, `chains_validate_address` for checking an address, and `chains_list` for the registry.
+Pi and OMP extensions live in `packages/pi/extensions` and `packages/omp/extensions`. They expose `chains_lookup` for resolving a chain into its metadata, `chains_validate_address` for checking an address, `chains_identify_address` for narrowing an address of unknown origin, and `chains_list` for the registry.
 
 All three surfaces call the executors in `src/tool-operations.ts`, so the MCP server and the two extensions answer identically. The extensions add the details the harnesses render; MCP drops them and keeps the text.
 
