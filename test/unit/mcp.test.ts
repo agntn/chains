@@ -19,7 +19,7 @@ afterEach(async () => {
 });
 
 describe("chains MCP server", () => {
-  it("advertises both chain tools as read-only", async () => {
+  it("advertises every chain tool as read-only", async () => {
     const client = await connectTestClient();
 
     const response = await client.listTools();
@@ -27,6 +27,7 @@ describe("chains MCP server", () => {
     expect(response.tools.map((tool) => tool.name)).toEqual([
       "chains_lookup",
       "chains_validate_address",
+      "chains_identify_address",
       "chains_list",
     ]);
     expect(response.tools[0]?.inputSchema).toMatchObject({
@@ -119,6 +120,55 @@ describe("chains MCP server", () => {
     expect(response.content).toEqual([
       { type: "text", text: "Invalid Ethereum (eth) address: not-an-address" },
     ]);
+  });
+
+  it("narrows an unknown address down to its format family", async () => {
+    const client = await connectTestClient();
+
+    const response = await client.callTool({
+      name: "chains_identify_address",
+      arguments: { address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984" },
+    });
+
+    expect(response.isError).not.toBe(true);
+    const [part] = response.content as Array<{ text: string }>;
+    expect(part?.text).toContain("matches 13 of 16 checked chains");
+    expect(part?.text).toContain("evm (13): eth, base, arbitrum");
+    expect(part?.text).toContain("does not prove the address is used");
+    expect(part?.text).toContain("Not checked (no validator): aptos, sui, ton, tron.");
+  });
+
+  /**
+   * The System Program is 32 ones: a 32-byte Solana account that fit Bitcoin's
+   * old character-length window. Decoding keeps the false utxo match out.
+   */
+  it("does not report a base58 look-alike as a second chain", async () => {
+    const client = await connectTestClient();
+
+    const response = await client.callTool({
+      name: "chains_identify_address",
+      arguments: { address: "11111111111111111111111111111111" },
+    });
+
+    const [part] = response.content as Array<{ text: string }>;
+    expect(part?.text).toContain("matches 1 of 16 checked chains");
+    expect(part?.text).toContain("solana (1): solana");
+    expect(part?.text).not.toContain("utxo");
+  });
+
+  it("treats an address matching nothing as an answer, not a tool error", async () => {
+    const client = await connectTestClient();
+
+    const response = await client.callTool({
+      name: "chains_identify_address",
+      arguments: { address: "  nope\n" },
+    });
+
+    expect(response.isError).not.toBe(true);
+    const [part] = response.content as Array<{ text: string }>;
+    expect(part?.text).toContain("nope matches none of the 16 checked chains.");
+    expect(part?.text).not.toContain("does not prove");
+    expect(part?.text).toContain("Not checked (no validator): aptos, sui, ton, tron.");
   });
 
   it("marks a chain without a validator as a tool error", async () => {

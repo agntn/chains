@@ -1,8 +1,7 @@
+import { decodeBase58 } from "../core/base58.js";
 import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 import { register } from "../core/registry.js";
-
-const BASE58_ADDRESS = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/;
 
 // BIP-173 charset, which drops 1, b, i and o so they cannot be misread. An address
 // is all-lowercase or all-uppercase — uppercase is what QR encoders emit — and mixed
@@ -19,9 +18,18 @@ export class Bitcoin extends Chain {
   readonly bip44 = 0;
   readonly caip2 = "bip122:000000000019d6689c085ae165831e93";
 
+  /**
+   * A legacy address is Base58Check: a version byte (0x00 pay-to-pubkey-hash,
+   * 0x05 pay-to-script-hash), a 20-byte hash and a 4-byte checksum, 25 bytes in
+   * all. Decoding is the check the format needs, because a character-length
+   * window lets any 32-byte base58 key through and Solana's System Program is
+   * exactly that. The checksum stays unchecked: this is a format check.
+   */
   override assertAddress(address: string): string {
-    if (!BASE58_ADDRESS.test(address) && !BECH32_ADDRESS.test(address)) {
-      throw new InvalidAddressError("Bitcoin", address);
+    const decoded = decodeBase58(address, 35);
+    const legacy = decoded?.length === 25 && (decoded[0] === 0x00 || decoded[0] === 0x05);
+    if (!legacy && !BECH32_ADDRESS.test(address)) {
+      throw new InvalidAddressError(this.key, address);
     }
     return address;
   }

@@ -41,7 +41,7 @@ const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 export abstract class EVM extends Chain {
   readonly type = "evm" as const;
   override assertAddress(address: string): string {
-    if (!EVM_ADDRESS.test(address)) throw new InvalidAddressError("EVM", address);
+    if (!EVM_ADDRESS.test(address)) throw new InvalidAddressError(this.key, address);
     return address;
   }
 }

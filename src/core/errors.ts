@@ -1,5 +1,7 @@
 /** Chains error hierarchy. */
 
+import type { ChainKey } from "./types.js";
+
 /** Base class for failures surfaced through chains. */
 export class ChainsError extends Error {
   constructor(message: string, options?: ErrorOptions) {
@@ -34,10 +36,17 @@ export class UnsupportedChainError extends ChainsError {
 
 /** An address failed its chain's format check. */
 export class InvalidAddressError extends ChainsError {
-  readonly chain: string;
+  /**
+   * Canonical chain key, usable as an identifier.
+   *
+   * Validators used to pass whatever read well in the message, so the field held
+   * "EVM" for thirteen chains and a display name for the rest. A caller matching
+   * on it got a different vocabulary per chain family.
+   */
+  readonly chain: ChainKey;
   readonly address: string;
 
-  constructor(chain: string, address: string) {
+  constructor(chain: ChainKey, address: string) {
     super(`Invalid ${chain} address: ${address}`);
     this.name = "InvalidAddressError";
     this.chain = chain;
@@ -47,9 +56,9 @@ export class InvalidAddressError extends ChainsError {
 
 /** The chain carries no address validator. */
 export class AddressValidationUnsupportedError extends ChainsError {
-  readonly chain: string;
+  readonly chain: ChainKey;
 
-  constructor(chain: string) {
+  constructor(chain: ChainKey) {
     super(`Address validation is not supported for ${chain}`);
     this.name = "AddressValidationUnsupportedError";
     this.chain = chain;

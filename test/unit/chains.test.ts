@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { decodeBase58 } from "../../src/core/base58.ts";
 import {
   AddressValidationUnsupportedError,
   Arbitrum,
@@ -16,6 +17,7 @@ import {
   create,
   getChain,
   has,
+  identify,
 } from "../../src/index.ts";
 
 describe("chain registry", () => {
@@ -130,7 +132,7 @@ describe("address validation", () => {
     const ethereum = create("eth");
     const address = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
     expect(ethereum.assertAddress(address)).toBe(address);
-    expect(() => ethereum.assertAddress("0x0000")).toThrow("Invalid EVM address");
+    expect(() => ethereum.assertAddress("0x0000")).toThrow("Invalid eth address");
   });
 
   it("uses chain-family validators", () => {
@@ -172,9 +174,28 @@ describe("error hierarchy", () => {
     } catch (error) {
       expect(error).toBeInstanceOf(InvalidAddressError);
       const invalid = error as InvalidAddressError;
-      expect(invalid.chain).toBe("Bitcoin");
+      expect(invalid.chain).toBe("bitcoin");
       expect(invalid.address).toBe("nope");
       expect(invalid.name).toBe("InvalidAddressError");
+      expect(create(invalid.chain).key).toBe("bitcoin");
+    }
+  });
+
+  /**
+   * EVM chains used to report the family and the rest a display name, so the
+   * field could not be fed back into getChain or compared across chains.
+   */
+  it("names the canonical key on every invalid-address error", () => {
+    for (const key of chains()) {
+      const chain = create(key);
+      if (!chain.validatesAddress) continue;
+      try {
+        chain.assertAddress("!");
+        expect.unreachable(`${key} accepted "!"`);
+      } catch (error) {
+        expect(error).toBeInstanceOf(InvalidAddressError);
+        expect((error as InvalidAddressError).chain).toBe(key);
+      }
     }
   });
 });
@@ -291,6 +312,65 @@ describe("Bitcoin address validation", () => {
   it("still accepts legacy base58 addresses", () => {
     expect(bitcoin.assertAddress("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")).toBeTruthy();
     expect(bitcoin.assertAddress("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy")).toBeTruthy();
+  });
+
+  /**
+   * Base58Check is 25 bytes: version, 20-byte hash, checksum. The System
+   * Program is a 32-byte key that fits the old character-length window, and the
+   * TRON address is 25 bytes under version 0x41 - decoding rejects both.
+   */
+  it("rejects base58 payloads with the wrong byte length or version", () => {
+    expect(() => bitcoin.assertAddress("11111111111111111111111111111111")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => bitcoin.assertAddress("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")).toThrow(
+      InvalidAddressError,
+    );
+  });
+});
+
+describe("base58 decoding", () => {
+  /**
+   * Decoding grows a BigInt per character, so its cost is quadratic in length.
+   * The required bound rejects oversized input before that work starts; MCP
+   * caps the address at the schema, but the library and CLI have no such gate.
+   */
+  it("rejects input past the caller's bound before decoding", () => {
+    expect(decodeBase58("z".repeat(36), 35)).toBeUndefined();
+    expect(decodeBase58("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", 35)).toHaveLength(25);
+  });
+});
+
+describe("address identification", () => {
+  it("partitions the registry into matches and unchecked", () => {
+    const { matches, unchecked } = identify("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984");
+
+    expect(matches.map((chain) => chain.key)).toEqual([
+      "eth",
+      "base",
+      "arbitrum",
+      "optimism",
+      "polygon",
+      "bsc",
+      "avalanche",
+      "fantom",
+      "gnosis",
+      "linea",
+      "zksync",
+      "scroll",
+      "bera",
+    ]);
+    expect(unchecked.map((chain) => chain.key)).toEqual(["aptos", "sui", "ton", "tron"]);
+  });
+
+  /**
+   * The System Program sat inside Bitcoin's old character-length window, so
+   * identify used to report a false bitcoin match here. Decoding settles it.
+   */
+  it("attributes the Solana System Program to Solana alone", () => {
+    const { matches } = identify("11111111111111111111111111111111");
+
+    expect(matches.map((chain) => chain.key)).toEqual(["solana"]);
   });
 });
 

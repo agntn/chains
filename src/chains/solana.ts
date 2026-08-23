@@ -17,8 +17,8 @@ export class Solana extends Chain {
     // An account is a 32-byte Ed25519 public key. A character-length window cannot
     // stand in for that: 34-character Bitcoin and TRON addresses decode to 25 bytes
     // and would pass one, while the 32-character System Program is a real account.
-    if (decodeBase58(address)?.length !== 32) {
-      throw new InvalidAddressError("Solana", address);
+    if (decodeBase58(address, 44)?.length !== 32) {
+      throw new InvalidAddressError(this.key, address);
     }
     return address;
   }

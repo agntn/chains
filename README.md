@@ -74,6 +74,7 @@ Registration runs on side-effect imports. Set `sideEffects: false` and the bundl
 - `chains()` returns the registered keys in registration order
 - `has(key)` checks whether a class is registered
 - `getChain(input?)` takes a key, symbol, or alias and gives you an instance, defaulting to Ethereum
+- `identify(address)` partitions the registry by an address: chains whose validator accepts it, and chains with no validator at all
 
 `getChain` matches keys, symbols, and the aliases people actually type, so `matic`, `btc` and `arb` all work. Display names work too, read straight off the registered classes, so whatever `chain.name` prints resolves back to the same chain — `Arbitrum One`, `BNB Chain`, `zkSync Era`. That round trip matters for agents, which get a name out of one call and put it into the next. Symbols stay out of the automatic index: six chains report `ETH`, so matching on them would depend on registration order.
 
@@ -83,7 +84,7 @@ Registration runs on side-effect imports. Set `sideEffects: false` and the bundl
 
 `chain.assertAddress(address)` returns the address when it fits the chain's format and throws when it doesn't. It's a format check, not a checksum, and not proof the address exists on chain. Chains without a validator throw instead of quietly saying yes — `chain.validatesAddress` tells you which ones those are before you ask. A false green light costs more than a false alarm when the caller is about to send funds.
 
-Two of the validators do more than match a shape, because a shape is not enough. Solana decodes base58 and requires exactly 32 bytes: character length cannot separate an account from a Bitcoin or TRON address, since those are 34 characters and 25 bytes, while the System Program is 32 characters and 32 bytes. Bitcoin's bech32 branch uses the BIP-173 charset, which has no `1`, `b`, `i` or `o`, and treats all-lowercase and all-uppercase as valid while rejecting mixed case — uppercase is what QR encoders emit, so rejecting it would fail addresses that spend fine.
+The base58 validators decode, because a shape is not enough. Solana requires exactly 32 decoded bytes: character length cannot separate an account from a Bitcoin or TRON address, since those are 34 characters and 25 bytes, while the System Program is 32 characters and 32 bytes. Bitcoin's legacy branch requires the 25 Base58Check bytes under a `0x00` or `0x05` version: the same System Program fit a character-length window, and decoding is what keeps that false match out. The checksum stays unchecked, this is a format check. Bitcoin's bech32 branch uses the BIP-173 charset, which has no `1`, `b`, `i` or `o`, and treats all-lowercase and all-uppercase as valid while rejecting mixed case - uppercase is what QR encoders emit, so rejecting it would fail addresses that spend fine.
 
 ### Errors
 
@@ -94,7 +95,7 @@ Everything thrown here descends from `ChainsError`, so you catch one type and re
 - `InvalidAddressError` when an address failed its format check, carries `.address` and `.chain`
 - `AddressValidationUnsupportedError` when the chain has no validator, carries `.chain`
 
-Careful with `.chain` on `InvalidAddressError`: it names the validator that rejected the address, not the chain you asked about. Every EVM chain reports `"EVM"`, because they share one validator. Use the key you passed to `create()` if you need to know which chain it was.
+`.chain` holds the canonical key on both, the same value `create()` takes. It used to name whatever read well in the message - `"EVM"` for all thirteen EVM chains, a display name elsewhere - which made the field useless as an identifier.
 
 ## CLI
 
@@ -103,9 +104,10 @@ chains list --type evm            # every registered EVM chain
 chains info matic                 # canonical metadata, add --json for a machine
 chains resolve btc                # bitcoin
 chains validate eth 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984
+chains identify 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984   # which chains accept this format
 ```
 
-`resolve`, `info` and `validate` print a message and exit 1 when they fail. `list` warns and exits 0 when a `--type` filter matches nothing, so don't use it as a check in a script.
+`resolve`, `info` and `validate` print a message and exit 1 when they fail. `list` warns and exits 0 when a `--type` filter matches nothing, so don't use it as a check in a script. `identify` exits 0 even when nothing matches, because that is an answer too.
 
 ## MCP server
 
@@ -113,7 +115,7 @@ chains validate eth 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984
 chains mcp
 ```
 
-Speaks MCP over stdio and exposes the same three tools as the agent extensions: `chains_lookup`, `chains_validate_address` and `chains_list`. Point a client at it:
+Speaks MCP over stdio and exposes the same four tools as the agent extensions: `chains_lookup`, `chains_validate_address`, `chains_identify_address` and `chains_list`. Point a client at it:
 
 ```json
 {
@@ -127,11 +129,13 @@ An MCP client sees the text a tool returns and nothing else, so the text carries
 
 A rejected address is an answer, not a tool error. Only an unresolvable chain or a chain with no validator sets `isError`, because then nothing was checked.
 
+`chains_identify_address` turns validation around: it runs an address of unknown origin through every validator at once and reports the chains that accept the format, grouped by family. Chains without a validator are named as unchecked rather than skipped, so a TRON address matching nothing does not read as proof the address is fake. A match narrows the family and no more - one EVM address is valid on all thirteen EVM chains.
+
 `createMcpServer()` is exported from `@agntn/chains/mcp` for hosts that bring their own transport.
 
 ## Agent extensions
 
-Pi and OMP extensions live in `packages/pi/extensions` and `packages/omp/extensions`. They expose `chains_lookup` for resolving a chain into its metadata, `chains_validate_address` for checking an address, and `chains_list` for the registry.
+Pi and OMP extensions live in `packages/pi/extensions` and `packages/omp/extensions`. They expose `chains_lookup` for resolving a chain into its metadata, `chains_validate_address` for checking an address, `chains_identify_address` for narrowing an address of unknown origin, and `chains_list` for the registry.
 
 All three surfaces call the executors in `src/tool-operations.ts`, so the MCP server and the two extensions answer identically. The extensions add the details the harnesses render; MCP drops them and keeps the text.
 

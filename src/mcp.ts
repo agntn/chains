@@ -8,6 +8,7 @@ import {
 import { Type, type TSchema } from "typebox";
 import { Value } from "typebox/value";
 import {
+  identifyAddress,
   listChains,
   lookupChain,
   validateChainAddress,
@@ -29,6 +30,11 @@ const chainArgument = Type.String({
   maxLength: 64,
 });
 
+/** One length contract for every address parameter; only the wording differs. */
+function addressArgument(description: string): TSchema {
+  return Type.String({ description, minLength: 1, maxLength: 256 });
+}
+
 const tools: ToolDefinition[] = [
   {
     name: "chains_lookup",
@@ -42,16 +48,22 @@ const tools: ToolDefinition[] = [
     name: "chains_validate_address",
     title: "Validate Chain Address",
     description:
-      "Check an address against the format rules of a specific blockchain. This is a format check, not a checksum or on-chain existence check.",
+      "Check an address against the format rules of a specific blockchain. This is a format check, not a checksum or on-chain existence check. When the owning chain is unknown, chains_identify_address checks every validator at once.",
     inputSchema: Type.Object({
       chain: chainArgument,
-      address: Type.String({
-        description: "Address to validate",
-        minLength: 1,
-        maxLength: 256,
-      }),
+      address: addressArgument("Address to validate"),
     }),
     execute: (args) => validateChainAddress(args.chain as string, args.address as string),
+  },
+  {
+    name: "chains_identify_address",
+    title: "Identify Address",
+    description:
+      "Check an address of unknown origin against every registered validator and report which chains accept its format. A match narrows the family rather than proving ownership, and chains without a validator are listed as unchecked instead of silently skipped.",
+    inputSchema: Type.Object({
+      address: addressArgument("Address of unknown origin"),
+    }),
+    execute: (args) => identifyAddress(args.address as string),
   },
   {
     name: "chains_list",
