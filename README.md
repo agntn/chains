@@ -86,6 +86,8 @@ Registration runs on side-effect imports. Set `sideEffects: false` and the bundl
 
 The base58 validators decode, because a shape is not enough. Solana requires exactly 32 decoded bytes: character length cannot separate an account from a Bitcoin or TRON address, since those are 34 characters and 25 bytes, while the System Program is 32 characters and 32 bytes. Bitcoin's legacy branch requires the 25 Base58Check bytes under a `0x00` or `0x05` version: the same System Program fit a character-length window, and decoding is what keeps that false match out. The checksum stays unchecked, this is a format check. Bitcoin's bech32 branch uses the BIP-173 charset, which has no `1`, `b`, `i` or `o`, and treats all-lowercase and all-uppercase as valid while rejecting mixed case - uppercase is what QR encoders emit, so rejecting it would fail addresses that spend fine.
 
+TRON is the same 25 Base58Check bytes under version `0x41`, so decoding is also what keeps it and Bitcoin's legacy form apart. TON takes the TEP-2 friendly form in either base64 alphabet: 36 decoded bytes, a bounceable or non-bounceable tag and one of the two workchains that exist, with the testnet-only flag rejected the way Bitcoin's testnet versions are. Aptos and Sui want all 32 bytes of hex written out, or the one-digit short form AIP-40 defines for the special addresses, which is how the framework address `0x1` is actually written - anything in between stays rejected, because accepting dropped leading zeros would make every EVM address a valid move address too. With those in place every registered chain validates, so `identify` gets an answer out of the whole registry.
+
 ### Errors
 
 Everything thrown here descends from `ChainsError`, so you catch one type and read fields instead of parsing message strings.
@@ -129,7 +131,7 @@ An MCP client sees the text a tool returns and nothing else, so the text carries
 
 A rejected address is an answer, not a tool error. Only an unresolvable chain or a chain with no validator sets `isError`, because then nothing was checked.
 
-`chains_identify_address` turns validation around: it runs an address of unknown origin through every validator at once and reports the chains that accept the format, grouped by family. Chains without a validator are named as unchecked rather than skipped, so a TRON address matching nothing does not read as proof the address is fake. A match narrows the family and no more - one EVM address is valid on all thirteen EVM chains.
+`chains_identify_address` turns validation around: it runs an address of unknown origin through every validator at once and reports the chains that accept the format, grouped by family. A chain without a validator would be named as unchecked rather than skipped, though the list is empty right now because every registered chain validates. A match narrows the family and no more - one EVM address is valid on all thirteen EVM chains.
 
 `createMcpServer()` is exported from `@agntn/chains/mcp` for hosts that bring their own transport.
 
