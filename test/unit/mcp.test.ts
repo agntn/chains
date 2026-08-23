@@ -132,10 +132,10 @@ describe("chains MCP server", () => {
 
     expect(response.isError).not.toBe(true);
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain("matches 13 of 16 checked chains");
+    expect(part?.text).toContain("matches 13 of 20 checked chains");
     expect(part?.text).toContain("evm (13): eth, base, arbitrum");
     expect(part?.text).toContain("does not prove the address is used");
-    expect(part?.text).toContain("Not checked (no validator): aptos, sui, ton, tron.");
+    expect(part?.text).not.toContain("Not checked");
   });
 
   /**
@@ -151,7 +151,7 @@ describe("chains MCP server", () => {
     });
 
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain("matches 1 of 16 checked chains");
+    expect(part?.text).toContain("matches 1 of 20 checked chains");
     expect(part?.text).toContain("solana (1): solana");
     expect(part?.text).not.toContain("utxo");
   });
@@ -166,24 +166,11 @@ describe("chains MCP server", () => {
 
     expect(response.isError).not.toBe(true);
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain("nope matches none of the 16 checked chains.");
+    expect(part?.text).toContain("nope matches none of the 20 checked chains.");
     expect(part?.text).not.toContain("does not prove");
-    expect(part?.text).toContain("Not checked (no validator): aptos, sui, ton, tron.");
+    expect(part?.text).not.toContain("Not checked");
   });
 
-  it("marks a chain without a validator as a tool error", async () => {
-    const client = await connectTestClient();
-
-    const response = await client.callTool({
-      name: "chains_validate_address",
-      arguments: { chain: "aptos", address: "0x1" },
-    });
-
-    expect(response.isError).toBe(true);
-    expect(response.content).toEqual([
-      { type: "text", text: "Aptos (aptos) carries no address validator" },
-    ]);
-  });
   it("enumerates the registry so an agent never has to guess a chain name", async () => {
     const client = await connectTestClient();
 
@@ -240,19 +227,17 @@ describe("chains MCP server", () => {
     expect(text?.text).toContain("caip2: none (no registered CAIP-2 namespace)");
   });
 
-  it("warns in the lookup that a chain cannot validate addresses", async () => {
+  /**
+   * TRON stands in for the chains the validators just reached; the positive
+   * arm of the old warning lives in unchecked.test.ts with a registered
+   * validator-less chain.
+   */
+  it("no longer warns about validation in a lookup, since every chain validates", async () => {
     const client = await connectTestClient();
 
-    const unsupported = await client.callTool({
-      name: "chains_lookup",
-      arguments: { chain: "tron" },
-    });
-    const [tron] = unsupported.content as Array<{ text: string }>;
-    expect(tron?.text).toContain("addressValidation: unsupported");
-
-    const supported = await client.callTool({ name: "chains_lookup", arguments: { chain: "eth" } });
-    const [eth] = supported.content as Array<{ text: string }>;
-    expect(eth?.text).not.toContain("addressValidation");
+    const response = await client.callTool({ name: "chains_lookup", arguments: { chain: "tron" } });
+    const [text] = response.content as Array<{ text: string }>;
+    expect(text?.text).not.toContain("addressValidation");
   });
 
   it("strips whitespace around an address the way it does around a chain", async () => {

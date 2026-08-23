@@ -18,7 +18,20 @@ import {
   getChain,
   has,
   identify,
+  type ChainKey,
 } from "../../src/index.ts";
+
+/**
+ * Every registered chain now overrides assertAddress, so the base contract -
+ * throw instead of quietly saying yes - is exercised through this stand-in.
+ */
+class Unvalidated extends Chain {
+  static readonly key = "unvalidated" as ChainKey;
+  readonly type = "octra" as const;
+  readonly name = "Unvalidated";
+  readonly symbol = "NONE";
+  readonly explorer = "https://example.com";
+}
 
 describe("chain registry", () => {
   it("self-registers every concrete chain class", () => {
@@ -144,9 +157,9 @@ describe("address validation", () => {
     );
   });
 
-  it("rejects validation for unsupported families", () => {
-    expect(() => create("aptos").assertAddress("0x1")).toThrow(
-      "Address validation is not supported for aptos",
+  it("rejects validation when a chain carries no validator", () => {
+    expect(() => new Unvalidated().assertAddress("0x1")).toThrow(
+      "Address validation is not supported for unvalidated",
     );
   });
 });
@@ -164,7 +177,7 @@ describe("error hierarchy", () => {
     expect(() => getChain("foobar")).toThrow(UnsupportedChainError);
     expect(() => getChain("foobar")).toThrow(ChainsError);
     expect(() => create("eth").assertAddress("0x0")).toThrow(InvalidAddressError);
-    expect(() => create("aptos").assertAddress("0x1")).toThrow(AddressValidationUnsupportedError);
+    expect(() => new Unvalidated().assertAddress("0x1")).toThrow(AddressValidationUnsupportedError);
   });
 
   it("carries structured context instead of only a message", () => {
@@ -329,6 +342,84 @@ describe("Bitcoin address validation", () => {
   });
 });
 
+describe("TRON address validation", () => {
+  const tron = create("tron");
+
+  it("accepts mainnet base58check addresses under version 0x41", () => {
+    expect(tron.assertAddress("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")).toBeTruthy();
+    expect(tron.assertAddress("T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb")).toBeTruthy();
+  });
+
+  /** Bitcoin's 25 bytes under 0x00, and two 32-byte Solana keys. */
+  it("rejects base58 payloads with another version or byte length", () => {
+    expect(() => tron.assertAddress("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => tron.assertAddress("11111111111111111111111111111111")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => tron.assertAddress("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")).toThrow(
+      InvalidAddressError,
+    );
+  });
+});
+
+describe("TON address validation", () => {
+  const ton = create("ton");
+
+  /**
+   * The USDT jetton master, bounceable and non-bounceable, then the standard
+   * alphabet spelling of the first, then the masterchain burn address. The
+   * final pair pins base64 digit 62, which the jetton vectors never reach:
+   * the alphabets differ in two characters, 62 as + or - and 63 as / or _.
+   */
+  it("accepts both tags, both workchains and both base64 alphabets", () => {
+    expect(ton.assertAddress("EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs")).toBeTruthy();
+    expect(ton.assertAddress("UQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_p0p")).toBeTruthy();
+    expect(ton.assertAddress("EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id/sDs")).toBeTruthy();
+    expect(ton.assertAddress("Ef8zMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM0vF")).toBeTruthy();
+    expect(ton.assertAddress("EQATExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE-Nt")).toBeTruthy();
+    expect(ton.assertAddress("EQATExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE+Nt")).toBeTruthy();
+  });
+
+  it("rejects the testnet-only flag, unknown tags and unknown workchains", () => {
+    expect(() => ton.assertAddress("kQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_ntm")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => ton.assertAddress("IgCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_oEp")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => ton.assertAddress("EQGxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_k0w")).toThrow(
+      InvalidAddressError,
+    );
+  });
+
+  it("rejects the raw form and strings that are not 48 base64 characters", () => {
+    expect(() =>
+      ton.assertAddress("0:b113a994b5024a16719f691393532eb75959b8e2897d64211458bd57ecdc3623"),
+    ).toThrow(InvalidAddressError);
+    expect(() => ton.assertAddress("EQCxE6mU")).toThrow(InvalidAddressError);
+  });
+});
+
+describe("Move address validation", () => {
+  const aptos = create("aptos");
+  const sui = create("sui");
+
+  it("accepts the full 32-byte hex form on both chains", () => {
+    const framework = `0x${"0".repeat(63)}1`;
+    expect(aptos.assertAddress(framework)).toBe(framework);
+    expect(sui.assertAddress(`0x${"0".repeat(63)}5`)).toBeTruthy();
+  });
+
+  it("rejects short forms, and with them every EVM address", () => {
+    expect(() => aptos.assertAddress("0x1")).toThrow(InvalidAddressError);
+    expect(() => sui.assertAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984")).toThrow(
+      InvalidAddressError,
+    );
+  });
+});
+
 describe("base58 decoding", () => {
   /**
    * Decoding grows a BigInt per character, so its cost is quadratic in length.
@@ -342,7 +433,7 @@ describe("base58 decoding", () => {
 });
 
 describe("address identification", () => {
-  it("partitions the registry into matches and unchecked", () => {
+  it("checks the whole registry and narrows an EVM address to its family", () => {
     const { matches, unchecked } = identify("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984");
 
     expect(matches.map((chain) => chain.key)).toEqual([
@@ -360,7 +451,25 @@ describe("address identification", () => {
       "scroll",
       "bera",
     ]);
-    expect(unchecked.map((chain) => chain.key)).toEqual(["aptos", "sui", "ton", "tron"]);
+    expect(unchecked).toEqual([]);
+  });
+
+  it("attributes a TRON address to TRON alone", () => {
+    const { matches } = identify("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t");
+
+    expect(matches.map((chain) => chain.key)).toEqual(["tron"]);
+  });
+
+  it("attributes a TON friendly address to TON alone", () => {
+    const { matches } = identify("EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs");
+
+    expect(matches.map((chain) => chain.key)).toEqual(["ton"]);
+  });
+
+  it("narrows a 32-byte hex address to the move family", () => {
+    const { matches } = identify(`0x${"0".repeat(63)}1`);
+
+    expect(matches.map((chain) => chain.key)).toEqual(["aptos", "sui"]);
   });
 
   /**
@@ -375,17 +484,11 @@ describe("address identification", () => {
 });
 
 describe("validator capability", () => {
-  it("reports which chains can check an address at all", () => {
-    const without = chains()
-      .map((key) => create(key))
-      .filter((chain) => !chain.validatesAddress)
-      .map((chain) => chain.key);
+  it("is carried by every registered chain", () => {
+    expect(chains().filter((key) => !create(key).validatesAddress)).toEqual([]);
+  });
 
-    expect(without).toEqual(["aptos", "sui", "ton", "tron"]);
-    for (const key of without) {
-      expect(() => create(key).assertAddress("anything")).toThrow(
-        AddressValidationUnsupportedError,
-      );
-    }
+  it("stays false on a chain that never overrode the base validator", () => {
+    expect(new Unvalidated().validatesAddress).toBe(false);
   });
 });
