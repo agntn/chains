@@ -6,24 +6,27 @@ import { Type } from "typebox";
 
 import type * as ChainsTools from "../../../dist/tool-operations.d.mts";
 
-const distributionModuleUrl = new URL("../../../dist/tool-operations.mjs", import.meta.url);
-const sourceModuleUrl = new URL("../../../src/tool-operations.ts", import.meta.url);
+const distributionModulePath = fileURLToPath(
+  new URL("../../../dist/tool-operations.mjs", import.meta.url),
+);
 let toolOperationsPromise: Promise<typeof ChainsTools> | undefined;
 
 /**
  * Loads the built tool executors, falling back to source only when dist is absent.
  *
- * The executors are shared with the MCP server, so the tool answers stay identical
- * across surfaces. Dist comes first because the library's internal imports use `.js`
- * specifiers under NodeNext resolution, which a bare TypeScript-stripping runtime
- * cannot resolve back to `.ts` files. Run `pnpm build` before loading the extension
+ * Both specifiers stay literal on purpose: OMP's compiled loader rewrites bare
+ * dependencies only for imports it can see statically, so an `import(url.href)`
+ * built from a runtime value loses resolution inside the imported graph.
+ * Dist comes first because the library's internal imports use `.js` specifiers
+ * under NodeNext resolution, which a bare TypeScript-stripping runtime cannot
+ * resolve back to `.ts` files. Run `pnpm build` before loading the extension
  * from a working tree.
  */
 function loadToolOperations(): Promise<typeof ChainsTools> {
-  toolOperationsPromise ??= import(
-    existsSync(fileURLToPath(distributionModuleUrl))
-      ? distributionModuleUrl.href
-      : sourceModuleUrl.href
+  toolOperationsPromise ??= (
+    existsSync(distributionModulePath)
+      ? import("../../../dist/tool-operations.mjs")
+      : import("../../../src/tool-operations.ts")
   ) as Promise<typeof ChainsTools>;
 
   return toolOperationsPromise;

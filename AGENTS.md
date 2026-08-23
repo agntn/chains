@@ -30,6 +30,7 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 - Build with `obuild`, entries `src/index.ts`, `src/cli.ts`, `src/mcp.ts` and `src/tool-operations.ts`. `obuild` 0.4 accepts only `cwd`, `entries` and `hooks`, everything else is silently ignored
 - Never set `sideEffects: false`. Registration runs on side-effect imports, so tree-shaking would leave the registry empty
 - Extensions load `dist/tool-operations.mjs`, so `pnpm build` has to run before `tsc -p tsconfig.extensions.json`
+- The OMP loader must keep both dynamic imports literal (`import("../../../dist/tool-operations.mjs")` or `import("../../../src/tool-operations.ts")`). An `import(url.href)` built from a runtime value loses bare-dependency resolution in the compiled OMP binary. Pi may keep the existsSync form.
 - MCP is built on the low-level `Server`, deprecated in the SDK, because `McpServer.registerTool` takes Standard Schema only and `typebox` 1.x is not one. The alternative is a second definition of every parameter
 - An MCP client reads `content` and never `details`, so tool text has to carry whatever the next call needs
 - Lint and format with `oxlint` plus `oxfmt` (`pnpm run fmt`)
