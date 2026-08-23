@@ -11,6 +11,8 @@ export {
 export type { ChainInfo, ChainKey, ChainType } from "./core/types.js";
 export { register, create, chains, has } from "./core/registry.js";
 export { getChain } from "./core/resolve.js";
+export { identify } from "./core/identify.js";
+export type { AddressMatches } from "./core/identify.js";
 export { Ethereum } from "./chains/ethereum.js";
 export { Base } from "./chains/base.js";
 export { Arbitrum } from "./chains/arbitrum.js";

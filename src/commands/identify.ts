@@ -1,6 +1,6 @@
 import { defineCommand } from "citty";
 import consola from "consola";
-import { identifyAddress } from "../tool-operations.js";
+import { identify } from "../index.js";
 
 export default defineCommand({
   meta: {
@@ -20,13 +20,30 @@ export default defineCommand({
     },
   },
   run({ args }) {
-    const { content, details } = identifyAddress(args.address);
+    const { matches, unchecked } = identify(args.address);
 
     if (args.json) {
-      consola.log(JSON.stringify(details, undefined, 2));
+      consola.log(
+        JSON.stringify(
+          {
+            matches: matches.map((chain) => chain.key),
+            unchecked: unchecked.map((chain) => chain.key),
+          },
+          undefined,
+          2,
+        ),
+      );
       return;
     }
 
-    consola.log(content[0]?.text ?? "");
+    if (matches.length === 0) {
+      consola.warn("No registered validator accepts this address");
+    }
+    for (const chain of matches) {
+      consola.log(`${chain.key.padEnd(10)} ${chain.type.padEnd(7)} ${chain.name}`);
+    }
+    if (unchecked.length > 0) {
+      consola.log(`Not checked (no validator): ${unchecked.map((chain) => chain.key).join(", ")}`);
+    }
   },
 });

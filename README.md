@@ -74,6 +74,7 @@ Registration runs on side-effect imports. Set `sideEffects: false` and the bundl
 - `chains()` returns the registered keys in registration order
 - `has(key)` checks whether a class is registered
 - `getChain(input?)` takes a key, symbol, or alias and gives you an instance, defaulting to Ethereum
+- `identify(address)` partitions the registry by an address: chains whose validator accepts it, and chains with no validator at all
 
 `getChain` matches keys, symbols, and the aliases people actually type, so `matic`, `btc` and `arb` all work. Display names work too, read straight off the registered classes, so whatever `chain.name` prints resolves back to the same chain — `Arbitrum One`, `BNB Chain`, `zkSync Era`. That round trip matters for agents, which get a name out of one call and put it into the next. Symbols stay out of the automatic index: six chains report `ETH`, so matching on them would depend on registration order.
 

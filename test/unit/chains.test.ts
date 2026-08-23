@@ -16,6 +16,7 @@ import {
   create,
   getChain,
   has,
+  identify,
 } from "../../src/index.ts";
 
 describe("chain registry", () => {
@@ -309,6 +310,35 @@ describe("Bitcoin address validation", () => {
   it("still accepts legacy base58 addresses", () => {
     expect(bitcoin.assertAddress("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")).toBeTruthy();
     expect(bitcoin.assertAddress("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy")).toBeTruthy();
+  });
+});
+
+describe("address identification", () => {
+  it("partitions the registry into matches and unchecked", () => {
+    const { matches, unchecked } = identify("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984");
+
+    expect(matches.map((chain) => chain.key)).toEqual([
+      "eth",
+      "base",
+      "arbitrum",
+      "optimism",
+      "polygon",
+      "bsc",
+      "avalanche",
+      "fantom",
+      "gnosis",
+      "linea",
+      "zksync",
+      "scroll",
+      "bera",
+    ]);
+    expect(unchecked.map((chain) => chain.key)).toEqual(["aptos", "sui", "ton", "tron"]);
+  });
+
+  it("reports every format an ambiguous address satisfies", () => {
+    const { matches } = identify("11111111111111111111111111111111");
+
+    expect(matches.map((chain) => chain.key)).toEqual(["bitcoin", "solana"]);
   });
 });
 

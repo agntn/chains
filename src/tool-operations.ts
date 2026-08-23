@@ -15,6 +15,7 @@ import {
   ChainsError,
   create,
   getChain,
+  identify,
   InvalidAddressError,
 } from "./index.js";
 
@@ -190,58 +191,42 @@ export function listChains(family?: string): ToolResult<ChainListing> {
 }
 
 /**
- * Runs an address through every registered validator at once.
- *
- * The reverse of {@link validateChainAddress}: instead of confirming a known
- * chain, it narrows an address of unknown origin down to the chains whose format
- * rules accept it. A match is about format only, and every EVM chain shares one
- * format, so the text spells out how far the answer reaches. Chains without a
- * validator are named rather than skipped, because a silent skip would let
- * "matches none" read as "belongs to no registered chain".
+ * Answers {@link identify} in tool form: the partition grouped by family, with
+ * the reach of a format match spelled out. Chains without a validator are named
+ * rather than skipped, because a silent skip would let "matches none" read as
+ * "belongs to no registered chain".
  *
  * @param rawAddress - Address of unknown origin; surrounding whitespace is stripped first.
  */
 export function identifyAddress(rawAddress: string): ToolResult<AddressIdentification> {
   const address = rawAddress.trim();
-  const all = chains().map((key) => create(key));
-  const matches: Chain[] = [];
-  const unchecked: string[] = [];
-
-  for (const chain of all) {
-    if (!chain.validatesAddress) {
-      unchecked.push(chain.key);
-      continue;
-    }
-    try {
-      chain.assertAddress(address);
-      matches.push(chain);
-    } catch (error) {
-      if (!(error instanceof InvalidAddressError)) throw error;
-    }
-  }
-
-  const checked = all.length - unchecked.length;
-  const byFamily = new Map<string, string[]>();
-  for (const chain of matches) {
-    byFamily.set(chain.type, [...(byFamily.get(chain.type) ?? []), chain.key]);
-  }
+  const { matches, unchecked } = identify(address);
+  const checked = chains().length - unchecked.length;
+  const byFamily = Map.groupBy(matches, (chain) => chain.type);
 
   const lines = [
     matches.length === 0
       ? `${address} matches none of the ${checked} checked chains.`
       : `${address} matches ${matches.length} of ${checked} checked chains.`,
-    ...[...byFamily.entries()].map(
-      ([family, keys]) => `${family} (${keys.length}): ${keys.join(", ")}`,
+    ...[...byFamily].map(
+      ([family, group]) =>
+        `${family} (${group.length}): ${group.map((chain) => chain.key).join(", ")}`,
     ),
     matches.length === 0
       ? undefined
       : "A format match narrows the family; it does not prove the address is used on any of these chains.",
-    unchecked.length === 0 ? undefined : `Not checked (no validator): ${unchecked.join(", ")}.`,
+    unchecked.length === 0
+      ? undefined
+      : `Not checked (no validator): ${unchecked.map((chain) => chain.key).join(", ")}.`,
   ].filter(Boolean);
 
   return {
     content: [{ type: "text", text: lines.join("\n") }],
-    details: { address, matches: matches.map((chain) => chain.key), unchecked },
+    details: {
+      address,
+      matches: matches.map((chain) => chain.key),
+      unchecked: unchecked.map((chain) => chain.key),
+    },
   };
 }
 
