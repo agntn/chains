@@ -26,7 +26,7 @@ export class Bitcoin extends Chain {
    * exactly that. The checksum stays unchecked: this is a format check.
    */
   override assertAddress(address: string): string {
-    const decoded = decodeBase58(address);
+    const decoded = decodeBase58(address, 35);
     const legacy = decoded?.length === 25 && (decoded[0] === 0x00 || decoded[0] === 0x05);
     if (!legacy && !BECH32_ADDRESS.test(address)) {
       throw new InvalidAddressError(this.key, address);

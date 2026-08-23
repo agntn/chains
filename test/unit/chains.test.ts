@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { decodeBase58 } from "../../src/core/base58.ts";
 import {
   AddressValidationUnsupportedError,
   Arbitrum,
@@ -325,6 +326,18 @@ describe("Bitcoin address validation", () => {
     expect(() => bitcoin.assertAddress("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")).toThrow(
       InvalidAddressError,
     );
+  });
+});
+
+describe("base58 decoding", () => {
+  /**
+   * Decoding grows a BigInt per character, so its cost is quadratic in length.
+   * The required bound rejects oversized input before that work starts; MCP
+   * caps the address at the schema, but the library and CLI have no such gate.
+   */
+  it("rejects input past the caller's bound before decoding", () => {
+    expect(decodeBase58("z".repeat(36), 35)).toBeUndefined();
+    expect(decodeBase58("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", 35)).toHaveLength(25);
   });
 });
 
