@@ -12,7 +12,7 @@ export class Octra extends Chain {
 
   override assertAddress(address: string): string {
     if (!/^oct[1-9A-HJ-NP-Za-km-z]{43,45}$/.test(address)) {
-      throw new InvalidAddressError("Octra", address);
+      throw new InvalidAddressError(this.key, address);
     }
     return address;
   }

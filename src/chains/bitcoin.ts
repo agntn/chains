@@ -21,7 +21,7 @@ export class Bitcoin extends Chain {
 
   override assertAddress(address: string): string {
     if (!BASE58_ADDRESS.test(address) && !BECH32_ADDRESS.test(address)) {
-      throw new InvalidAddressError("Bitcoin", address);
+      throw new InvalidAddressError(this.key, address);
     }
     return address;
   }

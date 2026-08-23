@@ -18,7 +18,7 @@ export class Solana extends Chain {
     // stand in for that: 34-character Bitcoin and TRON addresses decode to 25 bytes
     // and would pass one, while the 32-character System Program is a real account.
     if (decodeBase58(address)?.length !== 32) {
-      throw new InvalidAddressError("Solana", address);
+      throw new InvalidAddressError(this.key, address);
     }
     return address;
   }

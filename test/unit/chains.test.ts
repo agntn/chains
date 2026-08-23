@@ -130,7 +130,7 @@ describe("address validation", () => {
     const ethereum = create("eth");
     const address = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
     expect(ethereum.assertAddress(address)).toBe(address);
-    expect(() => ethereum.assertAddress("0x0000")).toThrow("Invalid EVM address");
+    expect(() => ethereum.assertAddress("0x0000")).toThrow("Invalid eth address");
   });
 
   it("uses chain-family validators", () => {
@@ -172,9 +172,27 @@ describe("error hierarchy", () => {
     } catch (error) {
       expect(error).toBeInstanceOf(InvalidAddressError);
       const invalid = error as InvalidAddressError;
-      expect(invalid.chain).toBe("Bitcoin");
+      expect(invalid.chain).toBe("bitcoin");
       expect(invalid.address).toBe("nope");
       expect(invalid.name).toBe("InvalidAddressError");
+    }
+  });
+
+  /**
+   * EVM chains used to report the family and the rest a display name, so the
+   * field could not be fed back into getChain or compared across chains.
+   */
+  it("names the canonical key on every invalid-address error", () => {
+    for (const key of chains()) {
+      const chain = create(key);
+      if (!chain.validatesAddress) continue;
+      try {
+        chain.assertAddress("!");
+        expect.unreachable(`${key} accepted "!"`);
+      } catch (error) {
+        expect(error).toBeInstanceOf(InvalidAddressError);
+        expect((error as InvalidAddressError).chain).toBe(key);
+      }
     }
   });
 });
