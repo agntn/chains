@@ -176,6 +176,7 @@ describe("error hierarchy", () => {
       expect(invalid.chain).toBe("bitcoin");
       expect(invalid.address).toBe("nope");
       expect(invalid.name).toBe("InvalidAddressError");
+      expect(create(invalid.chain).key).toBe("bitcoin");
     }
   });
 
