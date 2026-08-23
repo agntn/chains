@@ -67,6 +67,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
     promptGuidelines: [
       "Validation is a format check, not a checksum or on-chain existence check.",
       "Chains without a registered validator report valid: false with a reason.",
+      "When the owning chain is unknown, chains_identify_address checks every validator at once.",
     ],
     parameters: Type.Object({
       chain: Type.String({
@@ -83,6 +84,33 @@ export default function chainsExtension(pi: ExtensionAPI): void {
     async execute(_toolCallId, params): Promise<AgentToolResult<ChainsTools.AddressCheck>> {
       const { validateChainAddress } = await loadToolOperations();
       const { content, details } = validateChainAddress(params.chain, params.address);
+      return { content, details };
+    },
+  });
+
+  pi.registerTool({
+    name: "chains_identify_address",
+    label: "Identify Address",
+    description: "Report which registered blockchains accept an address's format",
+    promptSnippet:
+      "Use chains_identify_address when an address's origin is unknown, to narrow it down to the chains whose format rules accept it.",
+    promptGuidelines: [
+      "A format match narrows the family; every EVM chain shares one address format.",
+      "Chains without a validator are reported as unchecked, not as non-matches.",
+    ],
+    parameters: Type.Object({
+      address: Type.String({
+        description: "Address of unknown origin",
+        minLength: 1,
+        maxLength: 256,
+      }),
+    }),
+    async execute(
+      _toolCallId,
+      params,
+    ): Promise<AgentToolResult<ChainsTools.AddressIdentification>> {
+      const { identifyAddress } = await loadToolOperations();
+      const { content, details } = identifyAddress(params.address);
       return { content, details };
     },
   });
