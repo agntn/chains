@@ -1,6 +1,25 @@
 # Changelog
 
 
+## v0.2.2
+
+[compare changes](https://github.com/agntn/chains/compare/v0.2.1...v0.2.2)
+
+### 🚀 Enhancements
+
+- Identify which chains accept an address ([#1](https://github.com/agntn/chains/pull/1))
+- Add address validators for TRON, TON, Aptos and Sui ([#2](https://github.com/agntn/chains/pull/2))
+- Register Litecoin in the chain registry ([#4](https://github.com/agntn/chains/pull/4))
+
+### 🩹 Fixes
+
+- Keep the OMP loader imports literal ([#3](https://github.com/agntn/chains/pull/3))
+
+### ❤️ Contributors
+
+- Aeitwoen <aeitwoen@gmail.com>
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.2.1
 
 [compare changes](https://github.com/agntn/chains/compare/v0.2.0...v0.2.1)
