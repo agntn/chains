@@ -12,6 +12,7 @@ import "./zksync.js";
 import "./scroll.js";
 import "./berachain.js";
 import "./bitcoin.js";
+import "./litecoin.js";
 import "./solana.js";
 import "./aptos.js";
 import "./sui.js";

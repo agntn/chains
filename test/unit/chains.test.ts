@@ -10,6 +10,7 @@ import {
   Ethereum,
   EVM,
   InvalidAddressError,
+  Litecoin,
   Octra,
   Solana,
   UnsupportedChainError,
@@ -50,6 +51,7 @@ describe("chain registry", () => {
       "scroll",
       "bera",
       "bitcoin",
+      "litecoin",
       "solana",
       "aptos",
       "sui",
@@ -72,6 +74,7 @@ describe("chain registry", () => {
   it("preserves concrete runtime identities", () => {
     expect(create("arbitrum")).toBeInstanceOf(Arbitrum);
     expect(create("bitcoin")).toBeInstanceOf(Bitcoin);
+    expect(create("litecoin")).toBeInstanceOf(Litecoin);
     expect(create("solana")).toBeInstanceOf(Solana);
     expect(create("oct")).toBeInstanceOf(Octra);
   });
@@ -126,6 +129,7 @@ describe("chain resolution", () => {
     expect(getChain("Ethereum")).toBeInstanceOf(Ethereum);
     expect(getChain("matic").key).toBe("polygon");
     expect(getChain("BTC")).toBeInstanceOf(Bitcoin);
+    expect(getChain("ltc")).toBeInstanceOf(Litecoin);
     expect(getChain("octra")).toBeInstanceOf(Octra);
   });
 
@@ -345,6 +349,49 @@ describe("Bitcoin address validation", () => {
       InvalidAddressError,
     );
     expect(() => bitcoin.assertAddress("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")).toThrow(
+      InvalidAddressError,
+    );
+  });
+});
+
+describe("Litecoin address validation", () => {
+  const litecoin = create("litecoin");
+
+  it("accepts both legal bech32 cases under the ltc prefix", () => {
+    expect(litecoin.assertAddress("ltc1qnnvfl0aguajj3ugfwx02zk5kzqznrd0dv2lwya")).toBeTruthy();
+    expect(litecoin.assertAddress("LTC1QNNVFL0AGUAJJ3UGFWX02ZK5KZQZNRD0DV2LWYA")).toBeTruthy();
+  });
+
+  it("rejects mixed case, which BIP-173 makes invalid", () => {
+    expect(() => litecoin.assertAddress("ltc1QNNVFL0AGUAJJ3UGFWX02ZK5KZQZNRD0DV2LWYA")).toThrow(
+      InvalidAddressError,
+    );
+  });
+
+  it("accepts legacy base58 addresses under versions 0x30 and 0x32", () => {
+    expect(litecoin.assertAddress("LYhttvnKawAv6RcHQ4eBkNtifuiEA99PFe")).toBeTruthy();
+    expect(litecoin.assertAddress("MUB2Z9EcLdxHkiyWJXqAfPAkVpnH9xVFB1")).toBeTruthy();
+  });
+
+  /**
+   * Bitcoin's 0x00 and 0x05 versions stay rejected, the deprecated shared
+   * 0x05 script-hash format included, so `identify` never reports a `3...`
+   * address as both chains. Litecoin does not accept them either way.
+   */
+  it("rejects Bitcoin base58 versions", () => {
+    expect(() => litecoin.assertAddress("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => litecoin.assertAddress("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy")).toThrow(
+      InvalidAddressError,
+    );
+  });
+
+  it("keeps Litecoin base58 versions out of Bitcoin", () => {
+    expect(() => create("bitcoin").assertAddress("LYhttvnKawAv6RcHQ4eBkNtifuiEA99PFe")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => create("bitcoin").assertAddress("MUB2Z9EcLdxHkiyWJXqAfPAkVpnH9xVFB1")).toThrow(
       InvalidAddressError,
     );
   });

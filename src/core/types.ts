@@ -13,6 +13,7 @@ export type ChainKey =
   | "scroll"
   | "bera"
   | "bitcoin"
+  | "litecoin"
   | "solana"
   | "aptos"
   | "sui"
