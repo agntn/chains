@@ -14,6 +14,7 @@ export type ChainKey =
   | "bera"
   | "bitcoin"
   | "litecoin"
+  | "pepecoin"
   | "cardano"
   | "solana"
   | "aptos"

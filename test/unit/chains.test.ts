@@ -13,6 +13,7 @@ import {
   InvalidAddressError,
   Litecoin,
   Octra,
+  Pepecoin,
   Solana,
   UnsupportedChainError,
   chains,
@@ -53,6 +54,7 @@ describe("chain registry", () => {
       "bera",
       "bitcoin",
       "litecoin",
+      "pepecoin",
       "cardano",
       "solana",
       "aptos",
@@ -85,6 +87,7 @@ describe("chain registry", () => {
     expect(create("arbitrum")).toBeInstanceOf(Arbitrum);
     expect(create("bitcoin")).toBeInstanceOf(Bitcoin);
     expect(create("litecoin")).toBeInstanceOf(Litecoin);
+    expect(create("pepecoin")).toBeInstanceOf(Pepecoin);
     expect(create("cardano")).toBeInstanceOf(Cardano);
     expect(create("solana")).toBeInstanceOf(Solana);
     expect(create("oct")).toBeInstanceOf(Octra);
@@ -141,6 +144,7 @@ describe("chain resolution", () => {
     expect(getChain("matic").key).toBe("polygon");
     expect(getChain("BTC")).toBeInstanceOf(Bitcoin);
     expect(getChain("ltc")).toBeInstanceOf(Litecoin);
+    expect(getChain("pep")).toBeInstanceOf(Pepecoin);
     expect(getChain("ada")).toBeInstanceOf(Cardano);
     expect(getChain("octra")).toBeInstanceOf(Octra);
   });
@@ -190,9 +194,7 @@ describe("agent extensions", () => {
       new URL("../../packages/omp/extensions/chains.ts", import.meta.url),
       "utf8",
     );
-    expect(omp.slice(omp.indexOf("export default"))).toBe(
-      pi.slice(pi.indexOf("export default")),
-    );
+    expect(omp.slice(omp.indexOf("export default"))).toBe(pi.slice(pi.indexOf("export default")));
   });
 });
 
@@ -406,6 +408,58 @@ describe("Litecoin address validation", () => {
     expect(() => create("bitcoin").assertAddress("MUB2Z9EcLdxHkiyWJXqAfPAkVpnH9xVFB1")).toThrow(
       InvalidAddressError,
     );
+  });
+});
+
+describe("Pepecoin address validation", () => {
+  const pepecoin = create("pepecoin");
+
+  /** Two vectors from the chain's own base58_keys_valid.json, then a live address. */
+  it("accepts base58 addresses under version 0x38", () => {
+    expect(pepecoin.assertAddress("PftB3JYp6r3PPkiLPoPoT6vdS77NR4mhyb")).toBeTruthy();
+    expect(pepecoin.assertAddress("Ppz7uceiVaUdYY7nC5qCAKJ9ktxJCkeLjT")).toBeTruthy();
+    expect(pepecoin.assertAddress("PqqJgKpAcMqoBaiy3aNHuR4SSLPdTz194q")).toBeTruthy();
+  });
+
+  /** Version 0x16 writes a leading `9` or an `A`, so both ends of the range are here. */
+  it("accepts script-hash addresses under version 0x16", () => {
+    expect(pepecoin.assertAddress("9xgJusiTHMsinDmj4KyxVj8LNskVaGkSGn")).toBeTruthy();
+    expect(pepecoin.assertAddress("ABqjF3xMMj67obtrKiCSoM6MxFCNhtVTvu")).toBeTruthy();
+  });
+
+  /** Bitcoin, Litecoin and TRON versions, plus Dogecoin's 0x1e, which the fork dropped. */
+  it("rejects base58 addresses under another chain's version", () => {
+    for (const address of [
+      "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+      "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy",
+      "LYhttvnKawAv6RcHQ4eBkNtifuiEA99PFe",
+      "MUB2Z9EcLdxHkiyWJXqAfPAkVpnH9xVFB1",
+      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+      "DD4KSSuBJqcjuTcvUg1CgUKeurPUFeEZkE",
+    ]) {
+      expect(() => pepecoin.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  /** The first vector above cut to 24 bytes, still 0x38, then a 32-byte Solana key. */
+  it("rejects base58 payloads that are not 25 bytes", () => {
+    expect(() => pepecoin.assertAddress("68uNm2Fup6DmwzwE1BWdohK3N6TpSqtN4")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => pepecoin.assertAddress("11111111111111111111111111111111")).toThrow(
+      InvalidAddressError,
+    );
+  });
+
+  it("keeps Pepecoin base58 versions out of Bitcoin and Litecoin", () => {
+    for (const key of ["bitcoin", "litecoin"] as const) {
+      expect(() => create(key).assertAddress("PftB3JYp6r3PPkiLPoPoT6vdS77NR4mhyb")).toThrow(
+        InvalidAddressError,
+      );
+      expect(() => create(key).assertAddress("9xgJusiTHMsinDmj4KyxVj8LNskVaGkSGn")).toThrow(
+        InvalidAddressError,
+      );
+    }
   });
 });
 
@@ -638,6 +692,12 @@ describe("address identification", () => {
     const { matches } = identify("0x1");
 
     expect(matches.map((chain) => chain.key)).toEqual(["aptos", "sui"]);
+  });
+
+  it("attributes a Pepecoin address to Pepecoin alone", () => {
+    const { matches } = identify("PftB3JYp6r3PPkiLPoPoT6vdS77NR4mhyb");
+
+    expect(matches.map((chain) => chain.key)).toEqual(["pepecoin"]);
   });
 
   it("attributes a Shelley address to Cardano alone", () => {

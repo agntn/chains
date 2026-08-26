@@ -14,6 +14,7 @@ import { Linea } from "./linea.js";
 import { Litecoin } from "./litecoin.js";
 import { Octra } from "./octra.js";
 import { Optimism } from "./optimism.js";
+import { Pepecoin } from "./pepecoin.js";
 import { Polygon } from "./polygon.js";
 import { Scroll } from "./scroll.js";
 import { Solana } from "./solana.js";
@@ -39,6 +40,7 @@ export const builtins: readonly ChainConstructor[] = [
   Berachain,
   Bitcoin,
   Litecoin,
+  Pepecoin,
   Cardano,
   Solana,
   Aptos,
