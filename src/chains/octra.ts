@@ -2,7 +2,7 @@ import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 
 export class Octra extends Chain {
-  static readonly key = "oct" as const;
+  static readonly key = "octra" as const;
   readonly type = "octra" as const;
   readonly name = "Octra";
   readonly symbol = "OCT";

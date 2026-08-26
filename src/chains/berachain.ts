@@ -1,7 +1,7 @@
 import { EVM } from "../core/chain.js";
 
 export class Berachain extends EVM {
-  static readonly key = "bera" as const;
+  static readonly key = "berachain" as const;
   readonly name = "Berachain";
   readonly symbol = "BERA";
   readonly explorer = "https://berascan.com";

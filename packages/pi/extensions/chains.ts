@@ -29,6 +29,13 @@ function loadToolOperations(): Promise<typeof ChainsTools> {
   return toolOperationsPromise;
 }
 
+/** One chain argument for every tool, so all three surfaces describe it the same way. */
+const chainArgument = Type.String({
+  description: "Chain key, name, symbol, or alias (for example: ethereum, matic, btc)",
+  minLength: 1,
+  maxLength: 64,
+});
+
 export default function chainsExtension(pi: ExtensionAPI): void {
   pi.registerTool({
     name: "chains_lookup",
@@ -42,11 +49,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
       "Prefer this over hardcoding chain IDs, BIP-44 coin types, or explorer URLs.",
     ],
     parameters: Type.Object({
-      chain: Type.String({
-        description: "Chain key, name, symbol, or alias (for example: eth, matic, btc)",
-        minLength: 1,
-        maxLength: 64,
-      }),
+      chain: chainArgument,
     }),
     async execute(
       _toolCallId,
@@ -70,11 +73,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
       "When the owning chain is unknown, chains_identify_address checks every validator at once.",
     ],
     parameters: Type.Object({
-      chain: Type.String({
-        description: "Chain key, name, symbol, or alias",
-        minLength: 1,
-        maxLength: 64,
-      }),
+      chain: chainArgument,
       address: Type.String({
         description: "Address to validate",
         minLength: 1,

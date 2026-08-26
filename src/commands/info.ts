@@ -20,7 +20,7 @@ export default defineCommand({
     },
   },
   run({ args }) {
-    const chain = resolveOrFail(args.chain ?? "eth");
+    const chain = resolveOrFail(args.chain ?? "ethereum");
     if (!chain) return;
 
     if (args.json) {

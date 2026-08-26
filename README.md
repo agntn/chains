@@ -19,7 +19,7 @@ pnpm add @agntn/chains
 ```typescript
 import { Ethereum, EVM, create, getChain } from "@agntn/chains";
 
-const ethereum = create("eth");
+const ethereum = create("ethereum");
 
 ethereum instanceof Ethereum; // true
 ethereum instanceof EVM; // true
@@ -75,6 +75,8 @@ One list puts them in the registry: `builtins` in `src/chains/index.ts`. No modu
 - `has(key)` checks whether a class is registered
 - `getChain(input?)` takes a key, symbol, or alias and gives you an instance, defaulting to Ethereum
 - `identify(address)` partitions the registry by an address: chains whose validator accepts it, and chains with no validator at all
+
+Keys name the chain rather than its ticker, so it is `ethereum`, `berachain` and `octra`. The ticker spellings a caller may already be holding, `eth`, `bera` and `oct`, resolve as aliases.
 
 `getChain` matches keys, symbols, and the aliases people actually type, so `matic`, `btc` and `arb` all work. Display names work too, read straight off the registered classes, so whatever `chain.name` prints resolves back to the same chain — `Arbitrum One`, `BNB Chain`, `zkSync Era`. That round trip matters for agents, which get a name out of one call and put it into the next. Symbols stay out of the automatic index: six chains report `ETH`, so matching on them would depend on registration order.
 
@@ -165,4 +167,4 @@ Optional fields stay empty when the chain has no registered value. Octra has no 
 
 ## Supported chains
 
-`eth`, `base`, `arbitrum`, `optimism`, `polygon`, `bsc`, `avalanche`, `fantom`, `gnosis`, `linea`, `zksync`, `scroll`, `bera`, `bitcoin`, `litecoin`, `pepecoin`, `cardano`, `solana`, `aptos`, `sui`, `ton`, `tron`, and `oct`.
+`ethereum`, `base`, `arbitrum`, `optimism`, `polygon`, `bsc`, `avalanche`, `fantom`, `gnosis`, `linea`, `zksync`, `scroll`, `berachain`, `bitcoin`, `litecoin`, `pepecoin`, `cardano`, `solana`, `aptos`, `sui`, `ton`, `tron`, and `octra`.

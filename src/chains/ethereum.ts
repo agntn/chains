@@ -1,7 +1,7 @@
 import { EVM } from "../core/chain.js";
 
 export class Ethereum extends EVM {
-  static readonly key = "eth" as const;
+  static readonly key = "ethereum" as const;
   readonly name = "Ethereum";
   readonly symbol = "ETH";
   readonly explorer = "https://etherscan.io";

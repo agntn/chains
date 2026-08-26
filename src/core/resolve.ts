@@ -5,12 +5,12 @@ import { chains, create } from "./registry.js";
 /**
  * Only spellings the registry cannot answer itself. Canonical keys resolve
  * straight off the registry, so a chain listed here under its own key is dead
- * weight; the table used to require exactly that, and a chain missing its
- * self-entry, like `bera`, could not be resolved by key at all.
+ * weight; the table used to require exactly that, and a chain whose display
+ * name shares no spelling with its key could not be resolved by key at all.
  */
 const aliases: Readonly<Record<string, ChainKey>> = {
-  ethereum: "eth",
-  mainnet: "eth",
+  eth: "ethereum",
+  mainnet: "ethereum",
   coinbase: "base",
   arb: "arbitrum",
   arb1: "arbitrum",
@@ -24,7 +24,7 @@ const aliases: Readonly<Record<string, ChainKey>> = {
   ftm: "fantom",
   xdai: "gnosis",
   "zksync-era": "zksync",
-  berachain: "bera",
+  bera: "berachain",
   btc: "bitcoin",
   ltc: "litecoin",
   pep: "pepecoin",
@@ -32,7 +32,7 @@ const aliases: Readonly<Record<string, ChainKey>> = {
   sol: "solana",
   apt: "aptos",
   trx: "tron",
-  octra: "oct",
+  oct: "octra",
 };
 /**
  * Matches a display name against the registry rather than a second hand-written table.
@@ -51,7 +51,7 @@ function keyByName(name: string): ChainKey | undefined {
 }
 
 export function getChain(input?: string): Chain {
-  if (input === undefined) return create("eth");
+  if (input === undefined) return create("ethereum");
   const alias = input.toLowerCase().trim();
   // An empty or blank string is a caller mistake, not a request for the default.
   if (!alias) throw new UnsupportedChainError(input);

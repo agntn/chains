@@ -1,5 +1,5 @@
 export type ChainKey =
-  | "eth"
+  | "ethereum"
   | "base"
   | "arbitrum"
   | "optimism"
@@ -11,7 +11,7 @@ export type ChainKey =
   | "linea"
   | "zksync"
   | "scroll"
-  | "bera"
+  | "berachain"
   | "bitcoin"
   | "litecoin"
   | "pepecoin"
@@ -21,7 +21,7 @@ export type ChainKey =
   | "sui"
   | "ton"
   | "tron"
-  | "oct";
+  | "octra";
 export type ChainType = "evm" | "utxo" | "solana" | "move" | "ton" | "tron" | "octra";
 export interface ChainInfo {
   readonly name: string;
