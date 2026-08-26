@@ -27,6 +27,7 @@ export { Scroll } from "./chains/scroll.js";
 export { Berachain } from "./chains/berachain.js";
 export { Bitcoin } from "./chains/bitcoin.js";
 export { Litecoin } from "./chains/litecoin.js";
+export { Pepecoin } from "./chains/pepecoin.js";
 export { Cardano } from "./chains/cardano.js";
 export { Solana } from "./chains/solana.js";
 export { Aptos } from "./chains/aptos.js";
