@@ -55,9 +55,9 @@ Chain (abstract)
 └── Octra
 ```
 
-Each chain is its own class holding its own metadata. `EVM` and `Move` own the family type and the address format, and everything else is declared per class, down to the coin type all thirteen EVM chains repeat. Importing the package registers all of them.
+Each chain is its own class holding its own metadata. `EVM` and `Move` own the family type and the address format, and everything else is declared per class, down to the coin type all thirteen EVM chains repeat.
 
-Registration runs on side-effect imports. Set `sideEffects: false` and the bundler eats the `register()` calls, so `create("eth")` throws on a key that is right there in the source. Bundler docs and package linters both suggest that flag, and nothing complains until a production build hands you an empty registry.
+One list puts them in the registry: `builtins` in `src/chains/index.ts`. No module registers itself as it loads, so the CLI is the only entry that runs anything on import, and `sideEffects` says so, which lets a bundler drop whatever your project never touches. The cost is that a chain file counts for nothing until its class joins that list, and a test compares the two so it cannot drift quietly. `register()` is still there for chains this package does not ship.
 
 ## API
 

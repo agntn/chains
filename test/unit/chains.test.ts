@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { decodeBase58 } from "../../src/core/base58.ts";
 import {
   AddressValidationUnsupportedError,
@@ -36,7 +36,7 @@ class Unvalidated extends Chain {
 }
 
 describe("chain registry", () => {
-  it("self-registers every concrete chain class", () => {
+  it("registers every built-in chain in list order", () => {
     expect(chains()).toEqual([
       "eth",
       "base",
@@ -62,6 +62,14 @@ describe("chain registry", () => {
       "oct",
     ]);
     expect(has("eth")).toBe(true);
+  });
+
+  /** Catches a chain file that was written but never added to `builtins`. */
+  it("lists every chain file in the registry", () => {
+    const files = readdirSync(new URL("../../src/chains/", import.meta.url)).filter(
+      (name) => name.endsWith(".ts") && name !== "index.ts",
+    );
+    expect(chains()).toHaveLength(files.length);
   });
 
   it("constructs a fresh concrete instance", () => {

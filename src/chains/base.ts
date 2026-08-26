@@ -1,5 +1,4 @@
 import { EVM } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class Base extends EVM {
   static readonly key = "base" as const;
@@ -11,5 +10,3 @@ export class Base extends EVM {
   readonly caip2 = "eip155:8453";
   readonly rpcDefault = "https://base-rpc.publicnode.com";
 }
-
-register(Base);

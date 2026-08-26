@@ -1,7 +1,6 @@
 import { decodeBase58 } from "../core/base58.js";
 import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
-import { register } from "../core/registry.js";
 
 // Same BIP-173 charset and casing rules as Bitcoin, under Litecoin's `ltc` prefix.
 const BECH32_ADDRESS =
@@ -33,5 +32,3 @@ export class Litecoin extends Chain {
     return address;
   }
 }
-
-register(Litecoin);

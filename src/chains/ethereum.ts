@@ -1,5 +1,4 @@
 import { EVM } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class Ethereum extends EVM {
   static readonly key = "eth" as const;
@@ -11,5 +10,3 @@ export class Ethereum extends EVM {
   readonly caip2 = "eip155:1";
   readonly rpcDefault = "https://ethereum-rpc.publicnode.com";
 }
-
-register(Ethereum);

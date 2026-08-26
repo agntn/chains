@@ -1,7 +1,6 @@
 import { decodeBase58 } from "../core/base58.js";
 import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
-import { register } from "../core/registry.js";
 
 // BIP-173 charset, which drops 1, b, i and o so they cannot be misread. An address
 // is all-lowercase or all-uppercase — uppercase is what QR encoders emit — and mixed
@@ -34,5 +33,3 @@ export class Bitcoin extends Chain {
     return address;
   }
 }
-
-register(Bitcoin);

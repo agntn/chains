@@ -1,7 +1,6 @@
 import { decodeBase58 } from "../core/base58.js";
 import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
-import { register } from "../core/registry.js";
 
 export class Tron extends Chain {
   static readonly key = "tron" as const;
@@ -27,5 +26,3 @@ export class Tron extends Chain {
     return address;
   }
 }
-
-register(Tron);

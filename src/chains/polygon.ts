@@ -1,5 +1,4 @@
 import { EVM } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class Polygon extends EVM {
   static readonly key = "polygon" as const;
@@ -11,5 +10,3 @@ export class Polygon extends EVM {
   readonly caip2 = "eip155:137";
   readonly rpcDefault = "https://polygon-bor-rpc.publicnode.com";
 }
-
-register(Polygon);

@@ -1,9 +1,12 @@
-import { Chain } from "./chain.js";
-import type { ChainConstructor } from "./chain.js";
+import { builtins } from "../chains/index.js";
+import type { Chain, ChainConstructor } from "./chain.js";
 import { UnknownChainError } from "./errors.js";
 import type { ChainKey } from "./types.js";
 
-const registry = new Map<ChainKey, ChainConstructor>();
+/** Seeded from `builtins`, and `register` keeps it open. */
+const registry = new Map<ChainKey, ChainConstructor>(
+  builtins.map((chainClass) => [chainClass.key, chainClass] as const),
+);
 export function register(chainClass: ChainConstructor): void {
   registry.set(chainClass.key, chainClass);
 }

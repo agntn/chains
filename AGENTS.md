@@ -11,7 +11,8 @@ Scope: canonical blockchain classes, aliases, and address validation.
 - `src/core/identify.ts` partitions the registry by an address: matching validators and unchecked chains
 - `src/core/base58.ts` decodes base58 for chains that check the bytes behind an address
 - `src/chains/*.ts` is one concrete blockchain class per file
-- `src/index.ts` is the public API and the registration entrypoint
+- `src/chains/index.ts` holds `builtins`, the ordered list the registry is seeded from. A chain file that is not in it is not in the registry
+- `src/index.ts` is the public API
 - `src/cli.ts` plus `src/commands/*.ts` is the citty CLI: `info`, `resolve`, `validate`, `identify`, `list`, `mcp`
 - `src/tool-operations.ts` holds the tool executors shared by MCP, Pi and OMP. No surface reimplements an operation
 - `src/mcp.ts` exports `createMcpServer()`, `src/commands/mcp.ts` runs it over stdio
@@ -28,7 +29,7 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 
 - ESM-only. The core imports nothing at runtime, the CLI adds `citty` and `consola`, the MCP server adds `@modelcontextprotocol/sdk`, the extensions need `typebox` and `@earendil-works/pi-coding-agent`
 - Build with `obuild`, entries `src/index.ts`, `src/cli.ts`, `src/mcp.ts` and `src/tool-operations.ts`. `obuild` 0.4 accepts only `cwd`, `entries` and `hooks`, everything else is silently ignored
-- Never set `sideEffects: false`. Registration runs on side-effect imports, so tree-shaking would leave the registry empty
+- `sideEffects` names `dist/cli.mjs` and nothing else. That holds only while no module registers itself on import: put a `register()` call back at the top of a chain file and the class reaches the registry through a bare import, which a tree-shaker is free to drop. New chains go in `builtins`
 - Extensions load `dist/tool-operations.mjs`, so `pnpm build` has to run before `tsc -p tsconfig.extensions.json`
 - The OMP loader must keep both dynamic imports literal (`import("../../../dist/tool-operations.mjs")` or `import("../../../src/tool-operations.ts")`). An `import(url.href)` built from a runtime value loses bare-dependency resolution in the compiled OMP binary. Pi may keep the existsSync form.
 - MCP is built on the low-level `Server`, deprecated in the SDK, because `McpServer.registerTool` takes Standard Schema only and `typebox` 1.x is not one. The alternative is a second definition of every parameter

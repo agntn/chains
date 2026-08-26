@@ -1,5 +1,4 @@
 import { EVM } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class Arbitrum extends EVM {
   static readonly key = "arbitrum" as const;
@@ -11,5 +10,3 @@ export class Arbitrum extends EVM {
   readonly caip2 = "eip155:42161";
   readonly rpcDefault = "https://arbitrum-one-rpc.publicnode.com";
 }
-
-register(Arbitrum);
