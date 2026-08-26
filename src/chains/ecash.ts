@@ -15,15 +15,11 @@ export class Ecash extends Chain {
   readonly bip44 = 899;
 
   /**
-   * CashAddr: a version byte and a 20-byte hash, 42 charset characters with
-   * the checksum. Version 0x00 pay-to-pubkey-hash writes a leading `q`, 0x08
-   * pay-to-script-hash a `p`, and the larger hash sizes the spec reserves stay
-   * out because no eCash script pays to them. The `ecash:` prefix is optional,
-   * as it is in upstream's own ecashaddrjs. The checksum stays unchecked: this
-   * is a format check, so a prefixless Bitcoin Cash address passes, the two
-   * encodings differing only in that checksum. Legacy base58 stays out: eCash
-   * kept Bitcoin's 0x00 and 0x05 versions, so accepting them would make every
-   * `1...` and `3...` address identify as both chains.
+   * CashAddr: version 0x00 pay-to-pubkey-hash writes a leading `q`, 0x08
+   * pay-to-script-hash a `p`, 42 charset characters, prefix optional as in
+   * upstream's ecashaddrjs. The checksum stays unchecked, so a prefixless
+   * Bitcoin Cash address passes. Legacy base58 stays out: it is byte-identical
+   * to a Bitcoin address.
    */
   override assertAddress(address: string): string {
     if (!CASHADDR_ADDRESS.test(address)) {
