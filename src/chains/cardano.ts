@@ -14,6 +14,23 @@ const SHELLEY_ADDRESS =
 const STAKE_ADDRESS =
   /^(stake1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{53}|STAKE1[QPZRY9X8GF2TVDW0S3JN54KHCE6MUA7L]{53})$/;
 
+/**
+ * Structural check of the Byron CBOR envelope: array(2), tag(24), a byte
+ * string whose payload opens as the spec's three-item array, then a CRC head
+ * that must match the bytes it claims. The CRC value itself stays unverified.
+ */
+function isByronEnvelope(decoded: Uint8Array): boolean {
+  if (decoded[0] !== 0x82 || decoded[1] !== 0xd8 || decoded[2] !== 0x18 || decoded[3] !== 0x58) {
+    return false;
+  }
+  if (decoded[5] !== 0x83) return false;
+  const payloadLength = decoded[4] ?? 0;
+  const head = decoded[5 + payloadLength];
+  if (head === undefined) return false;
+  const crcBytes = head <= 0x17 ? 1 : head === 0x18 ? 2 : head === 0x19 ? 3 : head === 0x1a ? 5 : 0;
+  return crcBytes > 0 && decoded.length === 5 + payloadLength + crcBytes;
+}
+
 export class Cardano extends Chain {
   static readonly key = "cardano" as const;
   readonly type = "utxo" as const;
@@ -30,15 +47,7 @@ export class Cardano extends Chain {
    */
   override assertAddress(address: string): string {
     const decoded = decodeBase58(address, 128);
-    const overhead = decoded ? decoded.length - (decoded[4] ?? 0) : 0;
-    const byron =
-      decoded !== undefined &&
-      decoded[0] === 0x82 &&
-      decoded[1] === 0xd8 &&
-      decoded[2] === 0x18 &&
-      decoded[3] === 0x58 &&
-      overhead >= 6 &&
-      overhead <= 10;
+    const byron = decoded !== undefined && isByronEnvelope(decoded);
     if (!byron && !SHELLEY_ADDRESS.test(address) && !STAKE_ADDRESS.test(address)) {
       throw new InvalidAddressError(this.key, address);
     }
