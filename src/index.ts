@@ -1,4 +1,3 @@
-import "./chains/index.js";
 export { Chain, EVM, Move } from "./core/chain.js";
 export type { ChainConstructor } from "./core/chain.js";
 export {

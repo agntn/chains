@@ -1,5 +1,4 @@
 import { EVM } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class Scroll extends EVM {
   static readonly key = "scroll" as const;
@@ -11,5 +10,3 @@ export class Scroll extends EVM {
   readonly caip2 = "eip155:534352";
   readonly rpcDefault = "https://scroll-rpc.publicnode.com";
 }
-
-register(Scroll);

@@ -19,6 +19,9 @@
     "packages/omp/extensions"
   ],
   "type": "module",
+  "sideEffects": [
+    "./dist/cli.mjs"
+  ],
   "main": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
   "exports": {

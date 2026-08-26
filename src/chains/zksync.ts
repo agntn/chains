@@ -1,5 +1,4 @@
 import { EVM } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class ZkSync extends EVM {
   static readonly key = "zksync" as const;
@@ -11,5 +10,3 @@ export class ZkSync extends EVM {
   readonly caip2 = "eip155:324";
   readonly rpcDefault = "https://mainnet.era.zksync.io";
 }
-
-register(ZkSync);

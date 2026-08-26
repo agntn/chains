@@ -1,6 +1,5 @@
 import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
-import { register } from "../core/registry.js";
 
 /**
  * TEP-2 user-friendly form: 36 bytes in unpadded base64, so exactly 48
@@ -37,5 +36,3 @@ export class Ton extends Chain {
     return address;
   }
 }
-
-register(Ton);

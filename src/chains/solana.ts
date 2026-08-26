@@ -1,7 +1,6 @@
 import { decodeBase58 } from "../core/base58.js";
 import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
-import { register } from "../core/registry.js";
 
 export class Solana extends Chain {
   static readonly key = "solana" as const;
@@ -23,5 +22,3 @@ export class Solana extends Chain {
     return address;
   }
 }
-
-register(Solana);

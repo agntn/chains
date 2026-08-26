@@ -1,5 +1,4 @@
 import { Move } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class Sui extends Move {
   static readonly key = "sui" as const;
@@ -9,5 +8,3 @@ export class Sui extends Move {
   readonly bip44 = 784;
   readonly caip2 = "sui:mainnet";
 }
-
-register(Sui);

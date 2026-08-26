@@ -1,5 +1,4 @@
 import { EVM } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class Berachain extends EVM {
   static readonly key = "bera" as const;
@@ -11,5 +10,3 @@ export class Berachain extends EVM {
   readonly caip2 = "eip155:80094";
   readonly rpcDefault = "https://rpc.berachain.com";
 }
-
-register(Berachain);

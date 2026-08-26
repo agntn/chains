@@ -1,5 +1,4 @@
 import { EVM } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class Avalanche extends EVM {
   static readonly key = "avalanche" as const;
@@ -11,5 +10,3 @@ export class Avalanche extends EVM {
   readonly caip2 = "eip155:43114";
   readonly rpcDefault = "https://avalanche-c-chain-rpc.publicnode.com";
 }
-
-register(Avalanche);

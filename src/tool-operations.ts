@@ -5,7 +5,7 @@
  * agent harnesses attach to the call. An MCP client sees only the text, so every
  * fact needed for a follow-up call has to be in it.
  *
- * Imports go through the package entrypoint so the chain classes are registered.
+ * Imports go through the package entrypoint, so executors see the public surface.
  */
 
 import type { Chain } from "./index.js";

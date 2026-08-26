@@ -1,5 +1,4 @@
 import { Move } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class Aptos extends Move {
   static readonly key = "aptos" as const;
@@ -9,5 +8,3 @@ export class Aptos extends Move {
   readonly bip44 = 637;
   readonly caip2 = "aptos:mainnet";
 }
-
-register(Aptos);

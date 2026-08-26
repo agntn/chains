@@ -1,7 +1,6 @@
 import { decodeBase58 } from "../core/base58.js";
 import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
-import { register } from "../core/registry.js";
 
 /**
  * CIP-19 Shelley addresses under the mainnet prefix. Cardano waives BIP-173's
@@ -55,5 +54,3 @@ export class Cardano extends Chain {
     return address;
   }
 }
-
-register(Cardano);

@@ -1,6 +1,5 @@
 import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
-import { register } from "../core/registry.js";
 
 export class Octra extends Chain {
   static readonly key = "oct" as const;
@@ -17,5 +16,3 @@ export class Octra extends Chain {
     return address;
   }
 }
-
-register(Octra);

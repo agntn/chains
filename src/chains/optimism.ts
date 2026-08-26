@@ -1,5 +1,4 @@
 import { EVM } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class Optimism extends EVM {
   static readonly key = "optimism" as const;
@@ -11,5 +10,3 @@ export class Optimism extends EVM {
   readonly caip2 = "eip155:10";
   readonly rpcDefault = "https://optimism-rpc.publicnode.com";
 }
-
-register(Optimism);

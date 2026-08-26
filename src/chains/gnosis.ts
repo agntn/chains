@@ -1,5 +1,4 @@
 import { EVM } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class Gnosis extends EVM {
   static readonly key = "gnosis" as const;
@@ -11,5 +10,3 @@ export class Gnosis extends EVM {
   readonly caip2 = "eip155:100";
   readonly rpcDefault = "https://gnosis-rpc.publicnode.com";
 }
-
-register(Gnosis);

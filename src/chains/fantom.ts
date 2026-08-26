@@ -1,5 +1,4 @@
 import { EVM } from "../core/chain.js";
-import { register } from "../core/registry.js";
 
 export class Fantom extends EVM {
   static readonly key = "fantom" as const;
@@ -11,5 +10,3 @@ export class Fantom extends EVM {
   readonly caip2 = "eip155:250";
   readonly rpcDefault = "https://rpc.fantom.network";
 }
-
-register(Fantom);
