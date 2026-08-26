@@ -3,15 +3,14 @@ import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 import { register } from "../core/registry.js";
 
-// CIP-19 Shelley addresses under the CIP-5 mainnet prefix, in the same BIP-173
-// charset and casing rules as Bitcoin. Cardano waives the 90-character cap, so
-// the bounds come from the payloads instead: 29 bytes for an enterprise
-// address up to 57 for a base address, plus the six checksum characters.
+/**
+ * CIP-19 Shelley addresses under the mainnet prefix. Cardano waives BIP-173's
+ * 90-character cap, so the bounds come from the 29 to 57 byte payloads.
+ */
 const SHELLEY_ADDRESS =
   /^(addr1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{53,98}|ADDR1[QPZRY9X8GF2TVDW0S3JN54KHCE6MUA7L]{53,98})$/;
 
-// A stake address is always one 29-byte payload: header plus a 28-byte key or
-// script hash, so its data part has exactly one length.
+/** A stake address is always one 29-byte payload, so one data-part length. */
 const STAKE_ADDRESS =
   /^(stake1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{53}|STAKE1[QPZRY9X8GF2TVDW0S3JN54KHCE6MUA7L]{53})$/;
 
@@ -25,16 +24,9 @@ export class Cardano extends Chain {
   readonly caip2 = "cip34:1-764824073";
 
   /**
-   * Two eras, two encodings. Shelley payment and stake addresses are bech32
-   * under the mainnet prefixes, checked by the patterns above; the testnet
-   * prefixes stay out the way Bitcoin's testnet versions do. A Byron address
-   * is base58 over a CBOR envelope: `82` array(2), `d8 18` tag(24), `58` and
-   * a length byte, the payload, then a CRC integer whose head shrinks with
-   * its value, leaving 6 to 10 envelope bytes around the payload. Decoding
-   * that structure is what keeps every other base58 format out. The CRC and
-   * the bech32 checksum stay unchecked, this is a format check, and a Byron
-   * address hides its network in an attribute a format check does not open.
-   * The decode bound covers the 114-character Byron example in CIP-19.
+   * A format check: the bech32 checksum and the Byron CRC stay unverified,
+   * and a Byron testnet address passes because its network hides in a CBOR
+   * attribute this check does not open.
    */
   override assertAddress(address: string): string {
     const decoded = decodeBase58(address, 128);

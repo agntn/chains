@@ -403,15 +403,11 @@ describe("Litecoin address validation", () => {
 
 describe("Cardano address validation", () => {
   const cardano = create("cardano");
-  // The 114-character Byron bootstrap example from CIP-19.
+  /** The 114-character Byron bootstrap example from CIP-19. */
   const byron =
     "37btjrVyb4KDXBNC4haBVPCrro8AQPHwvCMp3RFhhSVWwfFmZ6wwzSK6JK1hY6wHNmtrpTf1kdbva8TCneM2YsiXT7mrzT21EacHnPpz5YyUdj64na";
 
-  /**
-   * The CIP-19 mainnet test vectors: payment types 0 through 7, base down to
-   * enterprise, then both stake credential kinds. The pattern bounds come from
-   * these - 53 data characters for the 29-byte forms, 98 for the 57-byte ones.
-   */
+  /** Payment types 0 through 7, then both stake credential kinds. */
   it("accepts the CIP-19 mainnet vectors", () => {
     for (const address of [
       "addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgse35a3x",
