@@ -68,7 +68,7 @@ describe("chains MCP server", () => {
     expect(response.isError).toBe(true);
     const [part] = response.content as Array<{ text: string }>;
     expect(part?.text).toContain('Unsupported chain: "dogecoin"');
-    expect(part?.text).toContain("Known chain keys: eth, base");
+    expect(part?.text).toContain("Known chain keys: ethereum, base");
   });
 
   it("rejects arguments that miss the schema", async () => {
@@ -104,7 +104,7 @@ describe("chains MCP server", () => {
 
     expect(response.isError).not.toBe(true);
     expect(response.content).toEqual([
-      { type: "text", text: expect.stringContaining("Valid Ethereum (eth) address") },
+      { type: "text", text: expect.stringContaining("Valid Ethereum (ethereum) address") },
     ]);
   });
 
@@ -118,7 +118,7 @@ describe("chains MCP server", () => {
 
     expect(response.isError).not.toBe(true);
     expect(response.content).toEqual([
-      { type: "text", text: "Invalid Ethereum (eth) address: not-an-address" },
+      { type: "text", text: "Invalid Ethereum (ethereum) address: not-an-address" },
     ]);
   });
 
@@ -133,7 +133,7 @@ describe("chains MCP server", () => {
     expect(response.isError).not.toBe(true);
     const [part] = response.content as Array<{ text: string }>;
     expect(part?.text).toContain("matches 13 of 23 checked chains");
-    expect(part?.text).toContain("evm (13): eth, base, arbitrum");
+    expect(part?.text).toContain("evm (13): ethereum, base, arbitrum");
     expect(part?.text).toContain("does not prove the address is used");
     expect(part?.text).not.toContain("Not checked");
   });
@@ -258,7 +258,7 @@ describe("chains MCP server", () => {
     expect(response.content).toEqual([
       {
         type: "text",
-        text: "Valid Ethereum (eth) address: 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+        text: "Valid Ethereum (ethereum) address: 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
       },
     ]);
   });

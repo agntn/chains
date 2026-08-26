@@ -39,7 +39,7 @@ class Unvalidated extends Chain {
 describe("chain registry", () => {
   it("registers every built-in chain in list order", () => {
     expect(chains()).toEqual([
-      "eth",
+      "ethereum",
       "base",
       "arbitrum",
       "optimism",
@@ -51,7 +51,7 @@ describe("chain registry", () => {
       "linea",
       "zksync",
       "scroll",
-      "bera",
+      "berachain",
       "bitcoin",
       "litecoin",
       "pepecoin",
@@ -61,9 +61,9 @@ describe("chain registry", () => {
       "sui",
       "ton",
       "tron",
-      "oct",
+      "octra",
     ]);
-    expect(has("eth")).toBe(true);
+    expect(has("ethereum")).toBe(true);
   });
 
   /** Catches a chain file that was written but never added to `builtins`. */
@@ -75,8 +75,8 @@ describe("chain registry", () => {
   });
 
   it("constructs a fresh concrete instance", () => {
-    const first = create("eth");
-    const second = create("eth");
+    const first = create("ethereum");
+    const second = create("ethereum");
     expect(first).toBeInstanceOf(Ethereum);
     expect(first).toBeInstanceOf(EVM);
     expect(first).toBeInstanceOf(Chain);
@@ -90,14 +90,14 @@ describe("chain registry", () => {
     expect(create("pepecoin")).toBeInstanceOf(Pepecoin);
     expect(create("cardano")).toBeInstanceOf(Cardano);
     expect(create("solana")).toBeInstanceOf(Solana);
-    expect(create("oct")).toBeInstanceOf(Octra);
+    expect(create("octra")).toBeInstanceOf(Octra);
   });
 });
 
 describe("chain metadata", () => {
   it("is owned by the concrete class", () => {
-    expect(create("eth")).toMatchObject({
-      key: "eth",
+    expect(create("ethereum")).toMatchObject({
+      key: "ethereum",
       name: "Ethereum",
       symbol: "ETH",
       bip44: 60,
@@ -123,9 +123,9 @@ describe("chain metadata", () => {
   });
 
   it("does not invent unregistered Octra identifiers", () => {
-    const octra = create("oct");
+    const octra = create("octra");
     expect(octra).toMatchObject({
-      key: "oct",
+      key: "octra",
       name: "Octra",
       symbol: "OCT",
       type: "octra",
@@ -146,7 +146,14 @@ describe("chain resolution", () => {
     expect(getChain("ltc")).toBeInstanceOf(Litecoin);
     expect(getChain("pep")).toBeInstanceOf(Pepecoin);
     expect(getChain("ada")).toBeInstanceOf(Cardano);
-    expect(getChain("octra")).toBeInstanceOf(Octra);
+    expect(getChain("oct")).toBeInstanceOf(Octra);
+  });
+
+  /** These three were canonical keys, so anything already holding one has to land on the same chain. */
+  it("keeps the old short spellings resolvable", () => {
+    expect(getChain("eth").key).toBe("ethereum");
+    expect(getChain("bera").key).toBe("berachain");
+    expect(getChain("oct").key).toBe("octra");
   });
 
   it("rejects unknown chains", () => {
@@ -162,10 +169,10 @@ describe("chain resolution", () => {
 
 describe("address validation", () => {
   it("is inherited by concrete EVM chains", () => {
-    const ethereum = create("eth");
+    const ethereum = create("ethereum");
     const address = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
     expect(ethereum.assertAddress(address)).toBe(address);
-    expect(() => ethereum.assertAddress("0x0000")).toThrow("Invalid eth address");
+    expect(() => ethereum.assertAddress("0x0000")).toThrow("Invalid ethereum address");
   });
 
   it("uses chain-family validators", () => {
@@ -202,7 +209,7 @@ describe("error hierarchy", () => {
   it("throws typed errors that all descend from ChainsError", () => {
     expect(() => getChain("foobar")).toThrow(UnsupportedChainError);
     expect(() => getChain("foobar")).toThrow(ChainsError);
-    expect(() => create("eth").assertAddress("0x0")).toThrow(InvalidAddressError);
+    expect(() => create("ethereum").assertAddress("0x0")).toThrow(InvalidAddressError);
     expect(() => new Unvalidated().assertAddress("0x1")).toThrow(AddressValidationUnsupportedError);
   });
 
@@ -276,12 +283,12 @@ describe("display name resolution", () => {
   });
 
   it("still prefers the curated alias table over a name match", () => {
-    expect(getChain("eth").key).toBe("eth");
+    expect(getChain("eth").key).toBe("ethereum");
     expect(getChain("matic").key).toBe("polygon");
   });
 
   it("treats blank input as a mistake but no input as the default", () => {
-    expect(getChain().key).toBe("eth");
+    expect(getChain().key).toBe("ethereum");
     expect(() => getChain("")).toThrow(UnsupportedChainError);
     expect(() => getChain("   ")).toThrow(UnsupportedChainError);
     // Quoted, so a blank subject stays visible in a log line.
@@ -653,7 +660,7 @@ describe("address identification", () => {
     const { matches, unchecked } = identify("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984");
 
     expect(matches.map((chain) => chain.key)).toEqual([
-      "eth",
+      "ethereum",
       "base",
       "arbitrum",
       "optimism",
@@ -665,7 +672,7 @@ describe("address identification", () => {
       "linea",
       "zksync",
       "scroll",
-      "bera",
+      "berachain",
     ]);
     expect(unchecked).toEqual([]);
   });

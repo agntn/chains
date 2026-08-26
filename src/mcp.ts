@@ -25,7 +25,7 @@ interface ToolDefinition {
 }
 
 const chainArgument = Type.String({
-  description: "Chain key, name, symbol, or alias (for example: eth, matic, btc)",
+  description: "Chain key, name, symbol, or alias (for example: ethereum, matic, btc)",
   minLength: 1,
   maxLength: 64,
 });
