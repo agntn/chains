@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.3.1
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.0...v0.3.1)
+
+### 🚀 Enhancements
+
+- Add eCash ([#13](https://github.com/agntn/chains/pull/13))
+
+### ❤️ Contributors
+
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.3.0
 
 [compare changes](https://github.com/agntn/chains/compare/v0.2.3...v0.3.0)
