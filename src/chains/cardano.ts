@@ -15,16 +15,17 @@ const STAKE_ADDRESS =
   /^(stake1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{53}|STAKE1[QPZRY9X8GF2TVDW0S3JN54KHCE6MUA7L]{53})$/;
 
 /**
- * Structural check of the Byron CBOR envelope: array(2), tag(24), a byte
- * string whose payload opens as the spec's three-item array, then a CRC head
- * that must match the bytes it claims. The CRC value itself stays unverified.
+ * The Byron envelope: array(2), tag(24), bytes opening as the three-item
+ * array with its 28-byte root, then a CRC head matching the bytes it
+ * claims. Attributes, type and the CRC value stay unparsed on purpose.
  */
 function isByronEnvelope(decoded: Uint8Array): boolean {
   if (decoded[0] !== 0x82 || decoded[1] !== 0xd8 || decoded[2] !== 0x18 || decoded[3] !== 0x58) {
     return false;
   }
-  if (decoded[5] !== 0x83) return false;
   const payloadLength = decoded[4] ?? 0;
+  if (payloadLength < 33) return false;
+  if (decoded[5] !== 0x83 || decoded[6] !== 0x58 || decoded[7] !== 0x1c) return false;
   const head = decoded[5 + payloadLength];
   if (head === undefined) return false;
   const crcBytes = head <= 0x17 ? 1 : head === 0x18 ? 2 : head === 0x19 ? 3 : head === 0x1a ? 5 : 0;

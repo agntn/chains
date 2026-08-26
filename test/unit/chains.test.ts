@@ -449,14 +449,21 @@ describe("Cardano address validation", () => {
     ).toThrow(InvalidAddressError);
   });
 
+  /**
+   * The CIP-19 example, then a synthetic minimal envelope, whose base58
+   * lands on the familiar Ae2 prefix purely by construction.
+   */
   it("accepts a Byron bootstrap address", () => {
     expect(cardano.assertAddress(byron)).toBe(byron);
+    expect(
+      cardano.assertAddress("Ae2tdPwUPEYwWS5R2H6DTA2XJnBULNKZrrxpHiiEnkDzcdDg2rmtjdAXs6T"),
+    ).toBeTruthy();
   });
 
   /**
-   * A Solana key, a Litecoin address, the Byron example missing its last
-   * character, then two crafted envelopes: a CRC width CBOR cannot encode
-   * and a payload that does not open as the address array.
+   * The first three fail the prefix; the crafted trio then dies one gate at
+   * a time: payload below the 33-byte minimum, wrong array opener, and a
+   * CRC head claiming more bytes than remain.
    */
   it("rejects base58 that is not a Byron CBOR envelope", () => {
     expect(() => cardano.assertAddress("11111111111111111111111111111111")).toThrow(
@@ -466,8 +473,13 @@ describe("Cardano address validation", () => {
       InvalidAddressError,
     );
     expect(() => cardano.assertAddress(byron.slice(0, -1))).toThrow(InvalidAddressError);
-    expect(() => cardano.assertAddress("8MMy5pMeK46Ax2")).toThrow(InvalidAddressError);
-    expect(() => cardano.assertAddress("ZSsYYFzf5co5bkT")).toThrow(InvalidAddressError);
+    expect(() => cardano.assertAddress("5xb5UCMiej")).toThrow(InvalidAddressError);
+    expect(() =>
+      cardano.assertAddress("Ae2tdPwUXpBWfnybBCEByAo5PB5GWTopJ4cehzSQENMZ4yKAWcVB4phhGEP"),
+    ).toThrow(InvalidAddressError);
+    expect(() =>
+      cardano.assertAddress("VhLXUZmS1gXF9DUMPMU6SdiQxAmT6brEid4taqdutAgEG3ewdw55Zh29"),
+    ).toThrow(InvalidAddressError);
   });
 
   it("keeps Cardano addresses out of the other base58 chains", () => {
