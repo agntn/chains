@@ -1,6 +1,27 @@
 # Changelog
 
 
+## v0.2.3
+
+[compare changes](https://github.com/agntn/chains/compare/v0.2.2...v0.2.3)
+
+### 🚀 Enhancements
+
+- Support Cardano across both address eras ([#9](https://github.com/agntn/chains/pull/9))
+
+### 🔥 Performance
+
+- Bundle typebox into the dist chunks ([#6](https://github.com/agntn/chains/pull/6))
+
+### 🩹 Fixes
+
+- Ask the registry before the alias table ([#7](https://github.com/agntn/chains/pull/7))
+
+### ❤️ Contributors
+
+- Aeitwoen <aeitwoen@gmail.com>
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.2.2
 
 [compare changes](https://github.com/agntn/chains/compare/v0.2.1...v0.2.2)
