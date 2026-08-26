@@ -9,7 +9,7 @@ Scope: canonical blockchain classes, aliases, and address validation.
 - `src/core/registry.ts` is the constructor registry
 - `src/core/resolve.ts` owns the aliases and `getChain`; canonical keys and display names are matched against the registry, so the alias table holds only real aliases, never a key as its own entry
 - `src/core/identify.ts` partitions the registry by an address: matching validators and unchecked chains
-- `src/core/base58.ts` decodes base58 for chains whose address is a key of a known byte length
+- `src/core/base58.ts` decodes base58 for chains that check the bytes behind an address
 - `src/chains/*.ts` is one concrete blockchain class per file
 - `src/index.ts` is the public API and the registration entrypoint
 - `src/cli.ts` plus `src/commands/*.ts` is the citty CLI: `info`, `resolve`, `validate`, `identify`, `list`, `mcp`

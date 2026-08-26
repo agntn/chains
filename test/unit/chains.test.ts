@@ -5,6 +5,7 @@ import {
   AddressValidationUnsupportedError,
   Arbitrum,
   Bitcoin,
+  Cardano,
   Chain,
   ChainsError,
   Ethereum,
@@ -52,6 +53,7 @@ describe("chain registry", () => {
       "bera",
       "bitcoin",
       "litecoin",
+      "cardano",
       "solana",
       "aptos",
       "sui",
@@ -75,6 +77,7 @@ describe("chain registry", () => {
     expect(create("arbitrum")).toBeInstanceOf(Arbitrum);
     expect(create("bitcoin")).toBeInstanceOf(Bitcoin);
     expect(create("litecoin")).toBeInstanceOf(Litecoin);
+    expect(create("cardano")).toBeInstanceOf(Cardano);
     expect(create("solana")).toBeInstanceOf(Solana);
     expect(create("oct")).toBeInstanceOf(Octra);
   });
@@ -130,6 +133,7 @@ describe("chain resolution", () => {
     expect(getChain("matic").key).toBe("polygon");
     expect(getChain("BTC")).toBeInstanceOf(Bitcoin);
     expect(getChain("ltc")).toBeInstanceOf(Litecoin);
+    expect(getChain("ada")).toBeInstanceOf(Cardano);
     expect(getChain("octra")).toBeInstanceOf(Octra);
   });
 
@@ -397,6 +401,84 @@ describe("Litecoin address validation", () => {
   });
 });
 
+describe("Cardano address validation", () => {
+  const cardano = create("cardano");
+  // The 114-character Byron bootstrap example from CIP-19.
+  const byron =
+    "37btjrVyb4KDXBNC4haBVPCrro8AQPHwvCMp3RFhhSVWwfFmZ6wwzSK6JK1hY6wHNmtrpTf1kdbva8TCneM2YsiXT7mrzT21EacHnPpz5YyUdj64na";
+
+  /**
+   * The CIP-19 mainnet test vectors: payment types 0 through 7, base down to
+   * enterprise, then both stake credential kinds. The pattern bounds come from
+   * these - 53 data characters for the 29-byte forms, 98 for the 57-byte ones.
+   */
+  it("accepts the CIP-19 mainnet vectors", () => {
+    for (const address of [
+      "addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgse35a3x",
+      "addr1z8phkx6acpnf78fuvxn0mkew3l0fd058hzquvz7w36x4gten0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgs9yc0hh",
+      "addr1yx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzerkr0vd4msrxnuwnccdxlhdjar77j6lg0wypcc9uar5d2shs2z78ve",
+      "addr1x8phkx6acpnf78fuvxn0mkew3l0fd058hzquvz7w36x4gt7r0vd4msrxnuwnccdxlhdjar77j6lg0wypcc9uar5d2shskhj42g",
+      "addr1gx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer5pnz75xxcrzqf96k",
+      "addr128phkx6acpnf78fuvxn0mkew3l0fd058hzquvz7w36x4gtupnz75xxcrtw79hu",
+      "addr1vx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzers66hrl8",
+      "addr1w8phkx6acpnf78fuvxn0mkew3l0fd058hzquvz7w36x4gtcyjy7wx",
+      "stake1uyehkck0lajq8gr28t9uxnuvgcqrc6070x3k9r8048z8y5gh6ffgw",
+      "stake178phkx6acpnf78fuvxn0mkew3l0fd058hzquvz7w36x4gtcccycj5",
+    ]) {
+      expect(cardano.assertAddress(address)).toBe(address);
+    }
+  });
+
+  it("accepts uppercase, which QR encoders emit", () => {
+    expect(
+      cardano.assertAddress("ADDR1VX2FXV2UMYHTTKXYXP8X0DLPDT3K6CWNG5PXJ3JHSYDZERS66HRL8"),
+    ).toBeTruthy();
+    expect(
+      cardano.assertAddress("STAKE1UYEHKCK0LAJQ8GR28T9UXNUVGCQRC6070X3K9R8048Z8Y5GH6FFGW"),
+    ).toBeTruthy();
+  });
+
+  it("rejects mixed case, which BIP-173 makes invalid", () => {
+    expect(() =>
+      cardano.assertAddress("addr1VX2FXV2UMYHTTKXYXP8X0DLPDT3K6CWNG5PXJ3JHSYDZERS66HRL8"),
+    ).toThrow(InvalidAddressError);
+  });
+
+  it("rejects the testnet prefixes", () => {
+    expect(() =>
+      cardano.assertAddress("addr_test1vz2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzerspjrlsz"),
+    ).toThrow(InvalidAddressError);
+    expect(() =>
+      cardano.assertAddress("stake_test1uqehkck0lajq8gr28t9uxnuvgcqrc6070x3k9r8048z8y5gssrtvn"),
+    ).toThrow(InvalidAddressError);
+  });
+
+  it("accepts a Byron bootstrap address", () => {
+    expect(cardano.assertAddress(byron)).toBe(byron);
+  });
+
+  /**
+   * A 32-byte Solana key, a Litecoin Base58Check address, and the Byron
+   * example with its last character dropped, which shifts every decoded byte
+   * out of the envelope.
+   */
+  it("rejects base58 that is not a Byron CBOR envelope", () => {
+    expect(() => cardano.assertAddress("11111111111111111111111111111111")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => cardano.assertAddress("LYhttvnKawAv6RcHQ4eBkNtifuiEA99PFe")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => cardano.assertAddress(byron.slice(0, -1))).toThrow(InvalidAddressError);
+  });
+
+  it("keeps Cardano addresses out of the other base58 chains", () => {
+    for (const key of ["bitcoin", "litecoin", "solana"] as const) {
+      expect(() => create(key).assertAddress(byron)).toThrow(InvalidAddressError);
+    }
+  });
+});
+
 describe("TRON address validation", () => {
   const tron = create("tron");
 
@@ -538,6 +620,12 @@ describe("address identification", () => {
     const { matches } = identify("0x1");
 
     expect(matches.map((chain) => chain.key)).toEqual(["aptos", "sui"]);
+  });
+
+  it("attributes a Shelley address to Cardano alone", () => {
+    const { matches } = identify("addr1vx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzers66hrl8");
+
+    expect(matches.map((chain) => chain.key)).toEqual(["cardano"]);
   });
 
   /**
