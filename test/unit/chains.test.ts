@@ -8,6 +8,7 @@ import {
   Cardano,
   Chain,
   ChainsError,
+  Ecash,
   Ethereum,
   EVM,
   InvalidAddressError,
@@ -55,6 +56,7 @@ describe("chain registry", () => {
       "bitcoin",
       "litecoin",
       "pepecoin",
+      "ecash",
       "cardano",
       "solana",
       "aptos",
@@ -88,6 +90,7 @@ describe("chain registry", () => {
     expect(create("bitcoin")).toBeInstanceOf(Bitcoin);
     expect(create("litecoin")).toBeInstanceOf(Litecoin);
     expect(create("pepecoin")).toBeInstanceOf(Pepecoin);
+    expect(create("ecash")).toBeInstanceOf(Ecash);
     expect(create("cardano")).toBeInstanceOf(Cardano);
     expect(create("solana")).toBeInstanceOf(Solana);
     expect(create("octra")).toBeInstanceOf(Octra);
@@ -145,6 +148,7 @@ describe("chain resolution", () => {
     expect(getChain("BTC")).toBeInstanceOf(Bitcoin);
     expect(getChain("ltc")).toBeInstanceOf(Litecoin);
     expect(getChain("pep")).toBeInstanceOf(Pepecoin);
+    expect(getChain("xec")).toBeInstanceOf(Ecash);
     expect(getChain("ada")).toBeInstanceOf(Cardano);
     expect(getChain("oct")).toBeInstanceOf(Octra);
   });
@@ -470,6 +474,79 @@ describe("Pepecoin address validation", () => {
   });
 });
 
+describe("eCash address validation", () => {
+  const ecash = create("ecash");
+
+  /** Three vectors from the chain's own cashaddrenc tests, prefixed and bare. */
+  it("accepts pay-to-pubkey-hash CashAddr under a leading `q`", () => {
+    expect(ecash.assertAddress("ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2")).toBeTruthy();
+    expect(ecash.assertAddress("ecash:qr95sy3j9xwd2ap32xkykttr4cvcu7as4ykdcjcn6n")).toBeTruthy();
+    expect(ecash.assertAddress("ecash:qqq3728yw0y47sqn6l2na30mcw6zm78dzq653y7pv5")).toBeTruthy();
+    expect(ecash.assertAddress("qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2")).toBeTruthy();
+  });
+
+  /** An upstream vector, then the live miner-fund address every coinbase pays. */
+  it("accepts pay-to-script-hash CashAddr under a leading `p`", () => {
+    expect(ecash.assertAddress("ecash:ppm2qsznhks23z7629mms6s4cwef74vcwv2zrv3l8h")).toBeTruthy();
+    expect(ecash.assertAddress("ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07")).toBeTruthy();
+  });
+
+  /** Uppercase is what QR encoders emit; mixed case must be rejected. */
+  it("accepts all-uppercase and rejects mixed case", () => {
+    expect(ecash.assertAddress("ECASH:QPM2QSZNHKS23Z7629MMS6S4CWEF74VCWVA87RKUU2")).toBeTruthy();
+    expect(ecash.assertAddress("QPM2QSZNHKS23Z7629MMS6S4CWEF74VCWVA87RKUU2")).toBeTruthy();
+    expect(() => ecash.assertAddress("ecash:QPM2QSZNHKS23Z7629MMS6S4CWEF74VCWVA87RKUU2")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => ecash.assertAddress("ecash:Qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2")).toThrow(
+      InvalidAddressError,
+    );
+  });
+
+  /** The same hash the first vector carries, under Bitcoin Cash's prefix. */
+  it("rejects a foreign CashAddr prefix", () => {
+    expect(() =>
+      ecash.assertAddress("bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a"),
+    ).toThrow(InvalidAddressError);
+  });
+
+  /**
+   * The spec's own 24-byte vector, the first vector cut by one character, a
+   * version head the used types never write, and a charset violation.
+   */
+  it("rejects payloads that are not one version byte and a 20-byte hash", () => {
+    for (const address of [
+      "ecash:q9adhakpwzztepkpwp5z0dq62m6u5v5xtyj7j3h24pj4gqrx",
+      "qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu",
+      "ecash:zpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2",
+      "ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkub2",
+    ]) {
+      expect(() => ecash.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  /** The first vector's own legacy twin leads: eCash kept Bitcoin's versions. */
+  it("rejects legacy base58 and other chains' formats", () => {
+    for (const address of [
+      "1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu",
+      "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy",
+      "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+      "ltc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+      "addr1vx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzers66hrl8",
+    ]) {
+      expect(() => ecash.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  it("keeps a bare CashAddr payload out of Bitcoin and Litecoin", () => {
+    for (const key of ["bitcoin", "litecoin"] as const) {
+      expect(() => create(key).assertAddress("qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2")).toThrow(
+        InvalidAddressError,
+      );
+    }
+  });
+});
+
 describe("Cardano address validation", () => {
   const cardano = create("cardano");
   /** The 114-character Byron bootstrap example from CIP-19. */
@@ -705,6 +782,20 @@ describe("address identification", () => {
     const { matches } = identify("PftB3JYp6r3PPkiLPoPoT6vdS77NR4mhyb");
 
     expect(matches.map((chain) => chain.key)).toEqual(["pepecoin"]);
+  });
+
+  it("attributes an eCash address to eCash alone, prefixed or bare", () => {
+    for (const address of [
+      "ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2",
+      "qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2",
+    ]) {
+      const { matches } = identify(address);
+
+      expect(
+        matches.map((chain) => chain.key),
+        address,
+      ).toEqual(["ecash"]);
+    }
   });
 
   it("attributes a Shelley address to Cardano alone", () => {

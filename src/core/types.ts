@@ -15,6 +15,7 @@ export type ChainKey =
   | "bitcoin"
   | "litecoin"
   | "pepecoin"
+  | "ecash"
   | "cardano"
   | "solana"
   | "aptos"

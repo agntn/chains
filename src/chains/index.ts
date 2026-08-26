@@ -7,6 +7,7 @@ import { Berachain } from "./berachain.js";
 import { Bitcoin } from "./bitcoin.js";
 import { Bsc } from "./bsc.js";
 import { Cardano } from "./cardano.js";
+import { Ecash } from "./ecash.js";
 import { Ethereum } from "./ethereum.js";
 import { Fantom } from "./fantom.js";
 import { Gnosis } from "./gnosis.js";
@@ -41,6 +42,7 @@ export const builtins: readonly ChainConstructor[] = [
   Bitcoin,
   Litecoin,
   Pepecoin,
+  Ecash,
   Cardano,
   Solana,
   Aptos,
