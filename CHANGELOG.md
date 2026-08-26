@@ -1,6 +1,28 @@
 # Changelog
 
 
+## v0.3.0
+
+[compare changes](https://github.com/agntn/chains/compare/v0.2.3...v0.3.0)
+
+### 🚀 Enhancements
+
+- Add Pepecoin ([#11](https://github.com/agntn/chains/pull/11))
+
+### 💅 Refactors
+
+- Registry without import side effects ([#10](https://github.com/agntn/chains/pull/10))
+- ⚠️  Canonical keys name the chain, not the ticker ([#12](https://github.com/agntn/chains/pull/12))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️  Canonical keys name the chain, not the ticker ([#12](https://github.com/agntn/chains/pull/12))
+
+### ❤️ Contributors
+
+- Aeitwoen <aeitwoen@gmail.com>
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.2.3
 
 [compare changes](https://github.com/agntn/chains/compare/v0.2.2...v0.2.3)
