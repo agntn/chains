@@ -2,49 +2,34 @@ import type { Chain } from "./chain.js";
 import { UnsupportedChainError } from "./errors.js";
 import type { ChainKey } from "./types.js";
 import { chains, create } from "./registry.js";
+/**
+ * Only spellings the registry cannot answer itself. Canonical keys resolve
+ * straight off the registry, so a chain listed here under its own key is dead
+ * weight; the table used to require exactly that, and a chain missing its
+ * self-entry, like `bera`, could not be resolved by key at all.
+ */
 const aliases: Readonly<Record<string, ChainKey>> = {
-  eth: "eth",
   ethereum: "eth",
   mainnet: "eth",
-  base: "base",
   coinbase: "base",
-  arbitrum: "arbitrum",
   arb: "arbitrum",
   arb1: "arbitrum",
-  optimism: "optimism",
   op: "optimism",
-  polygon: "polygon",
   matic: "polygon",
   pol: "polygon",
-  bsc: "bsc",
   bnb: "bsc",
   binance: "bsc",
   bnbchain: "bsc",
-  avalanche: "avalanche",
   avax: "avalanche",
-  fantom: "fantom",
   ftm: "fantom",
-  gnosis: "gnosis",
   xdai: "gnosis",
-  linea: "linea",
-  zksync: "zksync",
   "zksync-era": "zksync",
-  scroll: "scroll",
-  bera: "bera",
   berachain: "bera",
-  bitcoin: "bitcoin",
   btc: "bitcoin",
-  litecoin: "litecoin",
   ltc: "litecoin",
-  solana: "solana",
   sol: "solana",
-  aptos: "aptos",
   apt: "aptos",
-  sui: "sui",
-  ton: "ton",
-  tron: "tron",
   trx: "tron",
-  oct: "oct",
   octra: "oct",
 };
 /**
@@ -68,7 +53,10 @@ export function getChain(input?: string): Chain {
   const alias = input.toLowerCase().trim();
   // An empty or blank string is a caller mistake, not a request for the default.
   if (!alias) throw new UnsupportedChainError(input);
-  const key = (Object.hasOwn(aliases, alias) ? aliases[alias] : undefined) ?? keyByName(alias);
+  const key =
+    chains().find((registered) => registered === alias) ??
+    (Object.hasOwn(aliases, alias) ? aliases[alias] : undefined) ??
+    keyByName(alias);
   if (!key) throw new UnsupportedChainError(input);
   return create(key);
 }

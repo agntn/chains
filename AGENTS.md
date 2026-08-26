@@ -7,7 +7,7 @@ Scope: canonical blockchain classes, aliases, and address validation.
 - `src/core/chain.ts` holds `Chain` and the shared family abstractions
 - `src/core/errors.ts` holds the `ChainsError` hierarchy. Never throw a raw `Error`
 - `src/core/registry.ts` is the constructor registry
-- `src/core/resolve.ts` owns the aliases and `getChain`; display names are matched against the registry, not a second table
+- `src/core/resolve.ts` owns the aliases and `getChain`; canonical keys and display names are matched against the registry, so the alias table holds only real aliases, never a key as its own entry
 - `src/core/identify.ts` partitions the registry by an address: matching validators and unchecked chains
 - `src/core/base58.ts` decodes base58 for chains whose address is a key of a known byte length
 - `src/chains/*.ts` is one concrete blockchain class per file
