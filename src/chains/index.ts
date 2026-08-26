@@ -13,6 +13,7 @@ import "./scroll.js";
 import "./berachain.js";
 import "./bitcoin.js";
 import "./litecoin.js";
+import "./cardano.js";
 import "./solana.js";
 import "./aptos.js";
 import "./sui.js";

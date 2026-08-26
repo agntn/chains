@@ -165,4 +165,4 @@ Optional fields stay empty when the chain has no registered value. Octra has no 
 
 ## Supported chains
 
-`eth`, `base`, `arbitrum`, `optimism`, `polygon`, `bsc`, `avalanche`, `fantom`, `gnosis`, `linea`, `zksync`, `scroll`, `bera`, `bitcoin`, `litecoin`, `solana`, `aptos`, `sui`, `ton`, `tron`, and `oct`.
+`eth`, `base`, `arbitrum`, `optimism`, `polygon`, `bsc`, `avalanche`, `fantom`, `gnosis`, `linea`, `zksync`, `scroll`, `bera`, `bitcoin`, `litecoin`, `cardano`, `solana`, `aptos`, `sui`, `ton`, `tron`, and `oct`.
