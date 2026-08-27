@@ -9,7 +9,7 @@ Scope: canonical blockchain classes, aliases, and address validation.
 - `src/core/registry.ts` is the constructor registry
 - `src/core/resolve.ts` owns the aliases and `getChain`; canonical keys and display names are matched against the registry, so the alias table holds only real aliases, never a key as its own entry
 - `src/core/identify.ts` partitions the registry by an address: matching validators and unchecked chains
-- `src/core/base58.ts` decodes base58 for chains that check the bytes behind an address
+- `src/core/base58.ts` decodes base58 for chains that check the bytes behind an address. The alphabet is an argument, Bitcoin's by default and the XRP Ledger's for `xrpl`
 - `src/chains/*.ts` is one concrete blockchain class per file
 - `src/chains/index.ts` holds `builtins`, the ordered list the registry is seeded from. A chain file that is not in it is not in the registry
 - `src/index.ts` is the public API

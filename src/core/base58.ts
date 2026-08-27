@@ -1,4 +1,4 @@
-const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+const BITCOIN_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 /**
  * Decodes a base58 string to its bytes, or undefined when the input is not
@@ -9,17 +9,25 @@ const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
  * Program, all zeroes) to 44. A chain that needs to know how many bytes an address
  * carries has to decode it.
  *
+ * The alphabet is a parameter because base58 is an ordering, not one encoding: read
+ * an XRP Ledger address off Bitcoin's ordering and the bytes come back wrong rather
+ * than rejected. The zero digit moves with the alphabet, so leading zeros follow it.
+ *
  * The bound is required because decoding is quadratic: every character grows the
  * BigInt the next multiply has to walk, and a 100k-character string ties the
  * process up for seconds. An address format knows its maximum length, so the
  * caller states it and oversized input is rejected before any work.
  */
-export function decodeBase58(input: string, maxLength: number): Uint8Array | undefined {
+export function decodeBase58(
+  input: string,
+  maxLength: number,
+  alphabet: string = BITCOIN_ALPHABET,
+): Uint8Array | undefined {
   if (input.length === 0 || input.length > maxLength) return undefined;
 
   let value = 0n;
   for (const character of input) {
-    const digit = ALPHABET.indexOf(character);
+    const digit = alphabet.indexOf(character);
     if (digit < 0) return undefined;
     value = value * 58n + BigInt(digit);
   }
@@ -32,7 +40,7 @@ export function decodeBase58(input: string, maxLength: number): Uint8Array | und
 
   let leadingZeros = 0;
   for (const character of input) {
-    if (character !== "1") break;
+    if (character !== alphabet[0]) break;
     leadingZeros++;
   }
 

@@ -23,6 +23,7 @@ import { Stellar } from "./stellar.js";
 import { Sui } from "./sui.js";
 import { Ton } from "./ton.js";
 import { Tron } from "./tron.js";
+import { Xrpl } from "./xrpl.js";
 import { ZkSync } from "./zksync.js";
 
 /** Every chain the package ships. Not in this list, not in the registry. */
@@ -47,6 +48,7 @@ export const builtins: readonly ChainConstructor[] = [
   Cardano,
   Solana,
   Stellar,
+  Xrpl,
   Aptos,
   Sui,
   Ton,
