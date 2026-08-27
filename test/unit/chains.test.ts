@@ -782,17 +782,12 @@ describe("Octra address validation", () => {
   });
 
   /**
-   * Both are what the node writes for a public key that hashes this way. The
-   * first hash encodes one character short of the width, so it is padded and
-   * the body decodes to 33 bytes; the second starts on a zero byte, so its
-   * numeral is 31. Requiring exactly 32 decoded bytes would reject both, and
-   * they are roughly one address in seventeen and one in two hundred fifty six.
+   * The OCS01 contract from octra-labs/ocs01-test, then one whose body runs past
+   * 2^256 because its tail comes from a second hash. Decoding drops one in twenty four.
    */
-  it("accepts the padded and the short numerals the node writes too", () => {
-    // derived from the public key 40d99e706aa8969f1e5ed7fcb491e31a38b368aa3fe44e23ee6ef362742c8c6a
-    expect(octra.assertAddress("oct1t8VVNcuJbzbwyQ6SuktD3KKeCkznZzDhT4nCiLep1nQ")).toBeTruthy();
-    // derived from the public key 8cd17a06262ffad2864c25a10521998057b1c8c9317352402e7f009e6651d773
-    expect(octra.assertAddress("oct12MV2xy6BPCEQH1EorMXuV95vj5dHSnZf55oxSdtiWP4")).toBeTruthy();
+  it("accepts contract addresses, which carry no 32-byte payload", () => {
+    expect(octra.assertAddress("octBUHw585BrAMPMLQvGuWx4vqEsybYH9N7a3WNj1WBwrDn")).toBeTruthy();
+    expect(octra.assertAddress("octhKkg4gHoCePAX12mSQtthX6xsRKo4QwyPRqVMrbR3Q64")).toBeTruthy();
   });
 
   /** The node takes 47 characters and nothing else, so neither reaches an account. */
@@ -801,19 +796,7 @@ describe("Octra address validation", () => {
     expect(() => octra.assertAddress(`${live}A`)).toThrow(InvalidAddressError);
   });
 
-  /**
-   * 44 base58 characters run to 2^257, so the fixed width leaves room above a
-   * 32-byte hash: the first body is 2^256 - 1 and the second is 2^256.
-   */
-  it("rejects a numeral past the largest 32-byte hash", () => {
-    expect(octra.assertAddress("octJEKNVnkbo3jma5nREBBJCDoXFVeKkD56V3xKrvRmWxFG")).toBeTruthy();
-    expect(() => octra.assertAddress("octJEKNVnkbo3jma5nREBBJCDoXFVeKkD56V3xKrvRmWxFH")).toThrow(
-      InvalidAddressError,
-    );
-    expect(() => octra.assertAddress(`oct${"z".repeat(44)}`)).toThrow(InvalidAddressError);
-  });
-
-  /** No prefix, a 44-character body off the alphabet, and another chain. */
+  /** No prefix, a 44-character body off the alphabet, and two foreign chains. */
   it("rejects a missing prefix, a foreign charset and a foreign chain", () => {
     for (const address of [
       live.slice(3),
