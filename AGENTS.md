@@ -39,7 +39,7 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 - `verbatimModuleSyntax: true`, so type imports use `import type`
 - Canonical chain key is a lowercase `ChainKey` that names the chain rather than its ticker: `ethereum`, not `eth`. A short name is still a name, so `bsc`, `zksync` and `arbitrum` stay; ticker spellings belong in the alias table
 - Metadata that encodes the same fact twice gets a cross-field test, not just a type. `chainId` and the `eip155:` reference in `caip2` are checked against each other in `test/unit/chains.test.ts`; Linea shipped a testnet id against a mainnet CAIP-2 until that test existed
-- An address validator built only from a character-length window is wrong. Decode when the format is base58 with a known byte length, and follow the spec's case rules for bech32
+- An address validator built only from a character-length window is wrong. Decode when the format is base58 with a known byte length, and follow the spec's case rules for bech32. Octra is the exception: its address is a fixed 44 characters cut out of base58, not encoded from a payload, so the width is the whole format and decoding rejects real contract addresses
 - Use contextual class names: `EVM extends Chain`, `Ethereum extends EVM`. Do not repeat `Chain` in subclass names
 
 ## Not in scope

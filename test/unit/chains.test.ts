@@ -772,6 +772,49 @@ describe("Move address validation", () => {
   });
 });
 
+describe("Octra address validation", () => {
+  const octra = create("octra");
+  /** The mainnet validator, read off https://octra.network/status at epoch 1727197. */
+  const live = "oct7xCozDD9JEsbeVpo5C7HXp2BJbKqfmNUHmDDCCTtWcGb";
+
+  it("accepts a live mainnet address", () => {
+    expect(octra.assertAddress(live)).toBe(live);
+  });
+
+  /**
+   * The OCS01 contract from octra-labs/ocs01-test, then one whose body runs past
+   * 2^256 because its tail comes from a second hash. Decoding drops one in twenty four.
+   */
+  it("accepts contract addresses, which carry no 32-byte payload", () => {
+    expect(octra.assertAddress("octBUHw585BrAMPMLQvGuWx4vqEsybYH9N7a3WNj1WBwrDn")).toBeTruthy();
+    expect(octra.assertAddress("octhKkg4gHoCePAX12mSQtthX6xsRKo4QwyPRqVMrbR3Q64")).toBeTruthy();
+  });
+
+  /** The node takes 47 characters and nothing else, so neither reaches an account. */
+  it("rejects an address one character short or one long", () => {
+    expect(() => octra.assertAddress(live.slice(0, -1))).toThrow(InvalidAddressError);
+    expect(() => octra.assertAddress(`${live}A`)).toThrow(InvalidAddressError);
+  });
+
+  /** No prefix, a 44-character body off the alphabet, and two foreign chains. */
+  it("rejects a missing prefix, a foreign charset and a foreign chain", () => {
+    for (const address of [
+      live.slice(3),
+      `oct${"0".repeat(44)}`,
+      "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+    ]) {
+      expect(() => octra.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  it("keeps a live Octra address out of the other base58 chains", () => {
+    for (const key of ["bitcoin", "litecoin", "solana", "tron", "cardano"] as const) {
+      expect(() => create(key).assertAddress(live), key).toThrow(InvalidAddressError);
+    }
+  });
+});
+
 describe("base58 decoding", () => {
   /**
    * Decoding grows a BigInt per character, so its cost is quadratic in length.

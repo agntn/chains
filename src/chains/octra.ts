@@ -1,6 +1,9 @@
 import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 
+/** `oct` and a fixed 44 characters, the only shape the node accepts. */
+const ADDRESS = /^oct[1-9A-HJ-NP-Za-km-z]{44}$/;
+
 export class Octra extends Chain {
   static readonly key = "octra" as const;
   readonly type = "octra" as const;
@@ -9,8 +12,12 @@ export class Octra extends Chain {
   readonly explorer = "https://octrascan.io";
   readonly rpcDefault = "https://octra.network/rpc";
 
+  /**
+   * The width is the whole format. A contract address is cut out of base58
+   * rather than encoded from a payload, so decoding it drops real contracts.
+   */
   override assertAddress(address: string): string {
-    if (!/^oct[1-9A-HJ-NP-Za-km-z]{43,45}$/.test(address)) {
+    if (!ADDRESS.test(address)) {
       throw new InvalidAddressError(this.key, address);
     }
     return address;
