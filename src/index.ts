@@ -31,6 +31,7 @@ export { Pepecoin } from "./chains/pepecoin.js";
 export { Ecash } from "./chains/ecash.js";
 export { Cardano } from "./chains/cardano.js";
 export { Solana } from "./chains/solana.js";
+export { Stellar } from "./chains/stellar.js";
 export { Aptos } from "./chains/aptos.js";
 export { Sui } from "./chains/sui.js";
 export { Ton } from "./chains/ton.js";

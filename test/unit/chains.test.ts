@@ -16,6 +16,7 @@ import {
   Octra,
   Pepecoin,
   Solana,
+  Stellar,
   UnsupportedChainError,
   chains,
   create,
@@ -59,6 +60,7 @@ describe("chain registry", () => {
       "ecash",
       "cardano",
       "solana",
+      "stellar",
       "aptos",
       "sui",
       "ton",
@@ -93,6 +95,7 @@ describe("chain registry", () => {
     expect(create("ecash")).toBeInstanceOf(Ecash);
     expect(create("cardano")).toBeInstanceOf(Cardano);
     expect(create("solana")).toBeInstanceOf(Solana);
+    expect(create("stellar")).toBeInstanceOf(Stellar);
     expect(create("octra")).toBeInstanceOf(Octra);
   });
 });
@@ -125,6 +128,19 @@ describe("chain metadata", () => {
     expect(create("solana").caip2).toBe("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp");
   });
 
+  it("carries Stellar pubnet metadata", () => {
+    expect(create("stellar")).toMatchObject({
+      key: "stellar",
+      name: "Stellar",
+      symbol: "XLM",
+      type: "stellar",
+      bip44: 148,
+      caip2: "stellar:pubnet",
+      explorer: "https://stellar.expert/explorer/public",
+      rpcDefault: "https://soroban-rpc.mainnet.stellar.gateway.fm",
+    });
+  });
+
   it("does not invent unregistered Octra identifiers", () => {
     const octra = create("octra");
     expect(octra).toMatchObject({
@@ -150,6 +166,7 @@ describe("chain resolution", () => {
     expect(getChain("pep")).toBeInstanceOf(Pepecoin);
     expect(getChain("xec")).toBeInstanceOf(Ecash);
     expect(getChain("ada")).toBeInstanceOf(Cardano);
+    expect(getChain("xlm")).toBeInstanceOf(Stellar);
     expect(getChain("oct")).toBeInstanceOf(Octra);
   });
 
@@ -328,6 +345,41 @@ describe("Solana address validation", () => {
     expect(() => solana.assertAddress("0OIl0OIl0OIl0OIl0OIl0OIl0OIl0OIl")).toThrow(
       InvalidAddressError,
     );
+  });
+});
+
+describe("Stellar address validation", () => {
+  const stellar = create("stellar");
+
+  it("accepts the SEP-23 account, muxed-account and contract vectors", () => {
+    for (const address of [
+      "GA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJVSGZ",
+      "MA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJUAAAAAAAAAAAACJUQ",
+      "CA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJUWDA",
+    ]) {
+      expect(stellar.assertAddress(address)).toBe(address);
+    }
+  });
+
+  it("rejects the SEP-23 invalid length, algorithm, trailing-bit and checksum vectors", () => {
+    for (const address of [
+      "GAAAAAAAACGC6",
+      "GA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJVSGZA",
+      "G47QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJVP2I",
+      "MA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJUAAAAAAAAAAAACJUR",
+      "MA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJUAAAAAAAAAAAACJUO",
+    ]) {
+      expect(() => stellar.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  it("rejects non-address Strkey types", () => {
+    for (const address of [
+      "BAAD6DBUX6J22DMZOHIEZTEQ64CVCHEDRKWZONFEUL5Q26QD7R76RGR4TU",
+      "LA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJUPJN",
+    ]) {
+      expect(() => stellar.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
   });
 });
 
@@ -802,6 +854,12 @@ describe("address identification", () => {
     const { matches } = identify("addr1vx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzers66hrl8");
 
     expect(matches.map((chain) => chain.key)).toEqual(["cardano"]);
+  });
+
+  it("attributes a Stellar account to Stellar alone", () => {
+    const { matches } = identify("GA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJVSGZ");
+
+    expect(matches.map((chain) => chain.key)).toEqual(["stellar"]);
   });
 
   /**

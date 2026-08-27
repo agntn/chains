@@ -18,12 +18,13 @@ export type ChainKey =
   | "ecash"
   | "cardano"
   | "solana"
+  | "stellar"
   | "aptos"
   | "sui"
   | "ton"
   | "tron"
   | "octra";
-export type ChainType = "evm" | "utxo" | "solana" | "move" | "ton" | "tron" | "octra";
+export type ChainType = "evm" | "utxo" | "solana" | "stellar" | "move" | "ton" | "tron" | "octra";
 export interface ChainInfo {
   readonly name: string;
   readonly symbol: string;

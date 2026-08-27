@@ -10,7 +10,8 @@ export default defineCommand({
   args: {
     type: {
       type: "string",
-      description: "Only show chains of this family (evm, utxo, solana, move, ton, tron, octra)",
+      description:
+        "Only show chains of this family (evm, utxo, solana, stellar, move, ton, tron, octra)",
     },
     json: {
       type: "boolean",

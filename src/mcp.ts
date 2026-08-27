@@ -73,7 +73,7 @@ const tools: ToolDefinition[] = [
     inputSchema: Type.Object({
       family: Type.Optional(
         Type.String({
-          description: "Chain family to filter by (for example: evm, utxo, solana, move)",
+          description: "Chain family to filter by (for example: evm, utxo, solana, stellar)",
           minLength: 1,
           maxLength: 32,
         }),
