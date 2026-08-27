@@ -91,7 +91,21 @@ describe("chains MCP server", () => {
     const response = await client.callTool({ name: "toString", arguments: {} });
 
     expect(response.isError).toBe(true);
-    expect(response.content).toEqual([{ type: "text", text: "Unknown chains tool: toString" }]);
+    expect(response.content).toEqual([{ type: "text", text: 'Unknown chains tool: "toString"' }]);
+  });
+
+  it("keeps control characters from forging lines in unknown-tool errors", async () => {
+    const client = await connectTestClient();
+    const escape = String.fromCodePoint(27);
+    const csi = String.fromCodePoint(155);
+    const hostile = `fake\nKnown chain keys: attacker${escape}[31m${csi}RED`;
+
+    const response = await client.callTool({ name: hostile, arguments: {} });
+
+    expect(response.isError).toBe(true);
+    const [part] = response.content as Array<{ text: string }>;
+    expect(part?.text).not.toMatch(/\p{Cc}/u);
+    expect(part?.text).toContain("\\nKnown chain keys: attacker\\u001b[31m RED");
   });
 
   it("reports a valid address as a successful answer", async () => {

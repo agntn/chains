@@ -90,6 +90,14 @@ function validationError(schema: TSchema, value: unknown): string {
   return `Invalid arguments at ${first.instancePath || "/"}: ${first.message}`;
 }
 
+/** Keeps client-controlled error text from forging lines or terminal escapes. */
+function errorResult(text: string): CallToolResult {
+  return {
+    content: [{ type: "text", text: text.replaceAll(/\p{Cc}/gu, " ") }],
+    isError: true,
+  };
+}
+
 /**
  * Converts a shared tool result to the MCP text-result contract.
  *
@@ -134,32 +142,20 @@ export function createMcpServer(): Server {
   server.setRequestHandler(CallToolRequestSchema, (request) => {
     const tool = toolsByName.get(request.params.name);
     if (!tool) {
-      return {
-        content: [{ type: "text", text: `Unknown chains tool: ${request.params.name}` }],
-        isError: true,
-      };
+      return errorResult(`Unknown chains tool: ${JSON.stringify(request.params.name)}`);
     }
 
     const args = request.params.arguments ?? {};
     if (!Value.Check(tool.inputSchema, args)) {
-      return {
-        content: [{ type: "text", text: validationError(tool.inputSchema, args) }],
-        isError: true,
-      };
+      return errorResult(validationError(tool.inputSchema, args));
     }
 
     try {
       return toCallToolResult(tool.execute(args));
     } catch (error) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `${tool.name} failed: ${error instanceof Error ? error.message : String(error)}`,
-          },
-        ],
-        isError: true,
-      };
+      return errorResult(
+        `${tool.name} failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   });
 
