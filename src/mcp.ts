@@ -11,6 +11,7 @@ import {
   identifyAddress,
   listChains,
   lookupChain,
+  stripControlCharacters,
   validateChainAddress,
   type ToolResult,
 } from "./tool-operations.js";
@@ -93,7 +94,7 @@ function validationError(schema: TSchema, value: unknown): string {
 /** Keeps client-controlled error text from forging lines or terminal escapes. */
 function errorResult(text: string): CallToolResult {
   return {
-    content: [{ type: "text", text: text.replaceAll(/\p{Cc}/gu, " ") }],
+    content: [{ type: "text", text: stripControlCharacters(text) }],
     isError: true,
   };
 }
