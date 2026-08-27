@@ -121,7 +121,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
     promptSnippet:
       "Use chains_list to see which blockchains are available, instead of guessing a chain name.",
     promptGuidelines: [
-      "Families are evm, utxo, solana, stellar, move, ton, tron and octra.",
+      "Families are evm, utxo, solana, stellar, xrpl, move, ton, tron and octra.",
       "Every key and name it prints resolves in chains_lookup.",
     ],
     parameters: Type.Object({

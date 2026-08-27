@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { decodeBase58 } from "../../src/core/base58.ts";
+import { XRP_ALPHABET } from "../../src/chains/xrpl.ts";
 import {
   AddressValidationUnsupportedError,
   Arbitrum,
@@ -18,6 +19,7 @@ import {
   Solana,
   Stellar,
   UnsupportedChainError,
+  Xrpl,
   chains,
   create,
   getChain,
@@ -61,6 +63,7 @@ describe("chain registry", () => {
       "cardano",
       "solana",
       "stellar",
+      "xrpl",
       "aptos",
       "sui",
       "ton",
@@ -96,6 +99,7 @@ describe("chain registry", () => {
     expect(create("cardano")).toBeInstanceOf(Cardano);
     expect(create("solana")).toBeInstanceOf(Solana);
     expect(create("stellar")).toBeInstanceOf(Stellar);
+    expect(create("xrpl")).toBeInstanceOf(Xrpl);
     expect(create("octra")).toBeInstanceOf(Octra);
   });
 });
@@ -141,6 +145,18 @@ describe("chain metadata", () => {
     });
   });
 
+  it("carries XRP Ledger livenet metadata", () => {
+    expect(create("xrpl")).toMatchObject({
+      key: "xrpl",
+      name: "XRP Ledger",
+      symbol: "XRP",
+      type: "xrpl",
+      bip44: 144,
+      caip2: "xrpl:0",
+      explorer: "https://livenet.xrpl.org",
+    });
+  });
+
   it("does not invent unregistered Octra identifiers", () => {
     const octra = create("octra");
     expect(octra).toMatchObject({
@@ -167,6 +183,8 @@ describe("chain resolution", () => {
     expect(getChain("xec")).toBeInstanceOf(Ecash);
     expect(getChain("ada")).toBeInstanceOf(Cardano);
     expect(getChain("xlm")).toBeInstanceOf(Stellar);
+    expect(getChain("xrp")).toBeInstanceOf(Xrpl);
+    expect(getChain("ripple")).toBeInstanceOf(Xrpl);
     expect(getChain("oct")).toBeInstanceOf(Octra);
   });
 
@@ -379,6 +397,76 @@ describe("Stellar address validation", () => {
       "LA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJUPJN",
     ]) {
       expect(() => stellar.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+});
+
+describe("XRP Ledger address validation", () => {
+  const xrpl = create("xrpl");
+
+  /**
+   * Three accounts funded on mainnet, one of them a character short of the usual 34,
+   * then ACCOUNT_ZERO and ACCOUNT_ONE, whose leading zero bytes write the shortest
+   * addresses the format has.
+   */
+  it("accepts classic addresses, down to the special accounts", () => {
+    for (const address of [
+      "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
+      "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+      "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+      "rrrrrrrrrrrrrrrrrrrrrhoLvTp",
+      "rrrrrrrrrrrrrrrrrrrrBZbvji",
+    ]) {
+      expect(xrpl.assertAddress(address), address).toBe(address);
+    }
+  });
+
+  /** The genesis account again, encoded with no tag, tag 42 and tag 2^32-1. */
+  it("accepts X-addresses with and without a destination tag", () => {
+    for (const address of [
+      "XVPcpSm47b1CZkf5AkKM9a84dQHe3m4sBhsrA4XtnBECTAc",
+      "XVPcpSm47b1CZkf5AkKM9a84dQHe3mTCLZc5ZAoh11sd5nY",
+      "XVPcpSm47b1CZkf5AkKM9a84dQHe3mX6ZcxNZjq2wMvKo8a",
+    ]) {
+      expect(xrpl.assertAddress(address), address).toBe(address);
+    }
+  });
+
+  /**
+   * Each one checksums over the genesis account and is a single field off a real
+   * X-address: testnet prefix, flag 2, flag 0 over a tagged payload, a 32-bit tag with
+   * a reserved byte set, prefix 0x06 0x44, prefix 0x05 0x45, then 34 payload bytes.
+   * ripple-address-codec takes three of them, and reads the fourth as a plain tag 42.
+   */
+  it("rejects X-address payloads the format does not define", () => {
+    for (const address of [
+      "TVK3SYvMLZR6rEtLDZh3saYHaqFSeMf6Hj2w1dpb7SnJgqn",
+      "XVPcpSm47b1CZkf5AkKM9a84dQHe3mX5CatGoVBtxjSUpBU",
+      "XVPcpSm47b1CZkf5AkKM9a84dQHe3m4wqRZUR1Lkjcu3iKc",
+      "XVPcpSm47b1CZkf5AkKM9a84dQHe3mTCLZc5ZAohtiHB4Ms",
+      "dHs1rzwkm7bFd92d7dLjs4DpfY26KPtNfcwddrqLvgxnPsz",
+      "XW6eoXeSRsSueWqkhDEWhYCu3jocZWakT3NFyZ8DtTori2z",
+      "fuekHBFCQpfsPFqUKJh6F9ZVrYZKP95jc2kv3srhA3LaXb",
+    ]) {
+      expect(() => xrpl.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  /**
+   * Bitcoin, TRON and Solana, then an address holding a `0` the ledger has no digit
+   * for, the genesis address two characters short at 24 bytes, and a tagged
+   * X-address one digit long at 36.
+   */
+  it("rejects the other base58 chains and near misses", () => {
+    for (const address of [
+      "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+      "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+      "rHb9CJAWyB4rj91VRWn96DkukG4bwdty0h",
+      "rHb9CJAWyB4rj91VRWn96DkukG4bwdty",
+      "XVPcpSm47b1CZkf5AkKM9a84dQHe3mTCLZc5ZAoh11sd5nYr",
+    ]) {
+      expect(() => xrpl.assertAddress(address), address).toThrow(InvalidAddressError);
     }
   });
 });
@@ -809,7 +897,7 @@ describe("Octra address validation", () => {
   });
 
   it("keeps a live Octra address out of the other base58 chains", () => {
-    for (const key of ["bitcoin", "litecoin", "solana", "tron", "cardano"] as const) {
+    for (const key of ["bitcoin", "litecoin", "solana", "tron", "cardano", "xrpl"] as const) {
       expect(() => create(key).assertAddress(live), key).toThrow(InvalidAddressError);
     }
   });
@@ -824,6 +912,22 @@ describe("base58 decoding", () => {
   it("rejects input past the caller's bound before decoding", () => {
     expect(decodeBase58("z".repeat(36), 35)).toBeUndefined();
     expect(decodeBase58("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", 35)).toHaveLength(25);
+  });
+
+  /**
+   * The alphabet decides what the bytes are, not whether there are any: the genesis
+   * address opens on 0x00 under the ledger's digits and on 0x7a under Bitcoin's, and
+   * ACCOUNT_ZERO's 21 leading `r` are zero bytes only where `r` is the zero digit.
+   */
+  it("reads a string against the alphabet it was given", () => {
+    const genesis = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh";
+
+    expect(decodeBase58(genesis, 48, XRP_ALPHABET)?.[0]).toBe(0x00);
+    expect(decodeBase58(genesis, 48)?.[0]).toBe(0x7a);
+    expect(decodeBase58("rrrrrrrrrrrrrrrrrrrrrhoLvTp", 48, XRP_ALPHABET)?.slice(0, 21)).toEqual(
+      new Uint8Array(21),
+    );
+    expect(decodeBase58("rrrrrrrrrrrrrrrrrrrrrhoLvTp", 48)?.[0]).not.toBe(0x00);
   });
 });
 
@@ -890,6 +994,20 @@ describe("address identification", () => {
         matches.map((chain) => chain.key),
         address,
       ).toEqual(["ecash"]);
+    }
+  });
+
+  it("attributes classic and X-addresses to the XRP Ledger alone", () => {
+    for (const address of [
+      "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
+      "XVPcpSm47b1CZkf5AkKM9a84dQHe3mTCLZc5ZAoh11sd5nY",
+    ]) {
+      const { matches } = identify(address);
+
+      expect(
+        matches.map((chain) => chain.key),
+        address,
+      ).toEqual(["xrpl"]);
     }
   });
 
