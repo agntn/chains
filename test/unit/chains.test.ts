@@ -772,6 +772,66 @@ describe("Move address validation", () => {
   });
 });
 
+describe("Octra address validation", () => {
+  const octra = create("octra");
+  /** The mainnet validator, read off https://octra.network/status at epoch 1727197. */
+  const live = "oct7xCozDD9JEsbeVpo5C7HXp2BJbKqfmNUHmDDCCTtWcGb";
+
+  it("accepts a live mainnet address", () => {
+    expect(octra.assertAddress(live)).toBe(live);
+  });
+
+  /**
+   * Both are what the node writes for a public key that hashes this way. The
+   * first hash encodes one character short of the width, so it is padded and
+   * the body decodes to 33 bytes; the second starts on a zero byte, so its
+   * numeral is 31. Requiring exactly 32 decoded bytes would reject both, and
+   * they are roughly one address in seventeen and one in two hundred fifty six.
+   */
+  it("accepts the padded and the short numerals the node writes too", () => {
+    // derived from the public key 40d99e706aa8969f1e5ed7fcb491e31a38b368aa3fe44e23ee6ef362742c8c6a
+    expect(octra.assertAddress("oct1t8VVNcuJbzbwyQ6SuktD3KKeCkznZzDhT4nCiLep1nQ")).toBeTruthy();
+    // derived from the public key 8cd17a06262ffad2864c25a10521998057b1c8c9317352402e7f009e6651d773
+    expect(octra.assertAddress("oct12MV2xy6BPCEQH1EorMXuV95vj5dHSnZf55oxSdtiWP4")).toBeTruthy();
+  });
+
+  /** The node takes 47 characters and nothing else, so neither reaches an account. */
+  it("rejects an address one character short or one long", () => {
+    expect(() => octra.assertAddress(live.slice(0, -1))).toThrow(InvalidAddressError);
+    expect(() => octra.assertAddress(`${live}A`)).toThrow(InvalidAddressError);
+  });
+
+  /**
+   * 44 base58 characters run to 2^257, so the fixed width leaves room above a
+   * 32-byte hash: the first body is 2^256 - 1 and the second is 2^256.
+   */
+  it("rejects a numeral past the largest 32-byte hash", () => {
+    expect(octra.assertAddress("octJEKNVnkbo3jma5nREBBJCDoXFVeKkD56V3xKrvRmWxFG")).toBeTruthy();
+    expect(() => octra.assertAddress("octJEKNVnkbo3jma5nREBBJCDoXFVeKkD56V3xKrvRmWxFH")).toThrow(
+      InvalidAddressError,
+    );
+    expect(() => octra.assertAddress(`oct${"z".repeat(44)}`)).toThrow(InvalidAddressError);
+  });
+
+  /** No prefix, a 44-character body off the alphabet, and another chain. */
+  it("rejects a missing prefix, a foreign charset and a foreign chain", () => {
+    for (const address of [
+      live.slice(3),
+      `oct${"0".repeat(44)}`,
+      "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+    ]) {
+      expect(() => octra.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  it("keeps a live Octra address out of the other base58 chains", () => {
+    for (const key of ["bitcoin", "litecoin", "solana", "tron", "cardano"] as const) {
+      expect(() => create(key).assertAddress(live), key).toThrow(InvalidAddressError);
+    }
+  });
+});
+
 describe("base58 decoding", () => {
   /**
    * Decoding grows a BigInt per character, so its cost is quadratic in length.
