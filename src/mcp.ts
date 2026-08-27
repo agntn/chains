@@ -7,11 +7,11 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { Type, type TSchema } from "typebox";
 import { Value } from "typebox/value";
+import { stripControlCharacters } from "./core/text.js";
 import {
   identifyAddress,
   listChains,
   lookupChain,
-  stripControlCharacters,
   validateChainAddress,
   type ToolResult,
 } from "./tool-operations.js";

@@ -1,4 +1,5 @@
 import consola from "consola";
+import { stripControlCharacters } from "../core/text.js";
 import type { Chain } from "../index.js";
 import { ChainsError, getChain } from "../index.js";
 
@@ -13,7 +14,7 @@ export function resolveOrFail(input: string): Chain | undefined {
     return getChain(input);
   } catch (error) {
     if (error instanceof ChainsError) {
-      consola.error(error.message);
+      consola.error(stripControlCharacters(error.message));
       process.exitCode = 1;
       return undefined;
     }
