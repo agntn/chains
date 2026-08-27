@@ -115,6 +115,8 @@ chains identify 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984   # which chains acce
 
 `resolve`, `info` and `validate` print a message and exit 1 when they fail. `list` warns and exits 0 when a `--type` filter matches nothing, so don't use it as a check in a script. `identify` exits 0 even when nothing matches, because that is an answer too.
 
+An address the CLI rejects comes back quoted, so a newline or a terminal escape inside one cannot forge a line under the error.
+
 ## MCP server
 
 ```bash

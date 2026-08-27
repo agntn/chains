@@ -9,6 +9,7 @@ Scope: canonical blockchain classes, aliases, and address validation.
 - `src/core/registry.ts` is the constructor registry
 - `src/core/resolve.ts` owns the aliases and `getChain`; canonical keys and display names are matched against the registry, so the alias table holds only real aliases, never a key as its own entry
 - `src/core/identify.ts` partitions the registry by an address: matching validators and unchecked chains
+- `src/core/text.ts` holds the guards caller text passes through before any surface prints it
 - `src/core/base58.ts` decodes base58 for chains that check the bytes behind an address. The alphabet is an argument, Bitcoin's by default and the XRP Ledger's for `xrpl`
 - `src/chains/*.ts` is one concrete blockchain class per file
 - `src/chains/index.ts` holds `builtins`, the ordered list the registry is seeded from. A chain file that is not in it is not in the registry
@@ -34,7 +35,7 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 - The OMP loader must keep both dynamic imports literal (`import("../../../dist/tool-operations.mjs")` or `import("../../../src/tool-operations.ts")`). An `import(url.href)` built from a runtime value loses bare-dependency resolution in the compiled OMP binary. Pi may keep the existsSync form.
 - MCP is built on the low-level `Server`, deprecated in the SDK, because `McpServer.registerTool` takes Standard Schema only and `typebox` 1.x is not one. The alternative is a second definition of every parameter
 - An MCP client reads `content` and never `details`, so tool text has to carry whatever the next call needs
-- Caller text reaches a tool's `content` through `quoted()` or `stripControlCharacters()` in `src/tool-operations.ts`, never raw: a newline in an address writes its own line of the answer. `details` keeps the value unchanged, so a surface that renders it owes its own escaping
+- Caller text reaches a tool's `content` or the CLI's own output through `quoted()` or `stripControlCharacters()` in `src/core/text.ts`, never raw: a newline in an address writes its own line of the answer. `details` keeps the value unchanged, so a surface that renders it owes its own escaping
 - Lint and format with `oxlint` plus `oxfmt` (`pnpm run fmt`)
 - Test with vitest (`pnpm run test`)
 - `verbatimModuleSyntax: true`, so type imports use `import type`

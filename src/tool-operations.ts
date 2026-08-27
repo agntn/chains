@@ -8,6 +8,7 @@
  * Imports go through the package entrypoint, so executors see the public surface.
  */
 
+import { quoted, stripControlCharacters } from "./core/text.js";
 import type { Chain } from "./index.js";
 import {
   AddressValidationUnsupportedError,
@@ -80,16 +81,6 @@ export interface ToolResult<Details> {
   details: Details;
   /** Set when the tool could not answer. MCP forwards it, the agent harnesses drop it. */
   isError?: boolean;
-}
-
-/** Blanks every character that steers rendering instead of carrying content. */
-export function stripControlCharacters(text: string): string {
-  return text.replaceAll(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu, " ");
-}
-
-/** Quotes caller input, because a raw newline in an address writes its own answer line. */
-function quoted(value: string): string {
-  return stripControlCharacters(JSON.stringify(value));
 }
 
 /** Keeps a failed resolution actionable by naming what the registry does hold. */

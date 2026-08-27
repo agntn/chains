@@ -1,6 +1,7 @@
 import { defineCommand } from "citty";
 import consola from "consola";
-import { ChainsError } from "../index.js";
+import { quoted, stripControlCharacters } from "../core/text.js";
+import { ChainsError, InvalidAddressError } from "../index.js";
 import { resolveOrFail } from "./shared.js";
 
 export default defineCommand({
@@ -28,12 +29,13 @@ export default defineCommand({
       chain.assertAddress(args.address);
       consola.success(`Valid ${chain.name} address`);
     } catch (error) {
-      if (error instanceof ChainsError) {
-        consola.error(error.message);
-        process.exitCode = 1;
-        return;
-      }
-      throw error;
+      if (!(error instanceof ChainsError)) throw error;
+      consola.error(
+        error instanceof InvalidAddressError
+          ? `Invalid ${chain.key} address: ${quoted(error.address)}`
+          : stripControlCharacters(error.message),
+      );
+      process.exitCode = 1;
     }
   },
 });

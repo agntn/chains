@@ -1,5 +1,6 @@
 import { defineCommand } from "citty";
 import consola from "consola";
+import { quoted } from "../core/text.js";
 import { chains, create } from "../index.js";
 
 export default defineCommand({
@@ -20,9 +21,10 @@ export default defineCommand({
     },
   },
   run({ args }) {
+    const family = args.type;
     const rows = chains()
       .map((key) => create(key))
-      .filter((chain) => !args.type || chain.type === args.type);
+      .filter((chain) => !family || chain.type === family);
 
     if (args.json) {
       consola.log(
@@ -40,8 +42,8 @@ export default defineCommand({
       return;
     }
 
-    if (rows.length === 0) {
-      consola.warn(`No registered chain has type: ${args.type}`);
+    if (family && rows.length === 0) {
+      consola.warn(`No registered chain has type: ${quoted(family)}`);
       return;
     }
 
