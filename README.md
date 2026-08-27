@@ -134,6 +134,8 @@ An MCP client sees the text a tool returns and nothing else, so the text carries
 
 A rejected address is an answer, not a tool error. Only an unresolvable chain or a chain with no validator sets `isError`, because then nothing was checked.
 
+The address in an answer comes back quoted. It arrives from whatever the caller was reading, and a newline inside one would otherwise write its own line, so a rejected address could read as a match on the chain about to be funded.
+
 `chains_identify_address` turns validation around: it runs an address of unknown origin through every validator at once and reports the chains that accept the format, grouped by family. A chain without a validator would be named as unchecked rather than skipped, though the list is empty right now because every registered chain validates. A match narrows the family and no more - one EVM address is valid on all thirteen EVM chains.
 
 `createMcpServer()` is exported from `@agntn/chains/mcp` for hosts that bring their own transport.

@@ -34,6 +34,7 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 - The OMP loader must keep both dynamic imports literal (`import("../../../dist/tool-operations.mjs")` or `import("../../../src/tool-operations.ts")`). An `import(url.href)` built from a runtime value loses bare-dependency resolution in the compiled OMP binary. Pi may keep the existsSync form.
 - MCP is built on the low-level `Server`, deprecated in the SDK, because `McpServer.registerTool` takes Standard Schema only and `typebox` 1.x is not one. The alternative is a second definition of every parameter
 - An MCP client reads `content` and never `details`, so tool text has to carry whatever the next call needs
+- Caller text reaches a tool's `content` through `quoted()` or `stripControlCharacters()` in `src/tool-operations.ts`, never raw: a newline in an address writes its own line of the answer. `details` keeps the value unchanged, so a surface that renders it owes its own escaping
 - Lint and format with `oxlint` plus `oxfmt` (`pnpm run fmt`)
 - Test with vitest (`pnpm run test`)
 - `verbatimModuleSyntax: true`, so type imports use `import type`

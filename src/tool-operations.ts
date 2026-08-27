@@ -82,6 +82,16 @@ export interface ToolResult<Details> {
   isError?: boolean;
 }
 
+/** Blanks every character that steers rendering instead of carrying content. */
+export function stripControlCharacters(text: string): string {
+  return text.replaceAll(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu, " ");
+}
+
+/** Quotes caller input, because a raw newline in an address writes its own answer line. */
+function quoted(value: string): string {
+  return stripControlCharacters(JSON.stringify(value));
+}
+
 /** Keeps a failed resolution actionable by naming what the registry does hold. */
 function resolutionHelp(): string {
   return `Known chain keys: ${chains().join(", ")}. Display names, symbols, and aliases such as matic or btc resolve too. Call chains_list for the whole registry.`;
@@ -99,7 +109,9 @@ export function lookupChain(input: string): ToolResult<ChainLookup | LookupFailu
   } catch (error) {
     if (!(error instanceof ChainsError)) throw error;
     return {
-      content: [{ type: "text", text: `${error.message}\n${resolutionHelp()}` }],
+      content: [
+        { type: "text", text: `${stripControlCharacters(error.message)}\n${resolutionHelp()}` },
+      ],
       details: { error: error.message, input, knownChains: chains() },
       isError: true,
     };
@@ -155,7 +167,7 @@ export function listChains(family?: string): ToolResult<ChainListing> {
       content: [
         {
           type: "text",
-          text: `Unknown chain family: ${JSON.stringify(family)}\nKnown families: ${families.join(", ")}.`,
+          text: `Unknown chain family: ${quoted(family)}\nKnown families: ${families.join(", ")}.`,
         },
       ],
       details: { chains: [], families, family },
@@ -206,8 +218,8 @@ export function identifyAddress(rawAddress: string): ToolResult<AddressIdentific
 
   const lines = [
     matches.length === 0
-      ? `${address} matches none of the ${checked} checked chains.`
-      : `${address} matches ${matches.length} of ${checked} checked chains.`,
+      ? `${quoted(address)} matches none of the ${checked} checked chains.`
+      : `${quoted(address)} matches ${matches.length} of ${checked} checked chains.`,
     ...[...byFamily].map(
       ([family, group]) =>
         `${family} (${group.length}): ${group.map((chain) => chain.key).join(", ")}`,
@@ -250,7 +262,9 @@ export function validateChainAddress(input: string, rawAddress: string): ToolRes
   } catch (error) {
     if (!(error instanceof ChainsError)) throw error;
     return {
-      content: [{ type: "text", text: `${error.message}\n${resolutionHelp()}` }],
+      content: [
+        { type: "text", text: `${stripControlCharacters(error.message)}\n${resolutionHelp()}` },
+      ],
       details: { chain: null, address, valid: false, reason: error.message },
       isError: true,
     };
@@ -259,14 +273,19 @@ export function validateChainAddress(input: string, rawAddress: string): ToolRes
   try {
     chain.assertAddress(address);
     return {
-      content: [{ type: "text", text: `Valid ${chain.name} (${chain.key}) address: ${address}` }],
+      content: [
+        { type: "text", text: `Valid ${chain.name} (${chain.key}) address: ${quoted(address)}` },
+      ],
       details: { chain: chain.key, address, valid: true },
     };
   } catch (error) {
     if (error instanceof InvalidAddressError) {
       return {
         content: [
-          { type: "text", text: `Invalid ${chain.name} (${chain.key}) address: ${address}` },
+          {
+            type: "text",
+            text: `Invalid ${chain.name} (${chain.key}) address: ${quoted(address)}`,
+          },
         ],
         details: { chain: chain.key, address, valid: false, reason: error.message },
       };
