@@ -517,6 +517,24 @@ describe("Bitcoin address validation", () => {
       InvalidAddressError,
     );
   });
+
+  it("rejects corrupted Base58Check checksums on legacy addresses", () => {
+    // Valid P2PKH address: 14zMkTgaVXJcxdh4JdWi29MLRR44iUSG9W
+    expect(bitcoin.assertAddress("14zMkTgaVXJcxdh4JdWi29MLRR44iUSG9W")).toBeTruthy();
+    // 1-character corruption at the end changes stored checksum from d1093281 to d1093282
+    expect(() => bitcoin.assertAddress("14zMkTgaVXJcxdh4JdWi29MLRR44iUSG9X")).toThrow(
+      InvalidAddressError,
+    );
+  });
+
+  it("rejects corrupted bech32 checksums", () => {
+    // Valid bech32 address: bc1qaxm5p35r3yl25rdh5ex0j6wx33peht9r735x90
+    expect(bitcoin.assertAddress("bc1qaxm5p35r3yl25rdh5ex0j6wx33peht9r735x90")).toBeTruthy();
+    // 1-character corruption at the end changes polymod from 1 to 0x0e
+    expect(() => bitcoin.assertAddress("bc1qaxm5p35r3yl25rdh5ex0j6wx33peht9r735x9q")).toThrow(
+      InvalidAddressError,
+    );
+  });
 });
 
 describe("Litecoin address validation", () => {
