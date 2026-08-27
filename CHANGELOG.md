@@ -1,6 +1,28 @@
 # Changelog
 
 
+## v0.3.2
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.1...v0.3.2)
+
+### 🚀 Enhancements
+
+- Support Stellar Strkey addresses ([#14](https://github.com/agntn/chains/pull/14))
+- Register the XRP Ledger ([#19](https://github.com/agntn/chains/pull/19))
+
+### 🩹 Fixes
+
+- **version:** Read package metadata ([#15](https://github.com/agntn/chains/pull/15))
+- **mcp:** Stop unknown tool output injection ([#16](https://github.com/agntn/chains/pull/16))
+- Hold Octra addresses to their fixed width ([#17](https://github.com/agntn/chains/pull/17))
+- Quote the address in tool answers ([#18](https://github.com/agntn/chains/pull/18))
+- **cli:** Escape caller text before printing it ([#20](https://github.com/agntn/chains/pull/20))
+
+### ❤️ Contributors
+
+- Aeitwoen <aeitwoen@gmail.com>
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.3.1
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.0...v0.3.1)
