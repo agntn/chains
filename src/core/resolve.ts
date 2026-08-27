@@ -31,6 +31,7 @@ const aliases: Readonly<Record<string, ChainKey>> = {
   xec: "ecash",
   ada: "cardano",
   sol: "solana",
+  xlm: "stellar",
   apt: "aptos",
   trx: "tron",
   oct: "octra",

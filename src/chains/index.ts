@@ -19,6 +19,7 @@ import { Pepecoin } from "./pepecoin.js";
 import { Polygon } from "./polygon.js";
 import { Scroll } from "./scroll.js";
 import { Solana } from "./solana.js";
+import { Stellar } from "./stellar.js";
 import { Sui } from "./sui.js";
 import { Ton } from "./ton.js";
 import { Tron } from "./tron.js";
@@ -45,6 +46,7 @@ export const builtins: readonly ChainConstructor[] = [
   Ecash,
   Cardano,
   Solana,
+  Stellar,
   Aptos,
   Sui,
   Ton,
