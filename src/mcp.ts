@@ -22,7 +22,7 @@ interface ToolDefinition {
   title: string;
   description: string;
   inputSchema: TSchema;
-  execute(args: Record<string, unknown>): ToolResult<unknown>;
+  execute: (args: Readonly<Record<string, unknown>>) => ToolResult<unknown>;
 }
 
 const chainArgument = Type.String({
@@ -31,7 +31,12 @@ const chainArgument = Type.String({
   maxLength: 64,
 });
 
-/** One length contract for every address parameter; only the wording differs. */
+/**
+ * Builds one length contract for every address parameter; only the wording differs.
+ *
+ * @param {string} description - Surface-specific parameter description.
+ * @returns {TSchema} The shared bounded string schema.
+ */
 function addressArgument(description: string): TSchema {
   return Type.String({ description, minLength: 1, maxLength: 256 });
 }
@@ -84,14 +89,25 @@ const tools: ToolDefinition[] = [
   },
 ];
 
-/** Formats the first TypeBox validation failure for an MCP client. */
+/**
+ * Formats the first TypeBox validation failure for an MCP client.
+ *
+ * @param {TSchema} schema - Schema that rejected the value.
+ * @param {unknown} value - Rejected input value.
+ * @returns {string} A client-facing validation message.
+ */
 function validationError(schema: TSchema, value: unknown): string {
   const first = Value.Errors(schema, value)[0];
   if (!first) return "Invalid arguments";
   return `Invalid arguments at ${first.instancePath || "/"}: ${first.message}`;
 }
 
-/** Keeps client-controlled error text from forging lines or terminal escapes. */
+/**
+ * Keeps client-controlled error text from forging lines or terminal escapes.
+ *
+ * @param {string} text - Error text to sanitize.
+ * @returns {CallToolResult} A sanitized MCP error result.
+ */
 function errorResult(text: string): CallToolResult {
   return {
     content: [{ type: "text", text: stripControlCharacters(text) }],
@@ -104,6 +120,9 @@ function errorResult(text: string): CallToolResult {
  *
  * `details` is dropped and `structuredContent` is never set: clients that see
  * structured output prefer it over `content` and would hide the readable answer.
+ *
+ * @param {ToolResult<unknown>} result - Shared executor result.
+ * @returns {CallToolResult} The MCP text-result envelope.
  */
 function toCallToolResult(result: ToolResult<unknown>): CallToolResult {
   return {
@@ -120,6 +139,8 @@ function toCallToolResult(result: ToolResult<unknown>): CallToolResult {
  * does not implement Standard Schema, and this package's tool schemas are TypeBox,
  * shared with the Pi and OMP extensions. The high-level API would force a second
  * definition of every parameter.
+ *
+ * @returns {Server} An unconnected MCP server.
  */
 export function createMcpServer(): Server {
   const toolsByName = new Map(tools.map((tool) => [tool.name, tool]));

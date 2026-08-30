@@ -8,6 +8,9 @@ import { ChainsError, getChain } from "../index.js";
  * than a stack trace. Returns undefined once the exit code has been set.
  *
  * Imports go through the package entrypoint so the chain classes are registered.
+ *
+ * @param {string} input - Chain spelling supplied to the CLI.
+ * @returns {Chain | undefined} The resolved chain, or undefined after a known failure.
  */
 export function resolveOrFail(input: string): Chain | undefined {
   try {

@@ -10,7 +10,13 @@ const STRKEY_TYPES: Readonly<
   C: { bytes: 35, version: 2 << 3 },
 };
 
-/** Decodes canonical RFC 4648 base32 without padding or ignored trailing bits. */
+/**
+ * Decodes canonical RFC 4648 base32 without padding or ignored trailing bits.
+ *
+ * @param {string} input - Base32 text to decode.
+ * @param {number} expectedBytes - Exact decoded byte count.
+ * @returns {Uint8Array | undefined} Decoded bytes, or undefined for invalid input.
+ */
 function decodeBase32(input: string, expectedBytes: number): Uint8Array | undefined {
   const decoded = new Uint8Array(expectedBytes);
   let accumulator = 0;
@@ -35,10 +41,16 @@ function decodeBase32(input: string, expectedBytes: number): Uint8Array | undefi
   return decoded;
 }
 
-/** Computes the CRC16-XModem checksum used by SEP-23 Strkeys. */
-function crc16Xmodem(payload: Uint8Array): number {
+/**
+ * Computes the CRC16-XModem checksum used by SEP-23 Strkeys.
+ *
+ * @param {ArrayLike<number>} payload - Bytes covered by the checksum.
+ * @returns {number} The unsigned 16-bit checksum.
+ */
+function crc16Xmodem(payload: ArrayLike<number>): number {
   let checksum = 0;
-  for (const byte of payload) {
+  for (let index = 0; index < payload.length; index++) {
+    const byte = payload[index] ?? 0;
     checksum ^= byte << 8;
     for (let bit = 0; bit < 8; bit++) {
       checksum = checksum & 0x8000 ? ((checksum << 1) ^ 0x1021) & 0xffff : (checksum << 1) & 0xffff;

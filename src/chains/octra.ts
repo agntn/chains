@@ -15,6 +15,9 @@ export class Octra extends Chain {
   /**
    * The width is the whole format. A contract address is cut out of base58
    * rather than encoded from a payload, so decoding it drops real contracts.
+   *
+   * @param {string} address - Candidate Octra address.
+   * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
     if (!ADDRESS.test(address)) {

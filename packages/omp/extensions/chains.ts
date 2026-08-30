@@ -21,6 +21,8 @@ let toolOperationsPromise: Promise<typeof ChainsTools> | undefined;
  * under NodeNext resolution, which a bare TypeScript-stripping runtime cannot
  * resolve back to `.ts` files. Run `pnpm build` before loading the extension
  * from a working tree.
+ *
+ * @returns {Promise<typeof ChainsTools>} The cached shared executor module.
  */
 function loadToolOperations(): Promise<typeof ChainsTools> {
   toolOperationsPromise ??= (

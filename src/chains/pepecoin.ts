@@ -15,6 +15,9 @@ export class Pepecoin extends Chain {
    * Base58Check under 0x38 (`P...`) and 0x16 (`9...` or `A...`), 25 bytes, checksum
    * unchecked. No bech32: the fork carries Dogecoin's timed-out segwit. 0x16 is
    * Dogecoin's script version too, kept because Pepecoin has no other one.
+   *
+   * @param {string} address - Candidate Pepecoin address.
+   * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
     const decoded = decodeBase58(address, 34);

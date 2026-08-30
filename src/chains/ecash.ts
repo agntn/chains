@@ -20,6 +20,9 @@ export class Ecash extends Chain {
    * upstream's ecashaddrjs. The checksum stays unchecked, so a prefixless
    * Bitcoin Cash address passes. Legacy base58 stays out: it is byte-identical
    * to a Bitcoin address.
+   *
+   * @param {string} address - Candidate eCash address.
+   * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
     if (!CASHADDR_ADDRESS.test(address)) {

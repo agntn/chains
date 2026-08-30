@@ -26,6 +26,8 @@ export abstract class Chain implements ChainInfo {
    * The base implementation only throws, so a chain that never overrode it cannot
    * answer address questions at all. Callers deserve to know that before they ask,
    * rather than by catching the failure.
+   *
+   * @returns {boolean} Whether this class overrides the base address validator.
    */
   get validatesAddress(): boolean {
     return this.assertAddress !== Chain.prototype.assertAddress;

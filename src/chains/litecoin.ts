@@ -22,6 +22,9 @@ export class Litecoin extends Chain {
    * byte-identical to a Bitcoin `3...` address, so accepting it would make every
    * such address identify as both chains. The checksum stays unchecked: this is
    * a format check.
+   *
+   * @param {string} address - Candidate Litecoin address.
+   * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
     const decoded = decodeBase58(address, 35);

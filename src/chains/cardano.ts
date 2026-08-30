@@ -13,21 +13,39 @@ const SHELLEY_ADDRESS =
 const STAKE_ADDRESS =
   /^(stake1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{53}|STAKE1[QPZRY9X8GF2TVDW0S3JN54KHCE6MUA7L]{53})$/;
 
+const BYRON_ENVELOPE_PREFIX = [0x82, 0xd8, 0x18, 0x58] as const;
+const BYRON_PAYLOAD_PREFIX = [0x83, 0x58, 0x1c] as const;
+
+function hasBytesAt(decoded: ArrayLike<number>, expected: readonly number[], offset = 0): boolean {
+  return expected.every((byte, index) => decoded[offset + index] === byte);
+}
+
+function cborUnsignedLength(head: number): number {
+  if (head <= 0x17) return 1;
+  if (head === 0x18) return 2;
+  if (head === 0x19) return 3;
+  if (head === 0x1a) return 5;
+  return 0;
+}
+
 /**
  * The Byron envelope: array(2), tag(24), bytes opening as the three-item
  * array with its 28-byte root, then a CRC head matching the bytes it
  * claims. Attributes, type and the CRC value stay unparsed on purpose.
+ *
+ * @param {ArrayLike<number>} decoded - Candidate decoded Byron address bytes.
+ * @returns {boolean} Whether the bytes have the expected Byron CBOR envelope.
  */
-function isByronEnvelope(decoded: Uint8Array): boolean {
-  if (decoded[0] !== 0x82 || decoded[1] !== 0xd8 || decoded[2] !== 0x18 || decoded[3] !== 0x58) {
-    return false;
-  }
+function isByronEnvelope(decoded: ArrayLike<number>): boolean {
+  if (!hasBytesAt(decoded, BYRON_ENVELOPE_PREFIX)) return false;
+
   const payloadLength = decoded[4] ?? 0;
-  if (payloadLength < 33) return false;
-  if (decoded[5] !== 0x83 || decoded[6] !== 0x58 || decoded[7] !== 0x1c) return false;
+  if (payloadLength < 33 || !hasBytesAt(decoded, BYRON_PAYLOAD_PREFIX, 5)) return false;
+
   const head = decoded[5 + payloadLength];
   if (head === undefined) return false;
-  const crcBytes = head <= 0x17 ? 1 : head === 0x18 ? 2 : head === 0x19 ? 3 : head === 0x1a ? 5 : 0;
+
+  const crcBytes = cborUnsignedLength(head);
   return crcBytes > 0 && decoded.length === 5 + payloadLength + crcBytes;
 }
 
@@ -44,6 +62,9 @@ export class Cardano extends Chain {
    * A format check: the bech32 checksum and the Byron CRC stay unverified,
    * and a Byron testnet address passes because its network hides in a CBOR
    * attribute this check does not open.
+   *
+   * @param {string} address - Candidate Cardano address.
+   * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
     const decoded = decodeBase58(address, 128);

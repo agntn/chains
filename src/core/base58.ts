@@ -17,6 +17,11 @@ const BITCOIN_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuv
  * BigInt the next multiply has to walk, and a 100k-character string ties the
  * process up for seconds. An address format knows its maximum length, so the
  * caller states it and oversized input is rejected before any work.
+ *
+ * @param {string} input - Base58 text to decode.
+ * @param {number} maxLength - Maximum accepted character count.
+ * @param {string} alphabet - Ordered 58-character alphabet.
+ * @returns {Uint8Array | undefined} Decoded bytes, or undefined for invalid input.
  */
 export function decodeBase58(
   input: string,
