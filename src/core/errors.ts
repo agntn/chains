@@ -4,7 +4,7 @@ import type { ChainKey } from "./types.js";
 
 /** Base class for failures surfaced through chains. */
 export class ChainsError extends Error {
-  constructor(message: string, options?: ErrorOptions) {
+  constructor(message: string, options?: Readonly<ErrorOptions>) {
     super(message, options);
     this.name = "ChainsError";
   }

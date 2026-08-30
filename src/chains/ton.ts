@@ -24,12 +24,15 @@ export class Ton extends Chain {
    * to be 0x00 (basechain) or 0xff (masterchain), the only two that exist. The
    * CRC stays unchecked: this is a format check. The raw `workchain:hex` form
    * is not accepted, because wallets and explorers exchange the friendly form.
+   *
+   * @param {string} address - Candidate TON user-friendly address.
+   * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
     if (!FRIENDLY_ADDRESS.test(address)) throw new InvalidAddressError(this.key, address);
     const binary = atob(address.replaceAll("-", "+").replaceAll("_", "/"));
-    const tag = binary.charCodeAt(0);
-    const workchain = binary.charCodeAt(1);
+    const tag = binary.codePointAt(0);
+    const workchain = binary.codePointAt(1);
     if ((tag !== 0x11 && tag !== 0x51) || (workchain !== 0x00 && workchain !== 0xff)) {
       throw new InvalidAddressError(this.key, address);
     }

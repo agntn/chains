@@ -1,4 +1,4 @@
-import { runCommand, type ArgsDef, type CommandDef } from "citty";
+import { runCommand } from "citty";
 import consola from "consola";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import list from "../../src/commands/list.ts";
@@ -9,14 +9,16 @@ const ESCAPE = String.fromCodePoint(27);
 const CSI = String.fromCodePoint(155);
 const CONTROL = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
 
-/** Runs one subcommand and returns what it wrote through the given consola level. */
-async function capture<T extends ArgsDef>(
-  command: CommandDef<T>,
-  level: "error" | "warn",
-  rawArgs: string[],
-): Promise<string> {
+/**
+ * Runs one subcommand and returns what it wrote through the given consola level.
+ *
+ * @param {"error" | "warn"} level - Consola method to capture.
+ * @param {() => Promise<unknown>} execute - Bound command invocation.
+ * @returns {Promise<string>} Text written through the selected level.
+ */
+async function capture(level: "error" | "warn", execute: () => Promise<unknown>): Promise<string> {
   const spy = vi.spyOn(consola, level).mockImplementation(() => {});
-  await runCommand(command, { rawArgs });
+  await execute();
   return spy.mock.calls.map(([first]) => String(first)).join("\n");
 }
 
@@ -29,7 +31,9 @@ describe("CLI output escaping", () => {
   it("quotes a rejected address instead of letting it write its own line", async () => {
     const address = `1BadAddress\n${ESCAPE}[32m Valid Bitcoin address`;
 
-    const written = await capture(validate, "error", ["bitcoin", address]);
+    const written = await capture("error", () =>
+      runCommand(validate, { rawArgs: ["bitcoin", address] }),
+    );
 
     expect(written).not.toMatch(CONTROL);
     expect(written).toBe(
@@ -38,21 +42,25 @@ describe("CLI output escaping", () => {
   });
 
   it("blanks the C1 bytes JSON.stringify leaves alone in an unresolved chain", async () => {
-    const written = await capture(resolve, "error", [`doge${CSI}31m`]);
+    const written = await capture("error", () =>
+      runCommand(resolve, { rawArgs: [`doge${CSI}31m`] }),
+    );
 
     expect(written).not.toMatch(CONTROL);
     expect(written).toContain("Unsupported chain:");
   });
 
   it("quotes a family filter that matched nothing", async () => {
-    const written = await capture(list, "warn", ["--type", "evm\nutxo"]);
+    const written = await capture("warn", () =>
+      runCommand(list, { rawArgs: ["--type", "evm\nutxo"] }),
+    );
 
     expect(written).not.toMatch(CONTROL);
     expect(written).toBe('No registered chain has type: "evm\\nutxo"');
   });
 
   it("still exits 1 on a rejected address", async () => {
-    await capture(validate, "error", ["bitcoin", "not-an-address"]);
+    await capture("error", () => runCommand(validate, { rawArgs: ["bitcoin", "not-an-address"] }));
 
     expect(process.exitCode).toBe(1);
   });

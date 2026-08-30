@@ -46,6 +46,9 @@ const aliases: Readonly<Record<string, ChainKey>> = {
  * added later, and for renames, without anyone remembering to edit the alias table.
  * Symbols stay out of it: six chains report ETH, so indexing them would make the
  * answer depend on registration order.
+ *
+ * @param {string} name - Lowercase display name to resolve.
+ * @returns {ChainKey | undefined} Matching canonical key, if registered.
  */
 function keyByName(name: string): ChainKey | undefined {
   for (const key of chains()) {

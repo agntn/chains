@@ -23,6 +23,9 @@ export class Bitcoin extends Chain {
    * all. Decoding is the check the format needs, because a character-length
    * window lets any 32-byte base58 key through and Solana's System Program is
    * exactly that. The checksum stays unchecked: this is a format check.
+   *
+   * @param {string} address - Candidate Bitcoin address.
+   * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
     const decoded = decodeBase58(address, 35);

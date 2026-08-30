@@ -83,7 +83,11 @@ export interface ToolResult<Details> {
   isError?: boolean;
 }
 
-/** Keeps a failed resolution actionable by naming what the registry does hold. */
+/**
+ * Keeps a failed resolution actionable by naming what the registry does hold.
+ *
+ * @returns {string} Recovery guidance with the registered chain keys.
+ */
 function resolutionHelp(): string {
   return `Known chain keys: ${chains().join(", ")}. Display names, symbols, and aliases such as matic or btc resolve too. Call chains_list for the whole registry.`;
 }
@@ -91,7 +95,8 @@ function resolutionHelp(): string {
 /**
  * Resolves a key, name, symbol, or alias to its canonical chain metadata.
  *
- * @param input - Chain key, name, symbol, or alias.
+ * @param {string} input - Chain key, name, symbol, or alias.
+ * @returns {ToolResult<ChainLookup | LookupFailure>} Canonical metadata or recovery guidance.
  */
 export function lookupChain(input: string): ToolResult<ChainLookup | LookupFailure> {
   let chain: Chain;
@@ -147,7 +152,8 @@ export function lookupChain(input: string): ToolResult<ChainLookup | LookupFailu
  * Without a listing, the only way to discover the registry is to send a value you
  * expect to fail and read the recovery text — which names keys and nothing else.
  *
- * @param family - Chain family to filter by, or undefined for the whole registry.
+ * @param {string | undefined} family - Family to filter by, or undefined for the registry.
+ * @returns {ToolResult<ChainListing>} The rendered and structured chain listing.
  */
 export function listChains(family?: string): ToolResult<ChainListing> {
   const all = chains().map((key) => create(key));
@@ -199,7 +205,8 @@ export function listChains(family?: string): ToolResult<ChainListing> {
  * rather than skipped, because a silent skip would let "matches none" read as
  * "belongs to no registered chain".
  *
- * @param rawAddress - Address of unknown origin; surrounding whitespace is stripped first.
+ * @param {string} rawAddress - Address of unknown origin; surrounding whitespace is stripped.
+ * @returns {ToolResult<AddressIdentification>} Matching and unchecked chain keys.
  */
 export function identifyAddress(rawAddress: string): ToolResult<AddressIdentification> {
   const address = rawAddress.trim();
@@ -239,8 +246,9 @@ export function identifyAddress(rawAddress: string): ToolResult<AddressIdentific
  * A rejected address is an answer, not a failure. Only an unresolvable chain or
  * a chain without a validator sets `isError`, because then nothing was checked.
  *
- * @param input - Chain key, name, symbol, or alias.
- * @param rawAddress - Address to check; surrounding whitespace is stripped first.
+ * @param {string} input - Chain key, name, symbol, or alias.
+ * @param {string} rawAddress - Address to check; surrounding whitespace is stripped first.
+ * @returns {ToolResult<AddressCheck>} The rendered and structured validation outcome.
  */
 export function validateChainAddress(input: string, rawAddress: string): ToolResult<AddressCheck> {
   // getChain trims the chain argument, so the address is trimmed to match. An

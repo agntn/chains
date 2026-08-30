@@ -16,6 +16,9 @@ export interface AddressMatches {
  *
  * A match is about format only. Every EVM chain shares one format, so a match
  * narrows the family rather than naming the chain an address is used on.
+ *
+ * @param {string} address - Address to check against every registered validator.
+ * @returns {AddressMatches} Matching chains and chains without a validator.
  */
 export function identify(address: string): AddressMatches {
   const matches: Chain[] = [];

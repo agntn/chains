@@ -1,6 +1,5 @@
 # Changelog
 
-
 ## v0.3.2
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.1...v0.3.2)
@@ -46,11 +45,11 @@
 ### 💅 Refactors
 
 - Registry without import side effects ([#10](https://github.com/agntn/chains/pull/10))
-- ⚠️  Canonical keys name the chain, not the ticker ([#12](https://github.com/agntn/chains/pull/12))
+- ⚠️ Canonical keys name the chain, not the ticker ([#12](https://github.com/agntn/chains/pull/12))
 
 #### ⚠️ Breaking Changes
 
-- ⚠️  Canonical keys name the chain, not the ticker ([#12](https://github.com/agntn/chains/pull/12))
+- ⚠️ Canonical keys name the chain, not the ticker ([#12](https://github.com/agntn/chains/pull/12))
 
 ### ❤️ Contributors
 
@@ -111,12 +110,11 @@
 
 ## v0.2.0
 
-
 ### 🚀 Enhancements
 
 - Chains — blockchain data dictionary (18 chains, aliases, inter-lib bridges, address validation) ([2522db9](https://github.com/agntn/chains/commit/2522db9))
 - Add Octra chain metadata ([550491a](https://github.com/agntn/chains/commit/550491a))
-- ⚠️  Class registry, @agntn scope, CLI and agent extensions ([4137cb2](https://github.com/agntn/chains/commit/4137cb2))
+- ⚠️ Class registry, @agntn scope, CLI and agent extensions ([4137cb2](https://github.com/agntn/chains/commit/4137cb2))
 - Resolve chain display names from the registry ([9a9d59e](https://github.com/agntn/chains/commit/9a9d59e))
 - MCP server over stdio with shared tool executors ([ec68c07](https://github.com/agntn/chains/commit/ec68c07))
 
@@ -132,9 +130,8 @@
 
 #### ⚠️ Breaking Changes
 
-- ⚠️  Class registry, @agntn scope, CLI and agent extensions ([4137cb2](https://github.com/agntn/chains/commit/4137cb2))
+- ⚠️ Class registry, @agntn scope, CLI and agent extensions ([4137cb2](https://github.com/agntn/chains/commit/4137cb2))
 
 ### ❤️ Contributors
 
 - Oritwoen ([@oritwoen](https://github.com/oritwoen))
-

@@ -17,6 +17,9 @@ export class Tron extends Chain {
    * the other base58 chains out - Bitcoin's legacy form is the same 25 bytes
    * under 0x00 or 0x05, and a 34-character window would take both. The checksum
    * stays unchecked: this is a format check.
+   *
+   * @param {string} address - Candidate TRON address.
+   * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
     const decoded = decodeBase58(address, 34);

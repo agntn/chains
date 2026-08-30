@@ -46,13 +46,10 @@ describe("chains MCP server", () => {
     });
 
     expect(response.isError).not.toBe(true);
-    expect(response.content).toEqual([
-      {
-        type: "text",
-        text: expect.stringContaining("Polygon PoS (polygon)"),
-      },
-    ]);
-    const [part] = response.content as Array<{ text: string }>;
+    expect(response.content).toHaveLength(1);
+    const [part] = response.content as Array<{ type: string; text: string }>;
+    expect(part?.type).toBe("text");
+    expect(part?.text).toContain("Polygon PoS (polygon)");
     expect(part?.text).toContain("caip2: eip155:137");
     expect(part?.text).toContain("chainId: 0x89");
   });
@@ -80,9 +77,10 @@ describe("chains MCP server", () => {
     });
 
     expect(response.isError).toBe(true);
-    expect(response.content).toEqual([
-      { type: "text", text: expect.stringContaining("Invalid arguments") },
-    ]);
+    expect(response.content).toHaveLength(1);
+    const [part] = response.content as Array<{ type: string; text: string }>;
+    expect(part?.type).toBe("text");
+    expect(part?.text).toContain("Invalid arguments");
   });
 
   it("rejects prototype property names as unknown tools", async () => {
@@ -117,9 +115,10 @@ describe("chains MCP server", () => {
     });
 
     expect(response.isError).not.toBe(true);
-    expect(response.content).toEqual([
-      { type: "text", text: expect.stringContaining("Valid Ethereum (ethereum) address") },
-    ]);
+    expect(response.content).toHaveLength(1);
+    const [part] = response.content as Array<{ type: string; text: string }>;
+    expect(part?.type).toBe("text");
+    expect(part?.text).toContain("Valid Ethereum (ethereum) address");
   });
 
   it("reports a rejected address as an answer, not a tool error", async () => {
@@ -236,15 +235,15 @@ describe("chains MCP server", () => {
 
     const all = await client.callTool({ name: "chains_list", arguments: {} });
     expect(all.isError).not.toBe(true);
-    const [listing] = all.content as Array<{ text: string }>;
-    expect(listing?.text).toContain("26 chains registered.");
-    expect(listing?.text).toContain("litecoin   LTC    utxo    Litecoin");
-    expect(listing?.text).toContain("cardano    ADA    utxo    Cardano");
-    expect(listing?.text).toContain("pepecoin   PEP    utxo    Pepecoin");
-    expect(listing?.text).toContain("ecash      XEC    utxo    eCash");
-    expect(listing?.text).toContain("bitcoin    BTC    utxo    Bitcoin");
-    expect(listing?.text).toContain("stellar    XLM    stellar Stellar");
-    expect(listing?.text).toContain(
+    const listing = (all.content as Array<{ text: string }>).at(0)?.text;
+    expect(listing).toContain("26 chains registered.");
+    expect(listing).toContain("litecoin   LTC    utxo    Litecoin");
+    expect(listing).toContain("cardano    ADA    utxo    Cardano");
+    expect(listing).toContain("pepecoin   PEP    utxo    Pepecoin");
+    expect(listing).toContain("ecash      XEC    utxo    eCash");
+    expect(listing).toContain("bitcoin    BTC    utxo    Bitcoin");
+    expect(listing).toContain("stellar    XLM    stellar Stellar");
+    expect(listing).toContain(
       "Families: evm, utxo, solana, stellar, xrpl, move, ton, tron, octra.",
     );
 
@@ -252,20 +251,20 @@ describe("chains MCP server", () => {
       name: "chains_list",
       arguments: { family: "move" },
     });
-    const [moves] = filtered.content as Array<{ text: string }>;
-    expect(moves?.text).toContain("2 registered move chains.");
-    expect(moves?.text).toContain("Aptos");
-    expect(moves?.text).toContain("Sui");
-    expect(moves?.text).not.toContain("Ethereum");
+    const moves = (filtered.content as Array<{ text: string }>).at(0)?.text;
+    expect(moves).toContain("2 registered move chains.");
+    expect(moves).toContain("Aptos");
+    expect(moves).toContain("Sui");
+    expect(moves).not.toContain("Ethereum");
 
     const unknown = await client.callTool({
       name: "chains_list",
       arguments: { family: "rollup" },
     });
     expect(unknown.isError).toBe(true);
-    const [text] = unknown.content as Array<{ text: string }>;
-    expect(text?.text).toContain('Unknown chain family: "rollup"');
-    expect(text?.text).toContain("Known families: evm");
+    const text = (unknown.content as Array<{ text: string }>).at(0)?.text;
+    expect(text).toContain('Unknown chain family: "rollup"');
+    expect(text).toContain("Known families: evm");
   });
 
   it("resolves a display name it printed itself", async () => {
