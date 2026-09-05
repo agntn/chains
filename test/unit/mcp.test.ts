@@ -81,6 +81,31 @@ describe("chains MCP server", () => {
     ]);
   });
 
+  it("resolves and validates Monero through MCP", async () => {
+    const client = await connectTestClient();
+    const address =
+      "4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx3skxNgYeYTRj5UzqtReoS44qo9mtmXCqY45DJ852K5Jv2684Rge";
+    const lookup = await client.callTool({ name: "chains_lookup", arguments: { chain: "XMR" } });
+    expect(lookup.isError).not.toBe(true);
+    expect(JSON.stringify(lookup.content)).toContain("monero:418015bb9ae982a1975da7d79277c270");
+    const valid = await client.callTool({
+      name: "chains_validate_address",
+      arguments: { chain: "xmr", address },
+    });
+    expect(valid.isError).not.toBe(true);
+    expect(valid.content).toEqual([
+      { type: "text", text: `Valid Monero (monero) address: "${address}"` },
+    ]);
+    const invalid = await client.callTool({
+      name: "chains_validate_address",
+      arguments: { chain: "xmr", address: `${address}0` },
+    });
+    expect(invalid.isError).not.toBe(true);
+    expect(invalid.content).toEqual([
+      { type: "text", text: `Invalid Monero (monero) address: "${address}0"` },
+    ]);
+  });
+
   it("names the registered chains when resolution fails", async () => {
     const client = await connectTestClient();
 
@@ -172,7 +197,7 @@ describe("chains MCP server", () => {
 
     expect(response.isError).not.toBe(true);
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain("matches 13 of 27 checked chains");
+    expect(part?.text).toContain("matches 13 of 28 checked chains");
     expect(part?.text).toContain("evm (13): ethereum, base, arbitrum");
     expect(part?.text).toContain("does not prove the address is used");
     expect(part?.text).not.toContain("Not checked");
@@ -191,7 +216,7 @@ describe("chains MCP server", () => {
     });
 
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain("matches 1 of 27 checked chains");
+    expect(part?.text).toContain("matches 1 of 28 checked chains");
     expect(part?.text).toContain("solana (1): solana");
     expect(part?.text).not.toContain("utxo");
   });
@@ -206,7 +231,7 @@ describe("chains MCP server", () => {
 
     expect(response.isError).not.toBe(true);
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain('"nope" matches none of the 27 checked chains.');
+    expect(part?.text).toContain('"nope" matches none of the 28 checked chains.');
     expect(part?.text).not.toContain("does not prove");
     expect(part?.text).not.toContain("Not checked");
   });
@@ -228,7 +253,7 @@ describe("chains MCP server", () => {
     const [narrowed] = identified.content as Array<{ text: string }>;
     for (const character of invisible) expect(narrowed?.text).not.toContain(character);
     expect(narrowed?.text.split("\n")).toHaveLength(1);
-    expect(narrowed?.text).toContain("matches none of the 27 checked chains.");
+    expect(narrowed?.text).toContain("matches none of the 28 checked chains.");
 
     const validated = await client.callTool({
       name: "chains_validate_address",
@@ -263,7 +288,7 @@ describe("chains MCP server", () => {
     const all = await client.callTool({ name: "chains_list", arguments: {} });
     expect(all.isError).not.toBe(true);
     const listing = (all.content as Array<{ text: string }>).at(0)?.text;
-    expect(listing).toContain("27 chains registered.");
+    expect(listing).toContain("28 chains registered.");
     expect(listing).toContain("litecoin   LTC    utxo    Litecoin");
     expect(listing).toContain("cardano    ADA    utxo    Cardano");
     expect(listing).toContain("pepecoin   PEP    utxo    Pepecoin");
@@ -271,7 +296,7 @@ describe("chains MCP server", () => {
     expect(listing).toContain("bitcoin    BTC    utxo    Bitcoin");
     expect(listing).toContain("stellar    XLM    stellar Stellar");
     expect(listing).toContain(
-      "Families: evm, utxo, solana, stellar, xrpl, move, ton, tron, octra, arweave.",
+      "Families: evm, utxo, solana, stellar, xrpl, move, ton, tron, octra, arweave, monero.",
     );
 
     const filtered = await client.callTool({

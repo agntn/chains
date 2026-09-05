@@ -38,6 +38,7 @@ const aliases: Readonly<Record<string, ChainKey>> = {
   trx: "tron",
   oct: "octra",
   ar: "arweave",
+  xmr: "monero",
 };
 /**
  * Matches a display name against the registry rather than a second hand-written table.

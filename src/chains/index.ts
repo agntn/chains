@@ -14,6 +14,7 @@ import { Fantom } from "./fantom.js";
 import { Gnosis } from "./gnosis.js";
 import { Linea } from "./linea.js";
 import { Litecoin } from "./litecoin.js";
+import { Monero } from "./monero.js";
 import { Octra } from "./octra.js";
 import { Optimism } from "./optimism.js";
 import { Pepecoin } from "./pepecoin.js";
@@ -56,4 +57,5 @@ export const builtins: readonly ChainConstructor[] = [
   Tron,
   Octra,
   Arweave,
+  Monero,
 ];
