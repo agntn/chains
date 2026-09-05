@@ -15,6 +15,7 @@ import {
   EVM,
   InvalidAddressError,
   Litecoin,
+  Monero,
   Octra,
   Pepecoin,
   Solana,
@@ -71,6 +72,7 @@ describe("chain registry", () => {
       "tron",
       "octra",
       "arweave",
+      "monero",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -104,6 +106,7 @@ describe("chain registry", () => {
     expect(create("xrpl")).toBeInstanceOf(Xrpl);
     expect(create("octra")).toBeInstanceOf(Octra);
     expect(create("arweave")).toBeInstanceOf(Arweave);
+    expect(create("monero")).toBeInstanceOf(Monero);
   });
 });
 
