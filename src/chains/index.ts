@@ -8,6 +8,7 @@ import { Berachain } from "./berachain.js";
 import { Bitcoin } from "./bitcoin.js";
 import { Bsc } from "./bsc.js";
 import { Cardano } from "./cardano.js";
+import { Decred } from "./decred.js";
 import { Ecash } from "./ecash.js";
 import { Ethereum } from "./ethereum.js";
 import { Fantom } from "./fantom.js";
@@ -58,4 +59,5 @@ export const builtins: readonly ChainConstructor[] = [
   Octra,
   Arweave,
   Monero,
+  Decred,
 ];

@@ -40,4 +40,5 @@ export { Tron } from "./chains/tron.js";
 export { Octra } from "./chains/octra.js";
 export { Arweave } from "./chains/arweave.js";
 export { Monero } from "./chains/monero.js";
+export { Decred } from "./chains/decred.js";
 export { version } from "./version.js";

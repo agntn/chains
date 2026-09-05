@@ -56,7 +56,8 @@ Chain (abstract)
 ├── Tron
 ├── Octra
 ├── Arweave
-└── Monero
+├── Monero
+└── Decred
 ```
 
 Each chain is its own class holding its own metadata. `EVM` and `Move` own the family type and the address format, and everything else is declared per class, down to the coin type all thirteen EVM chains repeat.
@@ -97,6 +98,8 @@ TRON is the same 25 Base58Check bytes under version `0x41`, so decoding is also 
 Arweave accepts canonical 43-character base64url addresses: a 32-byte hash with no padding and zero unused bits in the final digit. The optional `:checksum` suffix is not supported. Transaction IDs share this format, so a match cannot tell an address from a transaction ID.
 
 Monero resolves from `monero` or `xmr` and accepts mainnet standard addresses, subaddresses and integrated addresses. Its Base58 is encoded in blocks, so treating the whole string like a Bitcoin address would be wrong. The check enforces block bounds, the network/type byte and the 69-byte or 77-byte envelope; it does not verify the Keccak checksum or public keys. Testnet and stagenet are rejected. See [Monero's address formats](https://docs.getmonero.org/public-address/).
+
+Decred resolves from `decred` or `dcr`. Mainnet hash addresses (`Ds`, `De`, `DS`, `Dc`) carry 26 decoded bytes; public key addresses (`Dk`) carry 39, including a canonical signature selector. Borrowing Bitcoin's version byte would get both formats wrong. The check follows [dcrd's version 0 encoders](https://github.com/decred/dcrd/blob/b9634e01770b9035c4f22e0b314e85aada3828cf/txscript/stdaddr/addressv0.go), rejects test networks, and leaves BLAKE-256 checksums and curve points unchecked. The coin type is 42, not Decred's legacy value 20; no CAIP-2 identifier or public RPC is supplied.
 
 ### Errors
 
@@ -184,4 +187,4 @@ Optional fields stay empty when the chain has no registered value. Octra has no 
 
 ## Supported chains
 
-`ethereum`, `base`, `arbitrum`, `optimism`, `polygon`, `bsc`, `avalanche`, `fantom`, `gnosis`, `linea`, `zksync`, `scroll`, `berachain`, `bitcoin`, `litecoin`, `pepecoin`, `ecash`, `cardano`, `solana`, `stellar`, `xrpl`, `aptos`, `sui`, `ton`, `tron`, `octra`, `arweave`, and `monero`.
+`ethereum`, `base`, `arbitrum`, `optimism`, `polygon`, `bsc`, `avalanche`, `fantom`, `gnosis`, `linea`, `zksync`, `scroll`, `berachain`, `bitcoin`, `litecoin`, `pepecoin`, `ecash`, `cardano`, `solana`, `stellar`, `xrpl`, `aptos`, `sui`, `ton`, `tron`, `octra`, `arweave`, `monero`, and `decred`.

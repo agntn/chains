@@ -10,6 +10,7 @@ import {
   Cardano,
   Chain,
   ChainsError,
+  Decred,
   Ecash,
   Ethereum,
   EVM,
@@ -73,6 +74,7 @@ describe("chain registry", () => {
       "octra",
       "arweave",
       "monero",
+      "decred",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -107,6 +109,7 @@ describe("chain registry", () => {
     expect(create("octra")).toBeInstanceOf(Octra);
     expect(create("arweave")).toBeInstanceOf(Arweave);
     expect(create("monero")).toBeInstanceOf(Monero);
+    expect(create("decred")).toBeInstanceOf(Decred);
   });
 });
 
