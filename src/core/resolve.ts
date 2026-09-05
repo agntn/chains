@@ -37,6 +37,7 @@ const aliases: Readonly<Record<string, ChainKey>> = {
   apt: "aptos",
   trx: "tron",
   oct: "octra",
+  ar: "arweave",
 };
 /**
  * Matches a display name against the registry rather than a second hand-written table.

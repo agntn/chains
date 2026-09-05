@@ -1,6 +1,7 @@
 import type { ChainConstructor } from "../core/chain.js";
 import { Aptos } from "./aptos.js";
 import { Arbitrum } from "./arbitrum.js";
+import { Arweave } from "./arweave.js";
 import { Avalanche } from "./avalanche.js";
 import { Base } from "./base.js";
 import { Berachain } from "./berachain.js";
@@ -54,4 +55,5 @@ export const builtins: readonly ChainConstructor[] = [
   Ton,
   Tron,
   Octra,
+  Arweave,
 ];
