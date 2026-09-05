@@ -9,6 +9,7 @@ export class Octra extends Chain {
   readonly type = "octra" as const;
   readonly name = "Octra";
   readonly symbol = "OCT";
+  override readonly decimals = 6;
   readonly explorer = "https://octrascan.io";
   readonly rpcDefault = "https://octra.network/rpc";
 

@@ -54,6 +54,7 @@ export class Cardano extends Chain {
   readonly type = "utxo" as const;
   readonly name = "Cardano";
   readonly symbol = "ADA";
+  override readonly decimals = 6;
   readonly explorer = "https://cardanoscan.io";
   readonly bip44 = 1815;
   readonly caip2 = "cip34:1-764824073";

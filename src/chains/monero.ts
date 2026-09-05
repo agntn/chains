@@ -32,6 +32,7 @@ export class Monero extends Chain {
   readonly type = "monero" as const;
   readonly name = "Monero";
   readonly symbol = "XMR";
+  override readonly decimals = 12;
   readonly bip44 = 128;
   readonly caip2 = "monero:418015bb9ae982a1975da7d79277c270";
   readonly explorer = "https://xmrchain.net";

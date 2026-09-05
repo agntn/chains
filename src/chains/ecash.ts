@@ -11,6 +11,7 @@ export class Ecash extends Chain {
   readonly type = "utxo" as const;
   readonly name = "eCash";
   readonly symbol = "XEC";
+  override readonly decimals = 2;
   readonly explorer = "https://explorer.e.cash";
   readonly bip44 = 899;
 

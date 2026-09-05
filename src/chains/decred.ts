@@ -8,6 +8,7 @@ export class Decred extends Chain {
   readonly type = "utxo" as const;
   readonly name = "Decred";
   readonly symbol = "DCR";
+  override readonly decimals = 8;
   readonly explorer = "https://dcrdata.decred.org";
   readonly bip44 = 42;
 

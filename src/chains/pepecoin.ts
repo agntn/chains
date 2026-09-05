@@ -7,6 +7,7 @@ export class Pepecoin extends Chain {
   readonly type = "utxo" as const;
   readonly name = "Pepecoin";
   readonly symbol = "PEP";
+  override readonly decimals = 8;
   readonly explorer = "https://peppool.space";
   readonly bip44 = 3434;
   readonly caip2 = "bip122:37981c0c48b8d48965376c8a42ece9a0";

@@ -74,6 +74,7 @@ export class Bitcoin extends Chain {
   readonly type = "utxo" as const;
   readonly name = "Bitcoin";
   readonly symbol = "BTC";
+  override readonly decimals = 8;
   readonly explorer = "https://blockstream.info";
   readonly bip44 = 0;
   readonly caip2 = "bip122:000000000019d6689c085ae165831e93";

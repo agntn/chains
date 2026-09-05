@@ -11,6 +11,7 @@ export class Litecoin extends Chain {
   readonly type = "utxo" as const;
   readonly name = "Litecoin";
   readonly symbol = "LTC";
+  override readonly decimals = 8;
   readonly explorer = "https://litecoinspace.org";
   readonly bip44 = 2;
   readonly caip2 = "bip122:12a765e31ffd4059bada1e25190f6e98";

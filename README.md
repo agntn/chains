@@ -171,17 +171,22 @@ Wallet storage, account management, and transaction building remain outside this
 
 ## `Chain` fields
 
-| Field        | Type        | Description                  |
-| ------------ | ----------- | ---------------------------- |
-| `key`        | `ChainKey`  | Canonical class key          |
-| `name`       | `string`    | Human-readable name          |
-| `symbol`     | `string`    | Native token symbol          |
-| `type`       | `ChainType` | Blockchain family            |
-| `bip44`      | `number?`   | BIP-44 / SLIP-0044 coin type |
-| `chainId`    | `string?`   | EVM chain ID in hexadecimal  |
-| `caip2`      | `string?`   | CAIP-2 identifier            |
-| `explorer`   | `string`    | Block explorer base URL      |
-| `rpcDefault` | `string?`   | Default public RPC endpoint  |
+| Field        | Type        | Description                    |
+| ------------ | ----------- | ------------------------------ |
+| `key`        | `ChainKey`  | Canonical class key            |
+| `name`       | `string`    | Human-readable name            |
+| `symbol`     | `string`    | Native token symbol            |
+| `decimals`   | `number?`   | Native currency decimal places |
+| `type`       | `ChainType` | Blockchain family              |
+| `bip44`      | `number?`   | BIP-44 / SLIP-0044 coin type   |
+| `chainId`    | `string?`   | EVM chain ID in hexadecimal    |
+| `caip2`      | `string?`   | CAIP-2 identifier              |
+| `explorer`   | `string`    | Block explorer base URL        |
+| `rpcDefault` | `string?`   | Default public RPC endpoint    |
+
+`decimals` describes the native currency: one whole unit is `10^decimals` base units. For example, `create("bitcoin").decimals` is `8`, while `getChain("xec").decimals` is `2`. Assuming eight places for every UTXO chain would get XEC amounts badly wrong. This is not a token's precision or a UI rounding preference, and an RPC may already return amounts in whole units.
+
+Every built-in chain declares `decimals`; custom classes may leave it `undefined` to stay compatible with the existing `Chain` contract. Zero means an indivisible currency, not missing metadata. `chains info` and `chains_lookup` report the value, or `unknown` when absent; JSON omits an unknown value. Compact registry listings are unchanged. See [native currency precision and sources](docs/native-decimals.md).
 
 Optional fields stay empty when the chain has no registered value. Octra has no BIP-44 coin type and no CAIP-2 namespace, so both are `undefined` rather than invented.
 

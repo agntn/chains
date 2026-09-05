@@ -25,6 +25,7 @@ export interface ChainLookup {
   key: string;
   name: string;
   symbol: string;
+  decimals?: number;
   type: string;
   bip44?: number;
   chainId?: string;
@@ -117,6 +118,7 @@ export function lookupChain(input: string): ToolResult<ChainLookup | LookupFailu
     key: chain.key,
     name: chain.name,
     symbol: chain.symbol,
+    decimals: chain.decimals,
     type: chain.type,
     bip44: chain.bip44,
     chainId: chain.chainId,
@@ -129,6 +131,7 @@ export function lookupChain(input: string): ToolResult<ChainLookup | LookupFailu
   const lines = [
     `${details.name} (${details.key})`,
     `symbol: ${details.symbol}`,
+    `decimals: ${details.decimals ?? "unknown"}`,
     `type: ${details.type}`,
     details.chainId ? `chainId: ${details.chainId}` : undefined,
     // caip2 and bip44 are printed even when absent. An omitted coin type reads as

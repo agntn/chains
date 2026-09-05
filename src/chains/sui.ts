@@ -4,6 +4,7 @@ export class Sui extends Move {
   static readonly key = "sui" as const;
   readonly name = "Sui";
   readonly symbol = "SUI";
+  override readonly decimals = 9;
   readonly explorer = "https://suiscan.xyz";
   readonly bip44 = 784;
   readonly caip2 = "sui:mainnet";

@@ -7,6 +7,7 @@ export class Tron extends Chain {
   readonly type = "tron" as const;
   readonly name = "TRON";
   readonly symbol = "TRX";
+  override readonly decimals = 6;
   readonly explorer = "https://tronscan.org";
   readonly bip44 = 195;
   readonly caip2 = "tron:0x2b6653dc";

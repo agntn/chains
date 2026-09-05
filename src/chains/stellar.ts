@@ -80,6 +80,7 @@ export class Stellar extends Chain {
   readonly type = "stellar" as const;
   readonly name = "Stellar";
   readonly symbol = "XLM";
+  override readonly decimals = 7;
   readonly explorer = "https://stellar.expert/explorer/public";
   readonly bip44 = 148;
   readonly caip2 = "stellar:pubnet";

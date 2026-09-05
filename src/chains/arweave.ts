@@ -10,6 +10,7 @@ export class Arweave extends Chain {
   readonly type = "arweave" as const;
   readonly name = "Arweave";
   readonly symbol = "AR";
+  override readonly decimals = 12;
   readonly bip44 = 472;
   readonly caip2 = "arweave:7wIU";
   readonly explorer = "https://viewblock.io/arweave";

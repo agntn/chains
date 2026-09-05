@@ -4,6 +4,7 @@ export class Arbitrum extends EVM {
   static readonly key = "arbitrum" as const;
   readonly name = "Arbitrum One";
   readonly symbol = "ETH";
+  override readonly decimals = 18;
   readonly explorer = "https://arbiscan.io";
   readonly bip44 = 60;
   readonly chainId = "0xa4b1";

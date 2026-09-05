@@ -4,6 +4,7 @@ export class Bsc extends EVM {
   static readonly key = "bsc" as const;
   readonly name = "BNB Chain";
   readonly symbol = "BNB";
+  override readonly decimals = 18;
   readonly explorer = "https://bscscan.com";
   readonly bip44 = 60;
   readonly chainId = "0x38";
