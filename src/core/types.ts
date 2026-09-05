@@ -26,7 +26,8 @@ export type ChainKey =
   | "tron"
   | "octra"
   | "arweave"
-  | "monero";
+  | "monero"
+  | "decred";
 export type ChainType =
   | "evm"
   | "utxo"
