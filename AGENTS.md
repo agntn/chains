@@ -46,4 +46,4 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 
 ## Not in scope
 
-RPC calls, wallet creation, transaction building. Those live in rpcx, ubichain and webri.
+Key generation and HD key/address derivation belong in [`@agntn/keys`](https://github.com/agntn/keys), not in the chain classes. RPC calls belong in [`@agntn/nodes`](https://github.com/agntn/nodes). Wallet storage, account management, and transaction building remain outside this package's scope.

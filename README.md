@@ -156,7 +156,12 @@ The extensions prefer the built executors and fall back to source only when `dis
 
 ## Not in scope
 
-No RPC calls, no wallets, no transaction building. Those belong in rpcx, ubichain and webri.
+`chains` describes blockchains and validates address strings. It does not generate keys or derive addresses.
+
+- Key generation and HD key/address derivation belong in [`@agntn/keys`](https://github.com/agntn/keys).
+- RPC calls belong in [`@agntn/nodes`](https://github.com/agntn/nodes).
+
+Wallet storage, account management, and transaction building remain outside this package's scope.
 
 ## `Chain` fields
 
