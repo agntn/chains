@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.3.3
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.2...v0.3.3)
+
+### 🚀 Enhancements
+
+- Bring Arweave into the chain registry ([#25](https://github.com/agntn/chains/pull/25))
+
+### 🩹 Fixes
+
+- **bitcoin:** Reject invalid SegWit addresses ([#26](https://github.com/agntn/chains/pull/26))
+
+### 📖 Documentation
+
+- Point key derivation and RPC scope to keys and nodes ([c6ef61a](https://github.com/agntn/chains/commit/c6ef61a))
+
+### 🏡 Chore
+
+- Enforce shared Ox policy ([#24](https://github.com/agntn/chains/pull/24))
+
+### ❤️ Contributors
+
+- Oritwoen ([@oritwoen](https://github.com/oritwoen))
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.3.2
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.1...v0.3.2)
