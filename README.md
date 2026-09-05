@@ -54,7 +54,8 @@ Chain (abstract)
 ├── Xrpl
 ├── Ton
 ├── Tron
-└── Octra
+├── Octra
+└── Arweave
 ```
 
 Each chain is its own class holding its own metadata. `EVM` and `Move` own the family type and the address format, and everything else is declared per class, down to the coin type all thirteen EVM chains repeat.
@@ -91,6 +92,8 @@ Keys name the chain rather than its ticker, so it is `ethereum`, `berachain` and
 The base58 validators decode, because a shape is not enough. Solana requires exactly 32 decoded bytes: character length cannot separate an account from a Bitcoin or TRON address, since those are 34 characters and 25 bytes, while the System Program is 32 characters and 32 bytes. Bitcoin's legacy branch requires the 25 Base58Check bytes under a `0x00` or `0x05` version: the same System Program fit a character-length window, and decoding is what keeps that false match out. The checksum stays unchecked, this is a format check. Bitcoin's bech32 branch uses the BIP-173 charset, which has no `1`, `b`, `i` or `o`, and treats all-lowercase and all-uppercase as valid while rejecting mixed case - uppercase is what QR encoders emit, so rejecting it would fail addresses that spend fine. Stellar accepts SEP-23 Strkeys for classic accounts, muxed accounts and contracts, including the canonical base32 form and its CRC16-XModem checksum.
 
 TRON is the same 25 Base58Check bytes under version `0x41`, so decoding is also what keeps it and Bitcoin's legacy form apart. The XRP Ledger writes base58 over its own ordering of those same 58 characters, so an address there has to be read under the ledger's digits or the bytes come back wrong instead of rejected. A classic account is 25 Base58Check bytes under version `0x00`, an X-address is 35 bytes under the mainnet prefix `0x05 0x44`, and the testnet prefix is turned away along with the reserved tag bytes XLS-5 requires to be zero. TON takes the TEP-2 friendly form in either base64 alphabet: 36 decoded bytes, a bounceable or non-bounceable tag and one of the two workchains that exist, with the testnet-only flag rejected the way Bitcoin's testnet versions are. Octra is the one base58 chain here where decoding would be a mistake: `oct` and a fixed 44 characters is the whole format, and a contract address is cut out of a base58 string rather than encoded from a payload, so its value runs past 32 bytes. The node takes that width and nothing else, so an address one character short is not a near miss, it is a different string. Aptos and Sui want all 32 bytes of hex written out, or the one-digit short form AIP-40 defines for the special addresses, which is how the framework address `0x1` is actually written - anything in between stays rejected, because accepting dropped leading zeros would make every EVM address a valid move address too. With those in place every registered chain validates, so `identify` gets an answer out of the whole registry.
+
+Arweave accepts canonical 43-character base64url addresses: a 32-byte hash with no padding and zero unused bits in the final digit. The optional `:checksum` suffix is not supported. Transaction IDs share this format, so a match cannot tell an address from a transaction ID.
 
 ### Errors
 
@@ -173,4 +176,4 @@ Optional fields stay empty when the chain has no registered value. Octra has no 
 
 ## Supported chains
 
-`ethereum`, `base`, `arbitrum`, `optimism`, `polygon`, `bsc`, `avalanche`, `fantom`, `gnosis`, `linea`, `zksync`, `scroll`, `berachain`, `bitcoin`, `litecoin`, `pepecoin`, `ecash`, `cardano`, `solana`, `stellar`, `xrpl`, `aptos`, `sui`, `ton`, `tron`, and `octra`.
+`ethereum`, `base`, `arbitrum`, `optimism`, `polygon`, `bsc`, `avalanche`, `fantom`, `gnosis`, `linea`, `zksync`, `scroll`, `berachain`, `bitcoin`, `litecoin`, `pepecoin`, `ecash`, `cardano`, `solana`, `stellar`, `xrpl`, `aptos`, `sui`, `ton`, `tron`, `octra`, and `arweave`.

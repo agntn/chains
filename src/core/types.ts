@@ -24,7 +24,8 @@ export type ChainKey =
   | "sui"
   | "ton"
   | "tron"
-  | "octra";
+  | "octra"
+  | "arweave";
 export type ChainType =
   | "evm"
   | "utxo"
@@ -34,7 +35,8 @@ export type ChainType =
   | "move"
   | "ton"
   | "tron"
-  | "octra";
+  | "octra"
+  | "arweave";
 export interface ChainInfo {
   readonly name: string;
   readonly symbol: string;

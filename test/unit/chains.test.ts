@@ -5,6 +5,7 @@ import { XRP_ALPHABET } from "../../src/chains/xrpl.ts";
 import {
   AddressValidationUnsupportedError,
   Arbitrum,
+  Arweave,
   Bitcoin,
   Cardano,
   Chain,
@@ -69,6 +70,7 @@ describe("chain registry", () => {
       "ton",
       "tron",
       "octra",
+      "arweave",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -101,6 +103,7 @@ describe("chain registry", () => {
     expect(create("stellar")).toBeInstanceOf(Stellar);
     expect(create("xrpl")).toBeInstanceOf(Xrpl);
     expect(create("octra")).toBeInstanceOf(Octra);
+    expect(create("arweave")).toBeInstanceOf(Arweave);
   });
 });
 

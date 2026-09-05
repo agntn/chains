@@ -38,4 +38,5 @@ export { Sui } from "./chains/sui.js";
 export { Ton } from "./chains/ton.js";
 export { Tron } from "./chains/tron.js";
 export { Octra } from "./chains/octra.js";
+export { Arweave } from "./chains/arweave.js";
 export { version } from "./version.js";
