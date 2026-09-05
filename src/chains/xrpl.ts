@@ -32,6 +32,7 @@ export class Xrpl extends Chain {
   readonly type = "xrpl" as const;
   readonly name = "XRP Ledger";
   readonly symbol = "XRP";
+  override readonly decimals = 6;
   readonly explorer = "https://livenet.xrpl.org";
   readonly bip44 = 144;
   readonly caip2 = "xrpl:0";

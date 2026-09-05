@@ -4,6 +4,7 @@ export class Fantom extends EVM {
   static readonly key = "fantom" as const;
   readonly name = "Fantom Opera";
   readonly symbol = "FTM";
+  override readonly decimals = 18;
   readonly explorer = "https://ftmscan.com";
   readonly bip44 = 60;
   readonly chainId = "0xfa";

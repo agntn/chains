@@ -52,6 +52,7 @@ describe("chains MCP server", () => {
     expect(part?.text).toContain("Polygon PoS (polygon)");
     expect(part?.text).toContain("caip2: eip155:137");
     expect(part?.text).toContain("chainId: 0x89");
+    expect(part?.text).toContain("decimals: 18");
   });
 
   it("resolves and validates Arweave through MCP", async () => {
@@ -60,6 +61,7 @@ describe("chains MCP server", () => {
     const lookup = await client.callTool({ name: "chains_lookup", arguments: { chain: "AR" } });
     expect(lookup.isError).not.toBe(true);
     expect(JSON.stringify(lookup.content)).toContain("caip2: arweave:7wIU");
+    expect(JSON.stringify(lookup.content)).toContain("decimals: 12");
     const valid = await client.callTool({
       name: "chains_validate_address",
       arguments: { chain: "ar", address },

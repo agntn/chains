@@ -4,6 +4,7 @@ export class Scroll extends EVM {
   static readonly key = "scroll" as const;
   readonly name = "Scroll";
   readonly symbol = "ETH";
+  override readonly decimals = 18;
   readonly explorer = "https://scrollscan.com";
   readonly bip44 = 60;
   readonly chainId = "0x82750";

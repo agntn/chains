@@ -30,6 +30,7 @@ export default defineCommand({
             key: chain.key,
             name: chain.name,
             symbol: chain.symbol,
+            decimals: chain.decimals,
             type: chain.type,
             bip44: chain.bip44,
             chainId: chain.chainId,
@@ -46,6 +47,7 @@ export default defineCommand({
 
     consola.log(`${chain.name} (${chain.key})`);
     consola.log(`  symbol      ${chain.symbol}`);
+    consola.log(`  decimals    ${chain.decimals ?? "unknown"}`);
     consola.log(`  type        ${chain.type}`);
     if (chain.bip44 !== undefined) consola.log(`  bip44       ${chain.bip44}`);
     if (chain.chainId) consola.log(`  chainId     ${chain.chainId}`);

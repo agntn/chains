@@ -43,6 +43,8 @@ export type ChainType =
 export interface ChainInfo {
   readonly name: string;
   readonly symbol: string;
+  /** Native currency precision: one whole unit is 10^decimals base units. */
+  readonly decimals?: number;
   readonly bip44?: number;
   readonly chainId?: string;
   readonly type: ChainType;

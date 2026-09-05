@@ -7,6 +7,7 @@ export class Solana extends Chain {
   readonly type = "solana" as const;
   readonly name = "Solana";
   readonly symbol = "SOL";
+  override readonly decimals = 9;
   readonly explorer = "https://solscan.io";
   readonly bip44 = 501;
   readonly caip2 = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";

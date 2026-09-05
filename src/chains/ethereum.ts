@@ -4,6 +4,7 @@ export class Ethereum extends EVM {
   static readonly key = "ethereum" as const;
   readonly name = "Ethereum";
   readonly symbol = "ETH";
+  override readonly decimals = 18;
   readonly explorer = "https://etherscan.io";
   readonly bip44 = 60;
   readonly chainId = "0x1";

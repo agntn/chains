@@ -4,6 +4,7 @@ export class Gnosis extends EVM {
   static readonly key = "gnosis" as const;
   readonly name = "Gnosis Chain";
   readonly symbol = "xDAI";
+  override readonly decimals = 18;
   readonly explorer = "https://gnosisscan.io";
   readonly bip44 = 60;
   readonly chainId = "0x64";

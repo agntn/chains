@@ -11,6 +11,8 @@ export abstract class Chain implements ChainInfo {
   abstract readonly symbol: string;
   abstract readonly type: ChainType;
   abstract readonly explorer: string;
+  /** Unknown for custom chains that do not declare their native currency precision. */
+  readonly decimals?: number;
   readonly bip44?: number;
   readonly chainId?: string;
   readonly caip2?: string;

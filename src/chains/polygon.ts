@@ -4,6 +4,7 @@ export class Polygon extends EVM {
   static readonly key = "polygon" as const;
   readonly name = "Polygon PoS";
   readonly symbol = "POL";
+  override readonly decimals = 18;
   readonly explorer = "https://polygonscan.com";
   readonly bip44 = 60;
   readonly chainId = "0x89";

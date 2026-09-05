@@ -17,14 +17,31 @@ class Unvalidated extends Chain {
   readonly explorer = "https://example.com";
 }
 
+class Indivisible extends Unvalidated {
+  static override readonly key = "indivisible" as ChainKey;
+  override readonly decimals = 0;
+}
+
 register(Unvalidated);
+register(Indivisible);
 
 describe("tool reporting for a chain without a validator", () => {
+  it("distinguishes unknown precision from an indivisible currency", () => {
+    const unknown = lookupChain("unvalidated");
+    expect(unknown.details).toMatchObject({ decimals: undefined });
+    expect(unknown.content[0]?.text).toContain("decimals: unknown");
+    const zero = lookupChain("indivisible");
+    expect(zero.details).toMatchObject({ decimals: 0 });
+    expect(zero.content[0]?.text).toContain("decimals: 0");
+  });
+
   it("names the chain as unchecked instead of counting it as a miss", () => {
     const result = identifyAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984");
 
-    expect(result.content[0]?.text).toContain("Not checked (no validator): unvalidated.");
-    expect(result.details.unchecked).toEqual(["unvalidated"]);
+    expect(result.content[0]?.text).toContain(
+      "Not checked (no validator): unvalidated, indivisible.",
+    );
+    expect(result.details.unchecked).toEqual(["unvalidated", "indivisible"]);
   });
 
   it("marks validating against it as a tool error, because nothing was checked", () => {

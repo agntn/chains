@@ -13,6 +13,7 @@ export class Ton extends Chain {
   readonly type = "ton" as const;
   readonly name = "TON (The Open Network)";
   readonly symbol = "TON";
+  override readonly decimals = 9;
   readonly explorer = "https://tonscan.org";
   readonly bip44 = 607;
   readonly caip2 = "ton:-1";
