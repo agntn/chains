@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.3.4
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.3...v0.3.4)
+
+### 🚀 Enhancements
+
+- **monero:** Support mainnet address formats ([#27](https://github.com/agntn/chains/pull/27))
+- **decred:** Add DCR to chain lookup and validation ([#28](https://github.com/agntn/chains/pull/28))
+- Include decimals in chain metadata ([#29](https://github.com/agntn/chains/pull/29))
+
+### 🩹 Fixes
+
+- **litecoin:** Verify SegWit checksums ([#30](https://github.com/agntn/chains/pull/30))
+- **ecash:** Turn away CashAddr typos and bare Bitcoin Cash addresses ([#31](https://github.com/agntn/chains/pull/31))
+
+### ❤️ Contributors
+
+- Ori ([@oritwoen](https://github.com/oritwoen))
+- Aeitwoen ([@aeitwoen](https://github.com/aeitwoen))
+
 ## v0.3.3
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.2...v0.3.3)
