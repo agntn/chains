@@ -23,6 +23,7 @@ Scope: canonical blockchain classes, aliases, and address validation.
 - `src/version.ts` is the version string
 - `test/unit/chains.test.ts` covers hierarchy, registry, metadata, and validation
 - `test/unit/mcp.test.ts` drives the MCP server over an in-memory transport
+- `docs/` is the Docus site behind chains.agntn.dev, with its own `AGENTS.md`. It imports the built package from `file:..`, so `pnpm build` comes first
 
 ## Shape
 

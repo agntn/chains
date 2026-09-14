@@ -3,5 +3,5 @@ import { defineConfig } from "oxfmt";
 
 export default defineConfig({
   ...oxfmt,
-  ignorePatterns: ["dist", "coverage", "AGENTS.md"],
+  ignorePatterns: ["dist", "coverage", "docs", "AGENTS.md"],
 });
