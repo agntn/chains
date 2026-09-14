@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.3.5
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.4...v0.3.5)
+
+### 🩹 Fixes
+
+- **cardano:** Refuse mistyped Shelley addresses ([#32](https://github.com/agntn/chains/pull/32))
+- Catch typos in Base58Check addresses ([#34](https://github.com/agntn/chains/pull/34))
+
+### 📖 Documentation
+
+- Chains.agntn.dev, playground included ([#33](https://github.com/agntn/chains/pull/33))
+
+### ❤️ Contributors
+
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.3.4
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.3...v0.3.4)
