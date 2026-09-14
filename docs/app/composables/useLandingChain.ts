@@ -116,8 +116,9 @@ export function useLandingChain() {
 
   let timer: number | undefined;
 
+  /** Wraps at both ends, so the previous button on the first chain lands on the last one. */
   function step(delta: number) {
-    tick.value = Math.max(0, tick.value + delta);
+    tick.value = (tick.value + delta + samples.length) % samples.length;
   }
 
   function stopWalk() {
