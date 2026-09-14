@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "agntn-chains",
+  "account_id": "6ef8d3cbe19975e93d994f25228488e7",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "NUXT_SITE_URL": "https://chains.agntn.dev"
+  },
+  "workers_dev": true,
+  "preview_urls": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "agntn-chains",
+      "database_id": "dd74a452-3a42-4097-8c25-9e62e0b943f0"
+    }
+  ],
+  "routes": [{ "pattern": "chains.agntn.dev", "custom_domain": true }],
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  }
+}

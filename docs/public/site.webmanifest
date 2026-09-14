@@ -1,0 +1,13 @@
+{
+  "name": "@agntn/chains",
+  "short_name": "chains",
+  "description": "Canonical blockchain classes, aliases and address validation behind one local API, a CLI and four agent tools",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#0b0d10",
+  "theme_color": "#0b0d10",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

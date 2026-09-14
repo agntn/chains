@@ -40,6 +40,7 @@
   "scripts": {
     "build": "obuild",
     "dev": "obuild --stub",
+    "docs": "pnpm --dir docs dev",
     "fmt": "pnpm build && oxlint . --fix && oxfmt --write .",
     "fmt:check": "pnpm build && oxlint . && oxfmt --check .",
     "lint": "pnpm build && oxlint .",

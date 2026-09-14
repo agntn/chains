@@ -4,6 +4,8 @@ Canonical blockchain classes, aliases, and address validation.
 
 Every web3 library I write needs the same handful of facts: Polygon's chain ID, Bitcoin's coin type, which explorer to link, whether an address even looks right. Re-declared in every one of them. So they live here once, as classes.
 
+Docs and a playground that runs the library in your browser: [chains.agntn.dev](https://chains.agntn.dev). The source lives in [`docs/`](./docs), run `pnpm docs` after `pnpm build` for a local copy.
+
 ## Stack
 
 TypeScript, ESM-only. The core imports nothing at runtime. The CLI adds `citty` and `consola`, the MCP server adds `@modelcontextprotocol/sdk`, and the agent extensions need `typebox` and `@earendil-works/pi-coding-agent`. The MCP server and the extensions describe their parameters with the same `typebox` schemas.
@@ -186,7 +188,7 @@ Wallet storage, account management, and transaction building remain outside this
 
 `decimals` describes the native currency: one whole unit is `10^decimals` base units. For example, `create("bitcoin").decimals` is `8`, while `getChain("xec").decimals` is `2`. Assuming eight places for every UTXO chain would get XEC amounts badly wrong. This is not a token's precision or a UI rounding preference, and an RPC may already return amounts in whole units.
 
-Every built-in chain declares `decimals`; custom classes may leave it `undefined` to stay compatible with the existing `Chain` contract. Zero means an indivisible currency, not missing metadata. `chains info` and `chains_lookup` report the value, or `unknown` when absent; JSON omits an unknown value. Compact registry listings are unchanged. See [native currency precision and sources](docs/native-decimals.md).
+Every built-in chain declares `decimals`; custom classes may leave it `undefined` to stay compatible with the existing `Chain` contract. Zero means an indivisible currency, not missing metadata. `chains info` and `chains_lookup` report the value, or `unknown` when absent; JSON omits an unknown value. Compact registry listings are unchanged. See [Metadata](https://chains.agntn.dev/guide/metadata) for the sources behind every value.
 
 Optional fields stay empty when the chain has no registered value. Octra has no BIP-44 coin type and no CAIP-2 namespace, so both are `undefined` rather than invented.
 
