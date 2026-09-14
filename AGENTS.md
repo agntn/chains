@@ -11,6 +11,8 @@ Scope: canonical blockchain classes, aliases, and address validation.
 - `src/core/identify.ts` partitions the registry by an address: matching validators and unchecked chains
 - `src/core/text.ts` holds the guards caller text passes through before any surface prints it
 - `src/core/base58.ts` decodes base58 for chains that check the bytes behind an address. The alphabet is an argument, Bitcoin's by default and the XRP Ledger's for `xrpl`
+- `src/core/base58check.ts` decodes Base58Check on top of `base58.ts` and refuses a checksum that does not hold. Bitcoin's legacy form, Litecoin, Pepecoin, TRON and the XRP Ledger read through it
+- `src/core/sha256.ts` is SHA-256 written out, because the core imports nothing at runtime and `assertAddress` cannot await the Web Crypto digest
 - `src/core/bech32.ts` reads Bech32 digits and packs them into bytes. The human-readable part and the digit bound are arguments, because BIP-173's 90-character cap is Bitcoin's rule and Cardano writes past it
 - `src/core/segwit.ts` checks BIP-173/350 SegWit addresses on top of `bech32.ts` for the chains that took Bitcoin's witness program rules. The human-readable part is an argument, `bc` for Bitcoin and `ltc` for Litecoin
 - `src/chains/*.ts` is one concrete blockchain class per file
@@ -44,7 +46,7 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 - `verbatimModuleSyntax: true`, so type imports use `import type`
 - Canonical chain key is a lowercase `ChainKey` that names the chain rather than its ticker: `ethereum`, not `eth`. A short name is still a name, so `bsc`, `zksync` and `arbitrum` stay; ticker spellings belong in the alias table
 - Metadata that encodes the same fact twice gets a cross-field test, not just a type. `chainId` and the `eip155:` reference in `caip2` are checked against each other in `test/unit/chains.test.ts`; Linea shipped a testnet id against a mainnet CAIP-2 until that test existed
-- An address validator built only from a character-length window is wrong. Decode when the format is base58 with a known byte length, and follow the spec's case rules for bech32. Octra is the exception: its address is a fixed 44 characters cut out of base58, not encoded from a payload, so the width is the whole format and decoding rejects real contract addresses
+- An address validator built only from a character-length window is wrong. Decode when the format is base58 with a known byte length, verify the checksum when the format is Base58Check, and follow the spec's case rules for bech32. Octra is the exception: its address is a fixed 44 characters cut out of base58, not encoded from a payload, so the width is the whole format and decoding rejects real contract addresses
 - Use contextual class names: `EVM extends Chain`, `Ethereum extends EVM`. Do not repeat `Chain` in subclass names
 
 ## Not in scope

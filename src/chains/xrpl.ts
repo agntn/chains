@@ -1,4 +1,4 @@
-import { decodeBase58 } from "../core/base58.js";
+import { decodeBase58Check } from "../core/base58check.js";
 import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 
@@ -39,14 +39,14 @@ export class Xrpl extends Chain {
 
   /**
    * A classic address is Base58Check under version 0x00, 25 bytes, read under the
-   * ledger's alphabet, which is what keeps Bitcoin and TRON out. The checksum stays
-   * unchecked, and 48 characters is one past the longest address the format writes.
+   * ledger's alphabet, which is what keeps Bitcoin and TRON out. The checksum is verified
+   * on both forms, and 48 characters is one past the longest address the format writes.
    *
    * @param {string} address - Candidate XRP Ledger address.
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    const decoded = decodeBase58(address, 48, XRP_ALPHABET);
+    const decoded = decodeBase58Check(address, 48, XRP_ALPHABET);
     if (decoded === undefined) throw new InvalidAddressError(this.key, address);
     const classic = decoded.length === 25 && decoded[0] === 0x00;
     if (!classic && !isXAddress(decoded)) {

@@ -48,7 +48,7 @@ const PRESENTATION: Record<ChainKey, { icon: string; alias: string; sample: stri
     alias: "ltc",
     sample: "ltc1qhdhvrwe6rgqns8fz28tee0hphr5x7ulw5exv4w",
   },
-  pepecoin: { icon: "i-lucide-leaf", alias: "pep", sample: "PdGZ1aBYkDy6sJhPSxtjPnNGb6h8AwKxJ9" },
+  pepecoin: { icon: "i-lucide-leaf", alias: "pep", sample: "PftB3JYp6r3PPkiLPoPoT6vdS77NR4mhyb" },
   ecash: {
     icon: "i-token-xec",
     alias: "xec",

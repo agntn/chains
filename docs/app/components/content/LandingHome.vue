@@ -136,7 +136,7 @@ const activeChain = computed(() => current.value.chain.key);
       link="How each format is checked"
       :checks="[
         'Base58 addresses are decoded: Solana wants 32 bytes, TRON 25 under 0x41, XRP its own alphabet',
-        'Bech32 and Bech32m checksums are verified on Bitcoin, Litecoin and Cardano, the CashAddr one on eCash',
+        'Base58Check, Bech32, Bech32m and CashAddr checksums are all verified, so one character off fails',
         'Rejected is an answer. InvalidAddressError carries the chain key and the address',
       ]"
       reverse
