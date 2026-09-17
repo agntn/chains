@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.3.6
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.5...v0.3.6)
+
+### 🚀 Enhancements
+
+- Validate txids per chain family ([#38](https://github.com/agntn/chains/pull/38))
+
+### 🩹 Fixes
+
+- **docs:** Build the site from a fresh checkout ([#36](https://github.com/agntn/chains/pull/36))
+- **decred:** Compare the BLAKE-256 checksum ([#37](https://github.com/agntn/chains/pull/37))
+
+### 📖 Documentation
+
+- Shorter README, the bytes move to the site ([#35](https://github.com/agntn/chains/pull/35))
+
+### ❤️ Contributors
+
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.3.5
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.4...v0.3.5)
