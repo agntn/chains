@@ -202,7 +202,7 @@ pnpm lint        # builds, then oxlint
 pnpm typecheck   # tsc, then a build and the extensions against dist/
 pnpm test        # vitest
 pnpm build       # obuild
-pnpm docs        # the Docus site, after a build
+pnpm docs        # the Docus site, bundled from src/
 ```
 
 ## 💛 Thanks
