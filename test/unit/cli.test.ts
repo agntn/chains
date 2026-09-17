@@ -64,4 +64,25 @@ describe("CLI output escaping", () => {
 
     expect(process.exitCode).toBe(1);
   });
+
+  it("quotes a rejected txid under --txid and exits 1", async () => {
+    const txid = `deadbeef\n${ESCAPE}[32m Valid Bitcoin txid`;
+
+    const written = await capture("error", () =>
+      runCommand(validate, { rawArgs: ["bitcoin", txid, "--txid"] }),
+    );
+
+    expect(written).not.toMatch(CONTROL);
+    expect(written).toBe('Invalid bitcoin txid: "deadbeef\\n\\u001b[32m Valid Bitcoin txid"');
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("names the missing txid validator instead of a format failure", async () => {
+    const written = await capture("error", () =>
+      runCommand(validate, { rawArgs: ["solana", "deadbeef", "--txid"] }),
+    );
+
+    expect(written).toBe("Txid validation is not supported for solana");
+    expect(process.exitCode).toBe(1);
+  });
 });

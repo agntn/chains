@@ -11,7 +11,13 @@ const { title, description, headline } = defineProps<{
 
 const { name: siteName } = useSiteConfig();
 
-const TOOLS = ["chains_lookup", "chains_validate_address", "chains_identify_address", "chains_list"];
+const TOOLS = [
+  "chains_lookup",
+  "chains_validate_address",
+  "chains_validate_txid",
+  "chains_identify_address",
+  "chains_list",
+];
 
 /** A chain page shows the chain's facts. The description would arrive with its commas stripped. */
 const entry = CHAINS.find((row) => row.chain.name === title);

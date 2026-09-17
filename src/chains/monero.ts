@@ -1,7 +1,9 @@
 import { Chain } from "../core/chain.js";
-import { InvalidAddressError } from "../core/errors.js";
+import { InvalidAddressError, InvalidTxidError } from "../core/errors.js";
 
 const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+/** Keccak-256 of the transaction, 32 bytes as hex, either case. */
+const TXID = /^[0-9a-fA-F]{64}$/;
 
 /**
  * Monero pads each eight-byte block to eleven digits; the final five bytes use seven.
@@ -47,5 +49,15 @@ export class Monero extends Chain {
     const valid = address.length === 106 ? prefix === 19 : prefix === 18 || prefix === 42;
     if (!valid) throw new InvalidAddressError(this.key, address);
     return address;
+  }
+
+  /**
+   * Shape only, there's no transaction here to hash.
+   * @param {string} txid - Candidate Monero transaction hash.
+   * @returns {string} The accepted txid unchanged.
+   */
+  override assertTxid(txid: string): string {
+    if (!TXID.test(txid)) throw new InvalidTxidError(this.key, txid);
+    return txid;
   }
 }

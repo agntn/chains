@@ -90,6 +90,31 @@ export default function chainsExtension(pi: ExtensionAPI): void {
   });
 
   pi.registerTool({
+    name: "chains_validate_txid",
+    label: "Validate Chain Txid",
+    description: "Check a transaction id against the format rules of a specific blockchain",
+    promptSnippet:
+      "Use chains_validate_txid before looking a transaction up or storing its id, to confirm it fits the target chain's format.",
+    promptGuidelines: [
+      "A format check only: it says nothing about whether the transaction exists or was mined.",
+      "EVM chains take 0x and 64 hex digits, UTXO chains and Monero 64 hex digits, Arweave 43 base64url characters. Other families report valid: false with a reason.",
+    ],
+    parameters: Type.Object({
+      chain: chainArgument,
+      txid: Type.String({
+        description: "Transaction id to validate",
+        minLength: 1,
+        maxLength: 256,
+      }),
+    }),
+    async execute(_toolCallId, params): Promise<AgentToolResult<ChainsTools.TxidCheck>> {
+      const { validateChainTxid } = await loadToolOperations();
+      const { content, details } = validateChainTxid(params.chain, params.txid);
+      return { content, details };
+    },
+  });
+
+  pi.registerTool({
     name: "chains_identify_address",
     label: "Identify Address",
     description: "Report which registered blockchains accept an address's format",

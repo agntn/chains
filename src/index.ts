@@ -1,4 +1,4 @@
-export { Chain, EVM, Move } from "./core/chain.js";
+export { Chain, EVM, Move, UTXO } from "./core/chain.js";
 export type { ChainConstructor } from "./core/chain.js";
 export {
   ChainsError,
@@ -6,6 +6,8 @@ export {
   UnsupportedChainError,
   InvalidAddressError,
   AddressValidationUnsupportedError,
+  InvalidTxidError,
+  TxidValidationUnsupportedError,
 } from "./core/errors.js";
 export type { ChainInfo, ChainKey, ChainType } from "./core/types.js";
 export { register, create, chains, has } from "./core/registry.js";

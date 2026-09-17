@@ -1,13 +1,12 @@
 import { BITCOIN_ALPHABET } from "../core/base58.js";
 import { decodeBase58Check } from "../core/base58check.js";
 import { blake256 } from "../core/blake256.js";
-import { Chain } from "../core/chain.js";
+import { UTXO } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 
 /** Decred mainnet; network and address types follow dcrd's version 0 encoders. */
-export class Decred extends Chain {
+export class Decred extends UTXO {
   static readonly key = "decred" as const;
-  readonly type = "utxo" as const;
   readonly name = "Decred";
   readonly symbol = "DCR";
   override readonly decimals = 8;

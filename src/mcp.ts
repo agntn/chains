@@ -13,6 +13,7 @@ import {
   listChains,
   lookupChain,
   validateChainAddress,
+  validateChainTxid,
   type ToolResult,
 } from "./tool-operations.js";
 import { version } from "./version.js";
@@ -32,12 +33,12 @@ const chainArgument = Type.String({
 });
 
 /**
- * Builds one length contract for every address parameter; only the wording differs.
+ * Builds one length contract for every address and txid parameter; only the wording differs.
  *
  * @param {string} description - Surface-specific parameter description.
  * @returns {TSchema} The shared bounded string schema.
  */
-function addressArgument(description: string): TSchema {
+function valueArgument(description: string): TSchema {
   return Type.String({ description, minLength: 1, maxLength: 256 });
 }
 
@@ -57,9 +58,20 @@ const tools: ToolDefinition[] = [
       "Check an address against the format rules of a specific blockchain. This is a format check, not a checksum or on-chain existence check. When the owning chain is unknown, chains_identify_address checks every validator at once.",
     inputSchema: Type.Object({
       chain: chainArgument,
-      address: addressArgument("Address to validate"),
+      address: valueArgument("Address to validate"),
     }),
     execute: (args) => validateChainAddress(args.chain as string, args.address as string),
+  },
+  {
+    name: "chains_validate_txid",
+    title: "Validate Chain Txid",
+    description:
+      "Check a transaction id against the format rules of a specific blockchain: 0x and 64 hex digits on EVM chains, 64 hex digits on UTXO chains and Monero, 43 base64url characters on Arweave. A format check only, not proof that the transaction exists. The other families carry no txid validator yet and answer with isError.",
+    inputSchema: Type.Object({
+      chain: chainArgument,
+      txid: valueArgument("Transaction id to validate"),
+    }),
+    execute: (args) => validateChainTxid(args.chain as string, args.txid as string),
   },
   {
     name: "chains_identify_address",
@@ -67,7 +79,7 @@ const tools: ToolDefinition[] = [
     description:
       "Check an address of unknown origin against every registered validator and report which chains accept its format. A match narrows the family rather than proving ownership, and chains without a validator are listed as unchecked instead of silently skipped.",
     inputSchema: Type.Object({
-      address: addressArgument("Address of unknown origin"),
+      address: valueArgument("Address of unknown origin"),
     }),
     execute: (args) => identifyAddress(args.address as string),
   },

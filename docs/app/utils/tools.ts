@@ -1,9 +1,10 @@
 import { chains, create, identify, type Chain } from "@agntn/chains";
 
 /**
- * The text the four tools hand a model, rebuilt here because `src/tool-operations.ts` is
- * not a package export. Mirrors `lookupChain`, `validateChainAddress`, `identifyAddress`
- * and `listChains` in the library line for line; a change there is a change here.
+ * The text the five tools hand a model, rebuilt here because `src/tool-operations.ts` is
+ * not a package export. Mirrors `lookupChain`, `validateChainAddress`, `validateChainTxid`,
+ * `identifyAddress` and `listChains` in the library line for line; a change there is a
+ * change here.
  */
 
 /** Mirrors `quoted` in `src/core/text.ts`: JSON quotes, control characters blanked. */
@@ -24,6 +25,7 @@ export function lookupText(chain: Chain): string {
     `explorer: ${chain.explorer}`,
     chain.rpcDefault ? `rpc: ${chain.rpcDefault}` : undefined,
     chain.validatesAddress ? undefined : "addressValidation: unsupported",
+    chain.validatesTxid ? undefined : "txidValidation: unsupported",
   ]
     .filter(Boolean)
     .join("\n");
@@ -32,6 +34,11 @@ export function lookupText(chain: Chain): string {
 /** Mirrors the `chains_validate_address` text for a checked address. */
 export function validateText(chain: Chain, address: string, valid: boolean): string {
   return `${valid ? "Valid" : "Invalid"} ${chain.name} (${chain.key}) address: ${quoted(address)}`;
+}
+
+/** Mirrors the `chains_validate_txid` text for a checked transaction id. */
+export function validateTxidText(chain: Chain, txid: string, valid: boolean): string {
+  return `${valid ? "Valid" : "Invalid"} ${chain.name} (${chain.key}) txid: ${quoted(txid)}`;
 }
 
 /** Mirrors the `chains_identify_address` text: the partition grouped by family. */

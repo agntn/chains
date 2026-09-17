@@ -18,6 +18,8 @@ import {
   getChain,
   identify,
   InvalidAddressError,
+  InvalidTxidError,
+  TxidValidationUnsupportedError,
 } from "./index.js";
 
 /** Canonical metadata for a resolved chain. */
@@ -34,6 +36,8 @@ export interface ChainLookup {
   rpcDefault?: string;
   /** False when the chain inherits the base validator, which only throws. */
   validatesAddress: boolean;
+  /** False when the chain inherits the base txid validator, which only throws. */
+  validatesTxid: boolean;
 }
 
 /** One registry row, as listed by {@link listChains}. */
@@ -76,6 +80,15 @@ export interface AddressCheck {
   reason?: string;
 }
 
+/** Outcome of checking one transaction id against one chain's format rules. */
+export interface TxidCheck {
+  /** Canonical key, or null when the chain itself could not be resolved. */
+  chain: string | null;
+  txid: string;
+  valid: boolean;
+  reason?: string;
+}
+
 /** Text for the model plus details for the harness, shared by every tool surface. */
 export interface ToolResult<Details> {
   content: Array<{ type: "text"; text: string }>;
@@ -91,6 +104,17 @@ export interface ToolResult<Details> {
  */
 function resolutionHelp(): string {
   return `Known chain keys: ${chains().join(", ")}. Display names, symbols, and aliases such as matic or btc resolve too. Call chains_list for the whole registry.`;
+}
+
+/**
+ * One `<name>: unsupported` line, or nothing when the chain carries that validator.
+ *
+ * @param {string} name - Capability the line is about.
+ * @param {boolean} supported - Whether the chain overrides that validator.
+ * @returns {string | undefined} The line to print, or undefined to leave it out.
+ */
+function unsupportedLine(name: string, supported: boolean): string | undefined {
+  return supported ? undefined : `${name}: unsupported`;
 }
 
 /**
@@ -126,6 +150,7 @@ export function lookupChain(input: string): ToolResult<ChainLookup | LookupFailu
     explorer: chain.explorer,
     rpcDefault: chain.rpcDefault,
     validatesAddress: chain.validatesAddress,
+    validatesTxid: chain.validatesTxid,
   };
 
   const lines = [
@@ -143,7 +168,8 @@ export function lookupChain(input: string): ToolResult<ChainLookup | LookupFailu
     `bip44: ${details.bip44 ?? "none (no registered SLIP-0044 coin type)"}`,
     `explorer: ${details.explorer}`,
     details.rpcDefault ? `rpc: ${details.rpcDefault}` : undefined,
-    details.validatesAddress ? undefined : "addressValidation: unsupported",
+    unsupportedLine("addressValidation", details.validatesAddress),
+    unsupportedLine("txidValidation", details.validatesTxid),
   ].filter(Boolean);
 
   return { content: [{ type: "text", text: lines.join("\n") }], details };
@@ -298,6 +324,54 @@ export function validateChainAddress(input: string, rawAddress: string): ToolRes
         { type: "text", text: `${chain.name} (${chain.key}) carries no address validator` },
       ],
       details: { chain: chain.key, address, valid: false, reason: error.message },
+      isError: true,
+    };
+  }
+}
+
+/**
+ * Checks a transaction id against one chain's format rules under the contract of
+ * {@link validateChainAddress}: a rejection is an answer, only a missing chain or validator sets `isError`.
+ *
+ * @param {string} input - Chain key, name, symbol, or alias.
+ * @param {string} rawTxid - Transaction id to check; surrounding whitespace is stripped first.
+ * @returns {ToolResult<TxidCheck>} The rendered and structured validation outcome.
+ */
+export function validateChainTxid(input: string, rawTxid: string): ToolResult<TxidCheck> {
+  const txid = rawTxid.trim();
+  let chain: Chain;
+  try {
+    chain = getChain(input);
+  } catch (error) {
+    if (!(error instanceof ChainsError)) throw error;
+    return {
+      content: [
+        { type: "text", text: `${stripControlCharacters(error.message)}\n${resolutionHelp()}` },
+      ],
+      details: { chain: null, txid, valid: false, reason: error.message },
+      isError: true,
+    };
+  }
+
+  try {
+    chain.assertTxid(txid);
+    return {
+      content: [{ type: "text", text: `Valid ${chain.name} (${chain.key}) txid: ${quoted(txid)}` }],
+      details: { chain: chain.key, txid, valid: true },
+    };
+  } catch (error) {
+    if (error instanceof InvalidTxidError) {
+      return {
+        content: [
+          { type: "text", text: `Invalid ${chain.name} (${chain.key}) txid: ${quoted(txid)}` },
+        ],
+        details: { chain: chain.key, txid, valid: false, reason: error.message },
+      };
+    }
+    if (!(error instanceof TxidValidationUnsupportedError)) throw error;
+    return {
+      content: [{ type: "text", text: `${chain.name} (${chain.key}) carries no txid validator` }],
+      details: { chain: chain.key, txid, valid: false, reason: error.message },
       isError: true,
     };
   }

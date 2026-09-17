@@ -239,13 +239,13 @@ const activeChain = computed(() => current.value.chain.key);
 
     <LandingFeature
       eyebrow="Agents"
-      title="Four tools, three hosts"
+      title="Five tools, three hosts"
       to="/guide/agents"
       link="MCP, Pi and OMP"
       :checks="[
-        'chains_lookup, chains_validate_address, chains_identify_address, chains_list',
+        'chains_lookup, chains_validate_address, chains_validate_txid, chains_identify_address, chains_list',
         'The text carries the whole answer, and a miss names the keys that exist, so the next call has somewhere to go',
-        'A rejected address is an answer, not a tool error. Only an unknown chain sets isError',
+        'A rejected address or txid is an answer, not a tool error. Only an unknown chain, or one with no txid check, sets isError',
       ]"
     >
       <code class="font-mono text-[13px] text-highlighted">chains mcp</code> serves the tools over

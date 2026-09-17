@@ -1,10 +1,10 @@
 # AGENTS.md - chains
 
-Scope: canonical blockchain classes, aliases, and address validation.
+Scope: canonical blockchain classes, aliases, address validation and txid validation.
 
 ## Key files
 
-- `src/core/chain.ts` holds `Chain` and the shared family abstractions
+- `src/core/chain.ts` holds `Chain` and the family abstractions `EVM`, `Move` and `UTXO`
 - `src/core/errors.ts` holds the `ChainsError` hierarchy. Never throw a raw `Error`
 - `src/core/registry.ts` is the constructor registry
 - `src/core/resolve.ts` owns the aliases and `getChain`; canonical keys and display names are matched against the registry, so the alias table holds only real aliases, never a key as its own entry
@@ -48,6 +48,7 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 - Canonical chain key is a lowercase `ChainKey` that names the chain rather than its ticker: `ethereum`, not `eth`. A short name is still a name, so `bsc`, `zksync` and `arbitrum` stay; ticker spellings belong in the alias table
 - Metadata that encodes the same fact twice gets a cross-field test, not just a type. `chainId` and the `eip155:` reference in `caip2` are checked against each other in `test/unit/chains.test.ts`; Linea shipped a testnet id against a mainnet CAIP-2 until that test existed
 - An address validator built only from a character-length window is wrong. Decode when the format is base58 with a known byte length, verify the checksum when the format is Base58Check, and follow the spec's case rules for bech32. Octra is the exception: its address is a fixed 44 characters cut out of base58, not encoded from a payload, so the width is the whole format and decoding rejects real contract addresses
+- A txid validator is a shape check on purpose: `0x` and 64 hex digits on `EVM`, 64 hex digits on `UTXO` and Monero, the address rule on Arweave. There's no transaction to hash. Solana signatures, Sui digests and TON's two encodings aren't hex, so those families stay on the base validator and `validatesTxid` says so, until someone reads what their producer writes
 - Use contextual class names: `EVM extends Chain`, `Ethereum extends EVM`. Do not repeat `Chain` in subclass names
 
 ## Not in scope

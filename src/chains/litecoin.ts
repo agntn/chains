@@ -1,11 +1,10 @@
 import { decodeBase58Check } from "../core/base58check.js";
-import { Chain } from "../core/chain.js";
+import { UTXO } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 import { validSegwitAddress } from "../core/segwit.js";
 
-export class Litecoin extends Chain {
+export class Litecoin extends UTXO {
   static readonly key = "litecoin" as const;
-  readonly type = "utxo" as const;
   readonly name = "Litecoin";
   readonly symbol = "LTC";
   override readonly decimals = 8;

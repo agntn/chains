@@ -1,4 +1,4 @@
-import { Chain } from "../core/chain.js";
+import { UTXO } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 
 const PREFIX = "ecash";
@@ -46,9 +46,8 @@ function payloadDigits(address: string): number[] | undefined {
   return digits.includes(-1) ? undefined : digits;
 }
 
-export class Ecash extends Chain {
+export class Ecash extends UTXO {
   static readonly key = "ecash" as const;
-  readonly type = "utxo" as const;
   readonly name = "eCash";
   readonly symbol = "XEC";
   override readonly decimals = 2;

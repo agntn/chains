@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { Chain, register, type ChainKey } from "../../src/index.ts";
-import { identifyAddress, lookupChain, validateChainAddress } from "../../src/tool-operations.ts";
+import {
+  identifyAddress,
+  lookupChain,
+  validateChainAddress,
+  validateChainTxid,
+} from "../../src/tool-operations.ts";
 
 /**
  * Every registered chain validates since TRON, TON and the move chains got
@@ -51,10 +56,19 @@ describe("tool reporting for a chain without a validator", () => {
     expect(result.content[0]?.text).toContain("carries no address validator");
   });
 
+  it("marks a txid check against it as a tool error too", () => {
+    const result = validateChainTxid("unvalidated", "anything");
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0]?.text).toContain("carries no txid validator");
+    expect(result.details).toMatchObject({ chain: "unvalidated", txid: "anything", valid: false });
+  });
+
   it("warns about the missing validator in the lookup", () => {
     const result = lookupChain("unvalidated");
 
     expect(result.content[0]?.text).toContain("addressValidation: unsupported");
-    expect(result.details).toMatchObject({ validatesAddress: false });
+    expect(result.content[0]?.text).toContain("txidValidation: unsupported");
+    expect(result.details).toMatchObject({ validatesAddress: false, validatesTxid: false });
   });
 });
