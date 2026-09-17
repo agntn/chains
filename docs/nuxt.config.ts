@@ -1,9 +1,24 @@
 import { fileURLToPath } from "node:url";
 
+/** Bundled from the checkout's sources: a deploy needs neither dist/ nor the root node_modules. */
+const repoRoot = fileURLToPath(new URL("../", import.meta.url));
+const librarySource = fileURLToPath(new URL("../src/index.ts", import.meta.url));
+
 export default defineNuxtConfig({
   extends: ["docus"],
   /** The repo root is its own pnpm workspace; Nuxt must not treat it as this site's. */
   workspaceDir: fileURLToPath(new URL("./", import.meta.url)),
+  alias: {
+    "@agntn/chains": librarySource,
+  },
+  /** The dev server serves files under workspaceDir only; the library and its package.json sit one level up. */
+  vite: {
+    server: {
+      fs: {
+        allow: [repoRoot],
+      },
+    },
+  },
   devtools: { enabled: false },
   telemetry: false,
   site: {
