@@ -1,6 +1,6 @@
 import { decodeBase58 } from "../core/base58.js";
 import { BECH32, bech32Digits, bytesFromDigits, polymod } from "../core/bech32.js";
-import { Chain } from "../core/chain.js";
+import { UTXO } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 
 type Prefix = "addr" | "stake";
@@ -123,9 +123,8 @@ function validShelleyAddress(address: string): boolean {
   return payload.length === layout.payload;
 }
 
-export class Cardano extends Chain {
+export class Cardano extends UTXO {
   static readonly key = "cardano" as const;
-  readonly type = "utxo" as const;
   readonly name = "Cardano";
   readonly symbol = "ADA";
   override readonly decimals = 6;

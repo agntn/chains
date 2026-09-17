@@ -129,10 +129,11 @@ export function familyLabel(family: ChainType | string): string {
   return FAMILIES.find((row) => row.key === family)?.label ?? family;
 }
 
-/** The four agent tools. Same names over MCP, Pi and OMP. */
+/** The five agent tools. Same names over MCP, Pi and OMP. */
 export const TOOLS = [
   "chains_lookup",
   "chains_validate_address",
+  "chains_validate_txid",
   "chains_identify_address",
   "chains_list",
 ] as const;

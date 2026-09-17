@@ -1,11 +1,10 @@
 import { decodeBase58Check } from "../core/base58check.js";
-import { Chain } from "../core/chain.js";
+import { UTXO } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 import { validSegwitAddress } from "../core/segwit.js";
 
-export class Bitcoin extends Chain {
+export class Bitcoin extends UTXO {
   static readonly key = "bitcoin" as const;
-  readonly type = "utxo" as const;
   readonly name = "Bitcoin";
   readonly symbol = "BTC";
   override readonly decimals = 8;

@@ -15,13 +15,16 @@ import {
   Ethereum,
   EVM,
   InvalidAddressError,
+  InvalidTxidError,
   Litecoin,
   Monero,
   Octra,
   Pepecoin,
   Solana,
   Stellar,
+  TxidValidationUnsupportedError,
   UnsupportedChainError,
+  UTXO,
   Xrpl,
   chains,
   create,
@@ -239,6 +242,93 @@ describe("address validation", () => {
   });
 });
 
+describe("txid validation", () => {
+  /** The first transaction on Ethereum mainnet, block 46147, as publicnode returns it. */
+  const ethereumTxid = "0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060";
+  /** The genesis coinbase, as mempool.space returns it. */
+  const bitcoinTxid = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b";
+  /** Monero's genesis coinbase, as xmrchain.net lists block 0. */
+  const moneroTxid = "c88ce9783b4f11190d7b9c17a69c1c52200f9faaee8e98dd07e6811175177139";
+  /** The last outgoing transaction of a wallet the address tests use, read from arweave.net. */
+  const arweaveTxid = "B_8lb61VVCuyMsYBi86U1Tzt_qS_Ujip5W6YQVwK66w";
+
+  it("is inherited by every EVM chain and wants the 0x prefix", () => {
+    const upper = `0x${ethereumTxid.slice(2).toUpperCase()}`;
+    expect(create("ethereum").assertTxid(ethereumTxid)).toBe(ethereumTxid);
+    expect(create("arbitrum").assertTxid(upper)).toBe(upper);
+    for (const wrong of [
+      ethereumTxid.slice(2),
+      `0X${ethereumTxid.slice(2)}`,
+      `${ethereumTxid}0`,
+      ethereumTxid.slice(0, -1),
+    ]) {
+      expect(() => create("ethereum").assertTxid(wrong)).toThrow(InvalidTxidError);
+    }
+  });
+
+  it("is shared by the UTXO family as 64 hex digits without a prefix", () => {
+    /** Read live from litecoinspace, blockchair, koios and dcrdata on 2026-09-17. */
+    const live = {
+      bitcoin: bitcoinTxid,
+      litecoin: "2c5be7fd40d54b93c2aa693d8af3d71fc0a5da8bd2fdbbcfdc29e6bfa2d4392c",
+      ecash: "cfed9a93cc04b8d18bedf594acd8363c1a2003bcc67c3545b9c67fadb8117a7c",
+      cardano: "16eedbe9f18fcd44313079c6e325ed5e1319aa8e3d70f640f39163f9dbf81dd2",
+      decred: "81935340bd4b992acda410b20d5c284bd8f550e9f4917e7d841fa41114452a15",
+    } as const;
+    for (const [key, txid] of Object.entries(live)) {
+      const chain = create(key as ChainKey);
+      expect(chain).toBeInstanceOf(UTXO);
+      expect(chain.assertTxid(txid)).toBe(txid);
+    }
+    const upper = bitcoinTxid.toUpperCase();
+    expect(create("pepecoin").assertTxid(upper)).toBe(upper);
+    for (const wrong of [
+      `0x${bitcoinTxid}`,
+      bitcoinTxid.slice(1),
+      `${bitcoinTxid}0`,
+      `g${bitcoinTxid.slice(1)}`,
+    ]) {
+      expect(() => create("bitcoin").assertTxid(wrong)).toThrow(InvalidTxidError);
+    }
+  });
+
+  it("reads a Monero transaction hash as 64 hex digits", () => {
+    expect(create("monero").assertTxid(moneroTxid)).toBe(moneroTxid);
+    expect(() => create("monero").assertTxid(`0x${moneroTxid}`)).toThrow(InvalidTxidError);
+    expect(() => create("monero").assertTxid(moneroTxid.slice(0, -1))).toThrow(InvalidTxidError);
+  });
+
+  it("holds an Arweave transaction id to the canonical address encoding", () => {
+    expect(create("arweave").assertTxid(arweaveTxid)).toBe(arweaveTxid);
+    for (const wrong of [
+      `${arweaveTxid}=`,
+      `${arweaveTxid.slice(0, -1)}l`,
+      arweaveTxid.replace("_", "/"),
+      bitcoinTxid,
+    ]) {
+      expect(() => create("arweave").assertTxid(wrong)).toThrow(InvalidTxidError);
+    }
+  });
+
+  it("names the chains whose ids are not covered yet", () => {
+    const unsupported = chains().filter((key) => !create(key).validatesTxid);
+    expect(unsupported.sort()).toEqual([
+      "aptos",
+      "octra",
+      "solana",
+      "stellar",
+      "sui",
+      "ton",
+      "tron",
+      "xrpl",
+    ]);
+    expect(() => create("solana").assertTxid(bitcoinTxid)).toThrow(TxidValidationUnsupportedError);
+    expect(() => create("solana").assertTxid(bitcoinTxid)).toThrow(
+      "Txid validation is not supported for solana",
+    );
+  });
+});
+
 describe("agent extensions", () => {
   it("shares tool definitions with the Pi extension", () => {
     const pi = readFileSync(
@@ -259,6 +349,23 @@ describe("error hierarchy", () => {
     expect(() => getChain("foobar")).toThrow(ChainsError);
     expect(() => create("ethereum").assertAddress("0x0")).toThrow(InvalidAddressError);
     expect(() => new Unvalidated().assertAddress("0x1")).toThrow(AddressValidationUnsupportedError);
+    expect(() => create("ethereum").assertTxid("0x0")).toThrow(InvalidTxidError);
+    expect(() => create("ethereum").assertTxid("0x0")).toThrow(ChainsError);
+    expect(() => new Unvalidated().assertTxid("0x1")).toThrow(TxidValidationUnsupportedError);
+    expect(() => new Unvalidated().assertTxid("0x1")).toThrow(ChainsError);
+  });
+
+  it("carries the txid on its own error the same way", () => {
+    try {
+      create("ethereum").assertTxid("nope");
+      expect.unreachable("should have thrown");
+    } catch (error) {
+      expect(error).toBeInstanceOf(InvalidTxidError);
+      const invalid = error as InvalidTxidError;
+      expect(invalid.chain).toBe("ethereum");
+      expect(invalid.txid).toBe("nope");
+      expect(invalid.name).toBe("InvalidTxidError");
+    }
   });
 
   it("carries structured context instead of only a message", () => {
@@ -1050,5 +1157,11 @@ describe("validator capability", () => {
 
   it("stays false on a chain that never overrode the base validator", () => {
     expect(new Unvalidated().validatesAddress).toBe(false);
+  });
+
+  it("reads the txid validator the same way", () => {
+    expect(new Unvalidated().validatesTxid).toBe(false);
+    expect(create("bitcoin").validatesTxid).toBe(true);
+    expect(create("solana").validatesTxid).toBe(false);
   });
 });

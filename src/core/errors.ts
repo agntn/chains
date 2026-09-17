@@ -64,3 +64,27 @@ export class AddressValidationUnsupportedError extends ChainsError {
     this.chain = chain;
   }
 }
+
+/** A transaction id failed its chain's format check. */
+export class InvalidTxidError extends ChainsError {
+  readonly chain: ChainKey;
+  readonly txid: string;
+
+  constructor(chain: ChainKey, txid: string) {
+    super(`Invalid ${chain} txid: ${txid}`);
+    this.name = "InvalidTxidError";
+    this.chain = chain;
+    this.txid = txid;
+  }
+}
+
+/** The chain carries no transaction id validator. */
+export class TxidValidationUnsupportedError extends ChainsError {
+  readonly chain: ChainKey;
+
+  constructor(chain: ChainKey) {
+    super(`Txid validation is not supported for ${chain}`);
+    this.name = "TxidValidationUnsupportedError";
+    this.chain = chain;
+  }
+}

@@ -1,10 +1,9 @@
 import { decodeBase58Check } from "../core/base58check.js";
-import { Chain } from "../core/chain.js";
+import { UTXO } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 
-export class Pepecoin extends Chain {
+export class Pepecoin extends UTXO {
   static readonly key = "pepecoin" as const;
-  readonly type = "utxo" as const;
   readonly name = "Pepecoin";
   readonly symbol = "PEP";
   override readonly decimals = 8;

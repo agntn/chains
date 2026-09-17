@@ -19,10 +19,11 @@ Docs, one page per chain and a playground are at [chains.agntn.dev](https://chai
 - 🏷️ **Aliases people actually type.** `matic`, `btc`, `arb`, `ripple`. Display names work too, so `BNB Chain` comes back as `bsc`.
 - 🔍 **Validators that decode.** Base58Check, Bech32, CashAddr, CIP-19, whatever the chain uses. Checksums get checked.
 - 🕵️ **Identify an address of unknown origin.** Every validator gets a go and you learn the family.
+- 🔗 **Transaction ids, same idea.** `0x` and 64 hex on the EVM chains, 64 hex on the UTXO chains and Monero, 43 base64url characters on Arweave. A txid pasted wrong fails here, not three calls later inside an RPC.
 - 🧾 **Metadata checked, not remembered.** Every `decimals` value was looked up at the source. XEC really has two.
 - 🫙 **Missing stays missing.** Octra has no coin type and no CAIP-2, so you get `undefined`. Nothing made up.
 - 🪶 **The core imports nothing at runtime.** Nothing registers itself on import either, so your bundler drops what you don't use.
-- 🤖 **CLI, library and agent tools give the same answer.** Six commands, four tools, one set of executors.
+- 🤖 **CLI, library and agent tools give the same answer.** Six commands, five tools, one set of executors.
 - 🧯 **Errors you catch by type.** `InvalidAddressError` carries `.chain` and `.address`. No message parsing.
 
 ## 📦 Install
@@ -107,6 +108,7 @@ chains resolve xrp
 chains list --type utxo
 chains info oct --json
 chains identify 11111111111111111111111111111111
+chains validate eth 0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060 --txid
 chains list --json | jq -r '.[] | select(.type == "move") | .key'
 ```
 
@@ -116,7 +118,7 @@ chains list --json | jq -r '.[] | select(.type == "move") | .key'
 | ---------- | ------------------------------------------------- | ----------------------------- |
 | `info`     | Metadata for one chain, Ethereum if you name none | `chains info matic`           |
 | `resolve`  | Key, ticker, alias or display name in, key out    | `chains resolve "BNB Chain"`  |
-| `validate` | One address against one chain's format            | `chains validate btc bc1q...` |
+| `validate` | One address, or with `--txid` one txid, against one chain's format | `chains validate btc bc1q...` |
 | `identify` | Every registered chain that accepts an address    | `chains identify 0x1f98...`   |
 | `list`     | The registry, `--type` for one family             | `chains list --type utxo`     |
 | `mcp`      | The MCP server on stdio                           | `chains mcp`                  |
@@ -134,6 +136,7 @@ polygon.chainId; // "0x89"
 polygon.caip2; // "eip155:137"
 
 getChain("btc").assertAddress("bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a"); // returns it
+getChain("eth").assertTxid("0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060"); // the first mainnet transaction, returned too
 
 try {
   getChain("btc").assertAddress("1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN3");
@@ -146,7 +149,7 @@ identify("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984").matches.length; // 13
 create("bitcoin").decimals; // 8
 ```
 
-Most of the API is right there. `create(key)` wants the canonical key. `getChain(whatever)` takes any spelling and defaults to Ethereum. `chains()` lists the keys, `register(Yours)` adds one. `assertAddress` is a format check and nothing more. It doesn't know if the address exists. Errors are one family under `ChainsError`, four of them. More: [Registry](https://chains.agntn.dev/guide/registry), [Address validation](https://chains.agntn.dev/guide/validation), [Identify](https://chains.agntn.dev/guide/identify), [Metadata](https://chains.agntn.dev/guide/metadata).
+Most of the API is right there. `create(key)` wants the canonical key. `getChain(whatever)` takes any spelling and defaults to Ethereum. `chains()` lists the keys, `register(Yours)` adds one. `assertAddress` is a format check and nothing more. It doesn't know if the address exists. `assertTxid` is the same thing for a transaction id, on the EVM and UTXO chains, Monero and Arweave. The rest throw `TxidValidationUnsupportedError`, and `validatesTxid` tells you before you ask. Errors are one family under `ChainsError`, six of them. More: [Registry](https://chains.agntn.dev/guide/registry), [Address validation](https://chains.agntn.dev/guide/validation), [Identify](https://chains.agntn.dev/guide/identify), [Metadata](https://chains.agntn.dev/guide/metadata).
 
 ## 🗺️ Chains
 
@@ -164,7 +167,7 @@ Most of the API is right there. `create(key)` wants the canonical key. `getChain
 | `arweave` | arweave                                                                                                       | 43 characters of base64url, a 32-byte hash                                                                                           |
 | `monero`  | monero                                                                                                        | Block base58, the network byte and the 69 or 77 byte envelope                                                                        |
 
-Testnet addresses are refused wherever the format can tell. Each chain's page says which checksum is verified and which is left alone: [Chains](https://chains.agntn.dev/chains).
+Transaction ids: `0x` and 64 hex digits on `evm`, 64 hex digits on `utxo` and `monero`, the address rule on `arweave`. The other families aren't checked yet and `validatesTxid` says `false` there. Testnet addresses are refused wherever the format can tell. Each chain's page says which checksum is verified and which is left alone: [Chains](https://chains.agntn.dev/chains).
 
 ## 🤖 Agents
 
@@ -182,7 +185,7 @@ omp install @agntn/chains
 }
 ```
 
-Four tools, the same four on MCP, Pi and OMP. A rejected address is an answer, not a tool error. An unknown chain comes back with the keys that do exist. And thirteen EVM matches are thirteen possibilities, the tool says so itself. [Agents guide](https://chains.agntn.dev/guide/agents).
+Five tools, the same five on MCP, Pi and OMP. A rejected address is an answer, not a tool error. An unknown chain comes back with the keys that do exist. And thirteen EVM matches are thirteen possibilities, the tool says so itself. [Agents guide](https://chains.agntn.dev/guide/agents).
 
 ## 🚫 What this does not do
 

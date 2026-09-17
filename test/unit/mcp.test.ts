@@ -27,6 +27,7 @@ describe("chains MCP server", () => {
     expect(response.tools.map((tool) => tool.name)).toEqual([
       "chains_lookup",
       "chains_validate_address",
+      "chains_validate_txid",
       "chains_identify_address",
       "chains_list",
     ]);
@@ -402,5 +403,46 @@ describe("chains MCP server", () => {
         text: 'Valid Ethereum (ethereum) address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"',
       },
     ]);
+  });
+
+  it("checks a transaction id the way it checks an address", async () => {
+    const client = await connectTestClient();
+    const txid = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b";
+
+    const valid = await client.callTool({
+      name: "chains_validate_txid",
+      arguments: { chain: "btc", txid: ` ${txid}\n` },
+    });
+    expect(valid.isError).not.toBe(true);
+    expect(valid.content).toEqual([
+      { type: "text", text: `Valid Bitcoin (bitcoin) txid: "${txid}"` },
+    ]);
+
+    const invalid = await client.callTool({
+      name: "chains_validate_txid",
+      arguments: { chain: "eth", txid },
+    });
+    expect(invalid.isError).not.toBe(true);
+    expect(invalid.content).toEqual([
+      { type: "text", text: `Invalid Ethereum (ethereum) txid: "${txid}"` },
+    ]);
+
+    const unsupported = await client.callTool({
+      name: "chains_validate_txid",
+      arguments: { chain: "sol", txid },
+    });
+    expect(unsupported.isError).toBe(true);
+    expect(unsupported.content).toEqual([
+      { type: "text", text: "Solana (solana) carries no txid validator" },
+    ]);
+  });
+
+  it("says in a lookup which chains carry no txid validator", async () => {
+    const client = await connectTestClient();
+
+    const solana = await client.callTool({ name: "chains_lookup", arguments: { chain: "sol" } });
+    expect(JSON.stringify(solana.content)).toContain("txidValidation: unsupported");
+    const bitcoin = await client.callTool({ name: "chains_lookup", arguments: { chain: "btc" } });
+    expect(JSON.stringify(bitcoin.content)).not.toContain("txidValidation");
   });
 });

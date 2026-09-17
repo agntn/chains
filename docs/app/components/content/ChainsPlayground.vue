@@ -7,18 +7,27 @@ import {
   getChain,
   identify,
   InvalidAddressError,
+  InvalidTxidError,
+  TxidValidationUnsupportedError,
   type Chain,
 } from "@agntn/chains";
 import { CHAINS, FAMILIES, chainEntry, familyLabel } from "../../utils/chains";
 import { shellArg } from "../../utils/format";
-import { identifyText, listText, lookupText, validateText } from "../../utils/tools";
+import {
+  identifyText,
+  listText,
+  lookupText,
+  validateText,
+  validateTxidText,
+} from "../../utils/tools";
 
-type Operation = "lookup" | "validate" | "identify" | "list";
+type Operation = "lookup" | "validate" | "txid" | "identify" | "list";
 
 const OPERATIONS: ReadonlyArray<{ key: Operation; label: string; tool: string; command: string }> =
   [
     { key: "lookup", label: "Lookup", tool: "chains_lookup", command: "info" },
     { key: "validate", label: "Validate", tool: "chains_validate_address", command: "validate" },
+    { key: "txid", label: "Txid", tool: "chains_validate_txid", command: "validate --txid" },
     { key: "identify", label: "Identify", tool: "chains_identify_address", command: "identify" },
     { key: "list", label: "List", tool: "chains_list", command: "list" },
   ];
@@ -29,10 +38,16 @@ const router = useRouter();
 const operation = ref<Operation>("validate");
 const chainInput = ref("btc");
 const address = ref(chainEntry("bitcoin")!.sample);
+/** The genesis coinbase, a real id for the chain the form opens on. */
+const txid = ref("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b");
 const family = ref("");
 
-const needsChain = computed(() => operation.value === "lookup" || operation.value === "validate");
+const needsChain = computed(
+  () =>
+    operation.value === "lookup" || operation.value === "validate" || operation.value === "txid",
+);
 const needsAddress = computed(() => operation.value === "validate" || operation.value === "identify");
+const needsTxid = computed(() => operation.value === "txid");
 
 interface LookupAnswer {
   kind: "lookup";
@@ -41,6 +56,12 @@ interface LookupAnswer {
 }
 interface ValidateAnswer {
   kind: "validate";
+  chain: Chain;
+  valid: boolean;
+  text: string;
+}
+interface TxidAnswer {
+  kind: "txid";
   chain: Chain;
   valid: boolean;
   text: string;
@@ -61,7 +82,7 @@ interface ErrorAnswer {
   name: string;
   message: string;
 }
-type Answer = LookupAnswer | ValidateAnswer | IdentifyAnswer | ListAnswer | ErrorAnswer;
+type Answer = LookupAnswer | ValidateAnswer | TxidAnswer | IdentifyAnswer | ListAnswer | ErrorAnswer;
 
 function failure(error: unknown): ErrorAnswer {
   return {
@@ -98,6 +119,19 @@ const answer = computed<Answer>(() => {
   if (operation.value === "lookup") {
     return { kind: "lookup", chain, text: lookupText(chain) };
   }
+  if (operation.value === "txid") {
+    const id = txid.value.trim();
+    try {
+      chain.assertTxid(id);
+      return { kind: "txid", chain, valid: true, text: validateTxidText(chain, id, true) };
+    } catch (error) {
+      if (error instanceof InvalidTxidError) {
+        return { kind: "txid", chain, valid: false, text: validateTxidText(chain, id, false) };
+      }
+      if (error instanceof TxidValidationUnsupportedError) return failure(error);
+      throw error;
+    }
+  }
   try {
     chain.assertAddress(trimmed);
     return { kind: "validate", chain, valid: true, text: validateText(chain, trimmed, true) };
@@ -119,6 +153,8 @@ const cliLine = computed(() => {
       return `chains info ${shellArg(chainInput.value)}`;
     case "validate":
       return `chains validate ${shellArg(chainInput.value)} ${shellArg(address.value.trim())}`;
+    case "txid":
+      return `chains validate ${shellArg(chainInput.value)} ${shellArg(txid.value.trim())} --txid`;
     case "identify":
       return `chains identify ${shellArg(address.value.trim())}`;
     default:
@@ -133,11 +169,13 @@ const toolCall = computed(() => {
       ? { chain: chainInput.value }
       : operation.value === "validate"
         ? { chain: chainInput.value, address: address.value.trim() }
-        : operation.value === "identify"
-          ? { address: address.value.trim() }
-          : family.value
-            ? { family: family.value }
-            : {};
+        : operation.value === "txid"
+          ? { chain: chainInput.value, txid: txid.value.trim() }
+          : operation.value === "identify"
+            ? { address: address.value.trim() }
+            : family.value
+              ? { family: family.value }
+              : {};
   return JSON.stringify({ name: current.value.tool, arguments: args }, null, 2);
 });
 
@@ -157,6 +195,7 @@ const lookupRows = computed(() => {
     { label: "explorer", value: chain.explorer, href: chain.explorer },
     { label: "rpc", value: chain.rpcDefault ?? "none", href: chain.rpcDefault },
     { label: "validates", value: chain.validatesAddress ? "yes" : "no validator" },
+    { label: "validates txid", value: chain.validatesTxid ? "yes" : "no validator" },
   ];
 });
 
@@ -202,6 +241,7 @@ function readQuery(query: Record<string, unknown>) {
   }
   if (typeof query.chain === "string") chainInput.value = query.chain;
   if (typeof query.address === "string") address.value = query.address;
+  if (typeof query.txid === "string") txid.value = query.txid;
   if (typeof query.family === "string" && FAMILIES.some((row) => row.key === query.family)) {
     family.value = query.family;
   }
@@ -211,6 +251,7 @@ const shareQuery = computed(() => {
   const query: Record<string, string> = { op: operation.value };
   if (needsChain.value) query.chain = chainInput.value;
   if (needsAddress.value) query.address = address.value.trim();
+  if (needsTxid.value) query.txid = txid.value.trim();
   if (operation.value === "list" && family.value) query.family = family.value;
   return query;
 });
@@ -284,6 +325,11 @@ const shareLink = computed(() => {
         <textarea v-model="address" class="chains-textarea" spellcheck="false" />
       </label>
 
+      <label v-if="needsTxid" class="flex flex-col gap-1.5">
+        <span class="chains-eyebrow">txid</span>
+        <textarea v-model="txid" class="chains-textarea" spellcheck="false" />
+      </label>
+
       <label v-if="operation === 'list'" class="flex flex-col gap-1.5">
         <span class="chains-eyebrow">family</span>
         <select v-model="family" class="chains-field">
@@ -317,10 +363,10 @@ const shareLink = computed(() => {
         <div class="flex items-center justify-between gap-3 border-b border-muted px-4 py-3">
           <p class="min-w-0 truncate font-mono text-xs text-muted">
             <span class="text-dimmed">{{ operation === "list" ? "chains()" : operation === "identify" ? "identify" : `getChain("${chainInput}")` }}</span>
-            <span class="ms-2 text-highlighted">{{ operation === "lookup" ? "" : operation === "validate" ? ".assertAddress" : operation === "identify" ? "(address)" : ".map(create)" }}</span>
+            <span class="ms-2 text-highlighted">{{ operation === "lookup" ? "" : operation === "validate" ? ".assertAddress" : operation === "txid" ? ".assertTxid" : operation === "identify" ? "(address)" : ".map(create)" }}</span>
           </p>
           <span
-            v-if="answer.kind === 'validate'"
+            v-if="answer.kind === 'validate' || answer.kind === 'txid'"
             class="chains-state shrink-0"
             :class="answer.valid ? 'chains-state-ok' : 'chains-state-failed'"
           >
@@ -353,6 +399,20 @@ const shareLink = computed(() => {
               Doesn't fit the {{ answer.chain.name }} format. Try
               <button type="button" class="font-medium text-primary hover:underline" @click="operation = 'identify'">identify</button>
               to see which chains, if any, accept it.
+            </template>
+          </p>
+          <pre class="chains-output mt-3 rounded-lg bg-muted text-sm">{{ answer.text }}</pre>
+        </div>
+
+        <div v-else-if="answer.kind === 'txid'" class="px-4 py-4">
+          <p class="text-sm leading-6" :class="answer.valid ? 'text-highlighted' : 'text-muted'">
+            <template v-if="answer.valid">
+              Fits the {{ answer.chain.name }} transaction id format. Whether it was ever mined is a
+              question for a node, not for this page.
+            </template>
+            <template v-else>
+              Doesn't fit the {{ answer.chain.name }} transaction id format. The prefix and the
+              length are where a paste usually goes wrong.
             </template>
           </p>
           <pre class="chains-output mt-3 rounded-lg bg-muted text-sm">{{ answer.text }}</pre>
