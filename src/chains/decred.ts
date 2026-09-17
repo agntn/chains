@@ -1,4 +1,6 @@
-import { decodeBase58 } from "../core/base58.js";
+import { BITCOIN_ALPHABET } from "../core/base58.js";
+import { decodeBase58Check } from "../core/base58check.js";
+import { blake256 } from "../core/blake256.js";
 import { Chain } from "../core/chain.js";
 import { InvalidAddressError } from "../core/errors.js";
 
@@ -13,12 +15,13 @@ export class Decred extends Chain {
   readonly bip44 = 42;
 
   /**
-   * Checks the envelope, not the BLAKE-256 checksum or public key curve points.
+   * Base58Check under dcrd's two version bytes with the BLAKE-256 checksum verified, so one
+   * character off fails. The curve point behind a public key address stays unchecked.
    * @param {string} address - Candidate Decred address.
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    const decoded = decodeBase58(address, 54);
+    const decoded = decodeBase58Check(address, 54, BITCOIN_ALPHABET, blake256);
     if (!decoded) throw new InvalidAddressError(this.key, address);
     const isHash =
       decoded.length === 26 &&
