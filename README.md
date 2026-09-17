@@ -1,140 +1,178 @@
 # @agntn/chains
 
-Canonical blockchain classes, aliases, and address validation.
+[![npm version](https://npmx.dev/api/registry/badge/version/@agntn/chains)](https://npmx.dev/package/@agntn/chains)
+[![npm downloads](https://npmx.dev/api/registry/badge/downloads/@agntn/chains)](https://npmx.dev/package/@agntn/chains)
+[![license](https://npmx.dev/api/registry/badge/license/@agntn/chains)](https://npmx.dev/package/@agntn/chains)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/agntn/chains)
 
-Every web3 library I write needs the same handful of facts: Polygon's chain ID, Bitcoin's coin type, which explorer to link, whether an address even looks right. Re-declared in every one of them. So they live here once, as classes.
+⛓️ Twenty-nine blockchains as classes, and an address check that actually decodes. Ask for `matic` and you get Polygon, chain ID and coin type included. Paste an address and you get the chains that would take it. Same thing from the terminal, from TypeScript or from an agent.
 
-Docs and a playground that runs the library in your browser: [chains.agntn.dev](https://chains.agntn.dev). The source lives in [`docs/`](./docs), run `pnpm docs` after `pnpm build` for a local copy.
+## Why?
 
-## Stack
+Every web3 thing I write needs the same few facts. Polygon's chain ID. Bitcoin's coin type. Which explorer to link. And is this string even an address? I kept declaring all of that again in every library, a bit differently each time. The address check was a regex counting characters, so a TRON address passed as Bitcoin. Now it all lives here once, as classes, and the check decodes the bytes.
 
-TypeScript, ESM-only. The core imports nothing at runtime. The CLI adds `citty` and `consola`, the MCP server adds `@modelcontextprotocol/sdk`, and the agent extensions need `typebox` and `@earendil-works/pi-coding-agent`. The MCP server and the extensions describe their parameters with the same `typebox` schemas.
+Docs, one page per chain and a playground are at [chains.agntn.dev](https://chains.agntn.dev). The playground is this library running in your browser.
 
-## Installation
+## ✨ Features
+
+- 🧬 **Twenty-nine chains, one abstract `Chain`.** Each chain is its own class with its own facts. `EVM` and `Move` hold what a family shares.
+- 🏷️ **Aliases people actually type.** `matic`, `btc`, `arb`, `ripple`. Display names work too, so `BNB Chain` comes back as `bsc`.
+- 🔍 **Validators that decode.** Base58Check, Bech32, CashAddr, CIP-19, whatever the chain uses. Checksums get checked.
+- 🕵️ **Identify an address of unknown origin.** Every validator gets a go and you learn the family.
+- 🧾 **Metadata checked, not remembered.** Every `decimals` value was looked up at the source. XEC really has two.
+- 🫙 **Missing stays missing.** Octra has no coin type and no CAIP-2, so you get `undefined`. Nothing made up.
+- 🪶 **The core imports nothing at runtime.** Nothing registers itself on import either, so your bundler drops what you don't use.
+- 🤖 **CLI, library and agent tools give the same answer.** Six commands, four tools, one set of executors.
+- 🧯 **Errors you catch by type.** `InvalidAddressError` carries `.chain` and `.address`. No message parsing.
+
+## 📦 Install
 
 ```bash
 pnpm add @agntn/chains
 ```
 
-## Usage
+Node.js 24 or newer.
 
-```typescript
-import { Ethereum, EVM, create, getChain } from "@agntn/chains";
-
-const ethereum = create("ethereum");
-
-ethereum instanceof Ethereum; // true
-ethereum instanceof EVM; // true
-ethereum.name; // "Ethereum"
-ethereum.symbol; // "ETH"
-ethereum.chainId; // "0x1"
-ethereum.caip2; // "eip155:1"
-
-// Aliases resolve to the same concrete classes.
-const polygon = getChain("matic");
-polygon.key; // "polygon"
-
-// Validation lives on the class that knows the format.
-ethereum.assertAddress("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984");
-```
-
-## Architecture
-
-```text
-Chain (abstract)
-├── EVM (abstract)
-│   ├── Ethereum
-│   ├── Base
-│   ├── Arbitrum
-│   └── ...
-├── Move (abstract)
-│   ├── Aptos
-│   └── Sui
-├── Bitcoin
-├── Solana
-├── Stellar
-├── Xrpl
-├── Ton
-├── Tron
-├── Octra
-├── Arweave
-├── Monero
-└── Decred
-```
-
-Each chain is its own class holding its own metadata. `EVM` and `Move` own the family type and the address format, and everything else is declared per class, down to the coin type all thirteen EVM chains repeat.
-
-One list puts them in the registry: `builtins` in `src/chains/index.ts`. No module registers itself as it loads, so the CLI is the only entry that runs anything on import, and `sideEffects` says so, which lets a bundler drop whatever your project never touches. The cost is that a chain file counts for nothing until its class joins that list, and a test compares the two so it cannot drift quietly. `register()` is still there for chains this package does not ship.
-
-## API
-
-### Base classes
-
-- `Chain` is the abstract contract for metadata and address validation
-- `EVM` and `Move` hold what their concrete classes share
-- `ChainConstructor` is what the registry accepts
-
-### Registry
-
-- `register(ChainClass)` registers a concrete class under its static `key`
-- `create(key)` builds a fresh instance of a registered class
-- `chains()` returns the registered keys in registration order
-- `has(key)` checks whether a class is registered
-- `getChain(input?)` takes a key, symbol, or alias and gives you an instance, defaulting to Ethereum
-- `identify(address)` partitions the registry by an address: chains whose validator accepts it, and chains with no validator at all
-
-Keys name the chain rather than its ticker, so it is `ethereum`, `berachain` and `octra`. The ticker spellings a caller may already be holding, `eth`, `bera` and `oct`, resolve as aliases.
-
-`getChain` matches keys, symbols, and the aliases people actually type, so `matic`, `btc` and `arb` all work. Display names work too, read straight off the registered classes, so whatever `chain.name` prints resolves back to the same chain — `Arbitrum One`, `BNB Chain`, `zkSync Era`. That round trip matters for agents, which get a name out of one call and put it into the next. Symbols stay out of the automatic index: six chains report `ETH`, so matching on them would depend on registration order.
-
-`getChain()` with no argument still means Ethereum. `getChain("")` or a blank string does not — that is a caller mistake, and it throws rather than quietly answering about the wrong chain.
-
-### Instance behavior
-
-`chain.assertAddress(address)` returns the address when it fits the chain's format and throws when it doesn't. It's a format check, not proof the address exists on chain. A validator may include the format's checksum, as Stellar does, but it does not query network state. Chains without a validator throw instead of quietly saying yes - `chain.validatesAddress` tells you which ones those are before you ask. A false green light costs more than a false alarm when the caller is about to send funds.
-
-The base58 validators decode, because a shape is not enough. Solana requires exactly 32 decoded bytes: character length cannot separate an account from a Bitcoin or TRON address, since those are 34 characters and 25 bytes, while the System Program is 32 characters and 32 bytes. Bitcoin's legacy branch requires 25 Base58Check bytes under version `0x00` or `0x05` and verifies the checksum, so a typo in a `1...` or `3...` address fails the way one in a `bc1` address does. Its SegWit branch checks the full BIP-173/350 address encoding: mainnet `bc`, Bech32 for witness v0, Bech32m for v1 through v16, program length and zero padding. Both uppercase and lowercase addresses pass, mixed case does not. A checksum cannot rescue an invalid witness program. Litecoin runs the same SegWit check under `ltc`, so a mistyped `ltc1` address fails the way a mistyped `bc1` one does; its `L...` and `M...` legacy forms decode like Bitcoin's, checksum included. eCash verifies the CashAddr checksum under the `ecash` prefix whether the address carries it or not, so a mistyped address fails, and so does a bare Bitcoin Cash address, which differs from its eCash twin in the checksum alone. Cardano reads Shelley and stake addresses the same way: the Bech32 checksum under `addr` or `stake`, past the 90 characters BIP-173 allows, then CIP-19's header, so the network tag has to be mainnet's, the type has to fit the prefix and the payload the type, and a pointer address has to carry the three coordinates the ledger reads. Byron addresses keep their CBOR envelope check, CRC unverified. Stellar accepts SEP-23 Strkeys for classic accounts, muxed accounts and contracts, including the canonical base32 form and its CRC16-XModem checksum.
-
-TRON is the same 25 Base58Check bytes under version `0x41`, checksum verified, so decoding is also what keeps it and Bitcoin's legacy form apart. The XRP Ledger writes base58 over its own ordering of those same 58 characters, so an address there has to be read under the ledger's digits or the bytes come back wrong instead of rejected. A classic account is 25 Base58Check bytes under version `0x00`, an X-address is 35 bytes under the mainnet prefix `0x05 0x44`, and the testnet prefix is turned away along with the reserved tag bytes XLS-5 requires to be zero. Both forms carry a Base58Check checksum and both are verified. TON takes the TEP-2 friendly form in either base64 alphabet: 36 decoded bytes, a bounceable or non-bounceable tag and one of the two workchains that exist, with the testnet-only flag rejected the way Bitcoin's testnet versions are. Octra is the one base58 chain here where decoding would be a mistake: `oct` and a fixed 44 characters is the whole format, and a contract address is cut out of a base58 string rather than encoded from a payload, so its value runs past 32 bytes. The node takes that width and nothing else, so an address one character short is not a near miss, it is a different string. Aptos and Sui want all 32 bytes of hex written out, or the one-digit short form AIP-40 defines for the special addresses, which is how the framework address `0x1` is actually written - anything in between stays rejected, because accepting dropped leading zeros would make every EVM address a valid move address too. With those in place every registered chain validates, so `identify` gets an answer out of the whole registry.
-
-Arweave accepts canonical 43-character base64url addresses: a 32-byte hash with no padding and zero unused bits in the final digit. The optional `:checksum` suffix is not supported. Transaction IDs share this format, so a match cannot tell an address from a transaction ID.
-
-Monero resolves from `monero` or `xmr` and accepts mainnet standard addresses, subaddresses and integrated addresses. Its Base58 is encoded in blocks, so treating the whole string like a Bitcoin address would be wrong. The check enforces block bounds, the network/type byte and the 69-byte or 77-byte envelope; it does not verify the Keccak checksum or public keys. Testnet and stagenet are rejected. See [Monero's address formats](https://docs.getmonero.org/public-address/).
-
-Decred resolves from `decred` or `dcr`. Mainnet hash addresses (`Ds`, `De`, `DS`, `Dc`) carry 26 decoded bytes; public key addresses (`Dk`) carry 39, including a canonical signature selector. Borrowing Bitcoin's version byte would get both formats wrong. The check follows [dcrd's version 0 encoders](https://github.com/decred/dcrd/blob/b9634e01770b9035c4f22e0b314e85aada3828cf/txscript/stdaddr/addressv0.go), rejects test networks, and leaves BLAKE-256 checksums and curve points unchecked. The coin type is 42, not Decred's legacy value 20; no CAIP-2 identifier or public RPC is supplied.
-
-### Errors
-
-Everything thrown here descends from `ChainsError`, so you catch one type and read fields instead of parsing message strings.
-
-- `UnknownChainError` when `create()` got a key with no registered class, carries `.key`
-- `UnsupportedChainError` when `getChain()` got input matching no alias or name, carries `.input`; the message quotes the value, so blank and control-character input stays visible in a log
-- `InvalidAddressError` when an address failed its format check, carries `.address` and `.chain`
-- `AddressValidationUnsupportedError` when the chain has no validator, carries `.chain`
-
-`.chain` holds the canonical key on both, the same value `create()` takes. It used to name whatever read well in the message - `"EVM"` for all thirteen EVM chains, a display name elsewhere - which made the field useless as an identifier.
-
-## CLI
+## 🚀 First call
 
 ```bash
-chains list --type evm            # every registered EVM chain
-chains info matic                 # canonical metadata, add --json for a machine
-chains resolve btc                # bitcoin
-chains validate eth 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984
-chains identify 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984   # which chains accept this format
+npx @agntn/chains info matic
 ```
 
-`resolve`, `info` and `validate` print a message and exit 1 when they fail. `list` warns and exits 0 when a `--type` filter matches nothing, so don't use it as a check in a script. `identify` exits 0 even when nothing matches, because that is an answer too.
+```
+Polygon PoS (polygon)
+  symbol      POL
+  decimals    18
+  type        evm
+  bip44       60
+  chainId     0x89
+  caip2       eip155:137
+  explorer    https://polygonscan.com
+  rpc         https://polygon-bor-rpc.publicnode.com
+```
 
-An address the CLI rejects comes back quoted, so a newline or a terminal escape inside one cannot forge a line under the error.
+No key, no config, no network. All of that sits in the `Polygon` class. `matic` is an alias, `POL` is the token's name these days, `polygon` is the canonical key. From here on I'll write plain `chains`. That's `pnpm exec chains` in a project, or `pnpm add -g @agntn/chains` once.
 
-## MCP server
+Now an address you found in a log:
+
+```bash
+chains identify 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984
+```
+
+```
+ethereum   evm     Ethereum
+base       evm     Base
+arbitrum   evm     Arbitrum One
+optimism   evm     Optimism
+polygon    evm     Polygon PoS
+bsc        evm     BNB Chain
+avalanche  evm     Avalanche C-Chain
+fantom     evm     Fantom Opera
+gnosis     evm     Gnosis Chain
+linea      evm     Linea
+zksync     evm     zkSync Era
+scroll     evm     Scroll
+berachain  evm     Berachain
+```
+
+Thirteen. Not helpful? It's the honest answer. Every EVM chain uses the same 20 bytes, so no decoder can tell them apart. Give it something with a checksum and the list gets short:
+
+```bash
+chains identify bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a
+```
+
+```
+bitcoin    utxo    Bitcoin
+```
+
+One. Now a typo. This is the Bitcoin wiki's example address with the last character changed from `2` to `3`:
+
+```bash
+chains validate btc 1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN3
+```
+
+```
+
+ ERROR  Invalid bitcoin address: "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN3"
+
+```
+
+Right length, right alphabet, right first character. The checksum still says no. Exit code is 1, so scripts can trust it.
+
+A few more:
+
+```bash
+chains resolve "BNB Chain"
+chains resolve xrp
+chains list --type utxo
+chains info oct --json
+chains identify 11111111111111111111111111111111
+chains list --json | jq -r '.[] | select(.type == "move") | .key'
+```
+
+### Commands
+
+| Command    | What it does                                      | Example                       |
+| ---------- | ------------------------------------------------- | ----------------------------- |
+| `info`     | Metadata for one chain, Ethereum if you name none | `chains info matic`           |
+| `resolve`  | Key, ticker, alias or display name in, key out    | `chains resolve "BNB Chain"`  |
+| `validate` | One address against one chain's format            | `chains validate btc bc1q...` |
+| `identify` | Every registered chain that accepts an address    | `chains identify 0x1f98...`   |
+| `list`     | The registry, `--type` for one family             | `chains list --type utxo`     |
+| `mcp`      | The MCP server on stdio                           | `chains mcp`                  |
+
+`--json` on `info`, `identify` and `list`. `info`, `resolve` and `validate` exit 1 when they fail. `identify` doesn't, a miss is an answer too. More in the [CLI guide](https://chains.agntn.dev/guide/cli).
+
+## 🧠 Library
+
+```ts
+import { create, getChain, identify, InvalidAddressError } from "@agntn/chains";
+
+const polygon = getChain("matic");
+polygon.key; // "polygon"
+polygon.chainId; // "0x89"
+polygon.caip2; // "eip155:137"
+
+getChain("btc").assertAddress("bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a"); // returns it
+
+try {
+  getChain("btc").assertAddress("1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN3");
+} catch (error) {
+  error instanceof InvalidAddressError; // true
+  (error as InvalidAddressError).chain; // "bitcoin"
+}
+
+identify("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984").matches.length; // 13
+create("bitcoin").decimals; // 8
+```
+
+Most of the API is right there. `create(key)` wants the canonical key. `getChain(whatever)` takes any spelling and defaults to Ethereum. `chains()` lists the keys, `register(Yours)` adds one. `assertAddress` is a format check and nothing more. It doesn't know if the address exists. Errors are one family under `ChainsError`, four of them. More: [Registry](https://chains.agntn.dev/guide/registry), [Address validation](https://chains.agntn.dev/guide/validation), [Identify](https://chains.agntn.dev/guide/identify), [Metadata](https://chains.agntn.dev/guide/metadata).
+
+## 🗺️ Chains
+
+| Family    | Chains                                                                                                        | What the check decodes                                                                                                                          |
+| --------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `evm`     | ethereum, base, arbitrum, optimism, polygon, bsc, avalanche, fantom, gnosis, linea, zksync, scroll, berachain | 40 hex digits behind `0x`, any case                                                                                                             |
+| `utxo`    | bitcoin, litecoin, pepecoin, ecash, cardano, decred                                                           | Base58Check with the checksum, Bech32 and Bech32m for `bc1` and `ltc1`, CashAddr for eCash, CIP-19 for Cardano, dcrd's version bytes for Decred |
+| `solana`  | solana                                                                                                        | 32 base58 bytes, exactly                                                                                                                        |
+| `stellar` | stellar                                                                                                       | SEP-23 Strkeys with the CRC16, muxed accounts and contracts included                                                                            |
+| `xrpl`    | xrpl                                                                                                          | Base58Check under the ledger's own alphabet, classic accounts and X-addresses                                                                   |
+| `move`    | aptos, sui                                                                                                    | All 32 bytes of hex, or the one-digit short form AIP-40 allows                                                                                  |
+| `ton`     | ton                                                                                                           | The TEP-2 friendly form in either base64 alphabet, tag and workchain checked                                                                    |
+| `tron`    | tron                                                                                                          | 25 Base58Check bytes under version `0x41`                                                                                                       |
+| `octra`   | octra                                                                                                         | `oct` and 44 characters, that's the whole format                                                                                                |
+| `arweave` | arweave                                                                                                       | 43 characters of base64url, a 32-byte hash                                                                                                      |
+| `monero`  | monero                                                                                                        | Block base58, the network byte and the 69 or 77 byte envelope                                                                                   |
+
+Testnet addresses are refused wherever the format can tell. Each chain's page says which checksum is verified and which is left alone: [Chains](https://chains.agntn.dev/chains).
+
+## 🤖 Agents
 
 ```bash
 chains mcp
+pi install npm:@agntn/chains
+omp install @agntn/chains
 ```
-
-Speaks MCP over stdio and exposes the same four tools as the agent extensions: `chains_lookup`, `chains_validate_address`, `chains_identify_address` and `chains_list`. Point a client at it:
 
 ```json
 {
@@ -144,54 +182,33 @@ Speaks MCP over stdio and exposes the same four tools as the agent extensions: `
 }
 ```
 
-An MCP client sees the text a tool returns and nothing else, so the text carries the whole answer: every metadata field on a hit, and the registered keys when resolution fails, so the next call has somewhere to go. `chains_list` is there for the same reason — without it the only way to learn what the registry holds is to send a value you expect to fail. Absent fields say so out loud (`bip44: none`) rather than vanishing, because a missing coin type reads as "not shown" and invites the caller to supply one from memory.
+Four tools, the same four on MCP, Pi and OMP. A rejected address is an answer, not a tool error. An unknown chain comes back with the keys that do exist. And thirteen EVM matches are thirteen possibilities, the tool says so itself. [Agents guide](https://chains.agntn.dev/guide/agents).
 
-A rejected address is an answer, not a tool error. Only an unresolvable chain or a chain with no validator sets `isError`, because then nothing was checked.
+## 🚫 What this does not do
 
-The address in an answer comes back quoted. It arrives from whatever the caller was reading, and a newline inside one would otherwise write its own line, so a rejected address could read as a match on the chain about to be funded.
+Keys. No mnemonics, no derivation, no signing. That's [@agntn/keys](https://github.com/agntn/keys). No RPC either. `rpcDefault` is a string you hand to something else. And a passing address is well formed, not funded, and not yours.
 
-`chains_identify_address` turns validation around: it runs an address of unknown origin through every validator at once and reports the chains that accept the format, grouped by family. A chain without a validator would be named as unchecked rather than skipped, though the list is empty right now because every registered chain validates. A match narrows the family and no more - one EVM address is valid on all thirteen EVM chains.
+## 🧩 Adding a chain
 
-`createMcpServer()` is exported from `@agntn/chains/mcp` for hosts that bring their own transport.
+Missing one? Extend `Chain`, add a `key`, a `type`, the metadata and an `assertAddress`, then `register()` it. `getChain` and `identify` won't know the difference. Nano is the worked example: [Custom chains](https://chains.agntn.dev/guide/custom).
 
-## Agent extensions
+## 🛠️ Development
 
-Pi and OMP extensions live in `packages/pi/extensions` and `packages/omp/extensions`. They expose `chains_lookup` for resolving a chain into its metadata, `chains_validate_address` for checking an address, `chains_identify_address` for narrowing an address of unknown origin, and `chains_list` for the registry.
+```bash
+pnpm install
+pnpm dev         # obuild --stub
+pnpm fmt         # builds, then oxlint --fix and oxfmt
+pnpm lint        # builds, then oxlint
+pnpm typecheck   # tsc, then a build and the extensions against dist/
+pnpm test        # vitest
+pnpm build       # obuild
+pnpm docs        # the Docus site, after a build
+```
 
-All three surfaces call the executors in `src/tool-operations.ts`, so the MCP server and the two extensions answer identically. The extensions add the details the harnesses render; MCP drops them and keeps the text.
+## 💛 Thanks
 
-The extensions prefer the built executors and fall back to source only when `dist/` is missing, because the internal imports use `.js` specifiers that a plain TypeScript-stripping runtime can't resolve back to `.ts`. Without `pnpm build` the tools still register and the first call dies with a module-resolution error.
+Anthropic and OpenAI both give open source projects access to their models, through [Claude for Open Source](https://claude.com/contact-sales/claude-for-oss) and [Codex for Open Source](https://developers.openai.com/community/codex-for-oss). A lot of this package was written with that help. Thanks, both of you <3
 
-## Not in scope
+## 📄 License
 
-`chains` describes blockchains and validates address strings. It does not generate keys or derive addresses.
-
-- Key generation and HD key/address derivation belong in [`@agntn/keys`](https://github.com/agntn/keys).
-- RPC calls belong in [`@agntn/nodes`](https://github.com/agntn/nodes).
-
-Wallet storage, account management, and transaction building remain outside this package's scope.
-
-## `Chain` fields
-
-| Field        | Type        | Description                    |
-| ------------ | ----------- | ------------------------------ |
-| `key`        | `ChainKey`  | Canonical class key            |
-| `name`       | `string`    | Human-readable name            |
-| `symbol`     | `string`    | Native token symbol            |
-| `decimals`   | `number?`   | Native currency decimal places |
-| `type`       | `ChainType` | Blockchain family              |
-| `bip44`      | `number?`   | BIP-44 / SLIP-0044 coin type   |
-| `chainId`    | `string?`   | EVM chain ID in hexadecimal    |
-| `caip2`      | `string?`   | CAIP-2 identifier              |
-| `explorer`   | `string`    | Block explorer base URL        |
-| `rpcDefault` | `string?`   | Default public RPC endpoint    |
-
-`decimals` describes the native currency: one whole unit is `10^decimals` base units. For example, `create("bitcoin").decimals` is `8`, while `getChain("xec").decimals` is `2`. Assuming eight places for every UTXO chain would get XEC amounts badly wrong. This is not a token's precision or a UI rounding preference, and an RPC may already return amounts in whole units.
-
-Every built-in chain declares `decimals`; custom classes may leave it `undefined` to stay compatible with the existing `Chain` contract. Zero means an indivisible currency, not missing metadata. `chains info` and `chains_lookup` report the value, or `unknown` when absent; JSON omits an unknown value. Compact registry listings are unchanged. See [Metadata](https://chains.agntn.dev/guide/metadata) for the sources behind every value.
-
-Optional fields stay empty when the chain has no registered value. Octra has no BIP-44 coin type and no CAIP-2 namespace, so both are `undefined` rather than invented.
-
-## Supported chains
-
-`ethereum`, `base`, `arbitrum`, `optimism`, `polygon`, `bsc`, `avalanche`, `fantom`, `gnosis`, `linea`, `zksync`, `scroll`, `berachain`, `bitcoin`, `litecoin`, `pepecoin`, `ecash`, `cardano`, `solana`, `stellar`, `xrpl`, `aptos`, `sui`, `ton`, `tron`, `octra`, `arweave`, `monero`, and `decred`.
+[MIT](./LICENSE)
