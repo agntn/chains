@@ -1,4 +1,5 @@
-const BITCOIN_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+/** Bitcoin's ordering of the 58 digits, the default alphabet. */
+export const BITCOIN_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 /**
  * Decodes a base58 string to its bytes, or undefined when the input is not
