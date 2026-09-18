@@ -36,6 +36,7 @@ const nativeDecimals = {
   arweave: 12,
   monero: 12,
   decred: 8,
+  arc: 18,
 } satisfies Record<ChainKey, number>;
 
 afterEach(() => {

@@ -39,7 +39,7 @@ const activeChain = computed(() => current.value.chain.key);
         Name a chain. <span class="text-primary">Check an address.</span>
       </h1>
       <p class="chains-enter chains-enter-2 mx-auto mt-6 max-w-xl text-base leading-7 text-muted">
-        Twenty-nine blockchains as classes, one file each: chain ID, CAIP-2, coin type, decimals,
+        Thirty blockchains as classes, one file each: chain ID, CAIP-2, coin type, decimals,
         explorer, default RPC. The spellings people actually type resolve to the same class, and
         every chain checks its own address format by decoding it, not by counting characters.
         Library, CLI, MCP server, Pi and OMP extensions. Nothing here touches a network.
@@ -160,12 +160,12 @@ const activeChain = computed(() => current.value.chain.key);
       link="Identify an address"
       :checks="[
         'identify(address) partitions the registry: chains that accept the format, chains with no validator',
-        'An EVM address matches all thirteen EVM chains. That\'s the honest answer, not a bug',
+        'An EVM address matches all fourteen EVM chains. That\'s the honest answer, not a bug',
         'No validator means unchecked, never a silent no. Right now every built-in chain has one',
       ]"
     >
       An address of unknown origin gets run through the whole registry. The families light up as
-      the walk goes on: one for most chains, EVM for the 0x address that thirteen chains share,
+      the walk goes on: one for most chains, EVM for the 0x address that fourteen chains share,
       Move for the short <code class="font-mono text-[13px] text-highlighted">0x1</code> that
       Aptos and Sui both write. A match narrows the family. It doesn't say the address is used
       there, and the tool text says that out loud.
@@ -178,11 +178,11 @@ const activeChain = computed(() => current.value.chain.key);
 
     <LandingFeature
       eyebrow="Chains"
-      title="Twenty-nine chains, eleven families"
+      title="Thirty chains, eleven families"
       to="/chains"
       link="All chains"
       :checks="[
-        'Thirteen EVM chains that share one address format and one coin type, 60',
+        'Fourteen EVM chains that share one address format and one coin type, 60',
         'Six UTXO chains, and a UTXO heritage doesn\'t mean Bitcoin\'s encoding: CashAddr, CIP-19, two version bytes on Decred',
         'Solana, Stellar, XRP Ledger, Aptos, Sui, TON, TRON, Octra, Arweave and Monero on their own terms',
       ]"

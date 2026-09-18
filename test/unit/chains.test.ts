@@ -5,6 +5,7 @@ import { XRP_ALPHABET } from "../../src/chains/xrpl.ts";
 import {
   AddressValidationUnsupportedError,
   Arbitrum,
+  Arc,
   Arweave,
   Bitcoin,
   Cardano,
@@ -78,6 +79,7 @@ describe("chain registry", () => {
       "arweave",
       "monero",
       "decred",
+      "arc",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -113,6 +115,7 @@ describe("chain registry", () => {
     expect(create("arweave")).toBeInstanceOf(Arweave);
     expect(create("monero")).toBeInstanceOf(Monero);
     expect(create("decred")).toBeInstanceOf(Decred);
+    expect(create("arc")).toBeInstanceOf(Arc);
   });
 });
 
@@ -182,6 +185,22 @@ describe("chain metadata", () => {
     expect(octra.bip44).toBeUndefined();
     expect(octra.caip2).toBeUndefined();
   });
+
+  /** USDC pays for gas on Arc, and the native balance carries 18 decimals, not the token's 6. */
+  it("carries Arc mainnet metadata under its USDC gas token", () => {
+    expect(create("arc")).toMatchObject({
+      key: "arc",
+      name: "Arc",
+      symbol: "USDC",
+      decimals: 18,
+      type: "evm",
+      bip44: 60,
+      chainId: "0x13b2",
+      caip2: "eip155:5042",
+      explorer: "https://explorer.arc.io",
+      rpcDefault: "https://rpc.mainnet.arc.io",
+    });
+  });
 });
 
 describe("chain resolution", () => {
@@ -198,6 +217,8 @@ describe("chain resolution", () => {
     expect(getChain("xrp")).toBeInstanceOf(Xrpl);
     expect(getChain("ripple")).toBeInstanceOf(Xrpl);
     expect(getChain("oct")).toBeInstanceOf(Octra);
+    expect(getChain("arc-mainnet")).toBeInstanceOf(Arc);
+    expect(getChain("circle")).toBeInstanceOf(Arc);
   });
 
   /** These three were canonical keys, so anything already holding one has to land on the same chain. */
@@ -1065,6 +1086,7 @@ describe("address identification", () => {
       "zksync",
       "scroll",
       "berachain",
+      "arc",
     ]);
     expect(unchecked).toEqual([]);
   });

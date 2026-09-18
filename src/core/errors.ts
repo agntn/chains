@@ -40,7 +40,7 @@ export class InvalidAddressError extends ChainsError {
    * Canonical chain key, usable as an identifier.
    *
    * Validators used to pass whatever read well in the message, so the field held
-   * "EVM" for thirteen chains and a display name for the rest. A caller matching
+   * "EVM" for every EVM chain and a display name for the rest. A caller matching
    * on it got a different vocabulary per chain family.
    */
   readonly chain: ChainKey;

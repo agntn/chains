@@ -5,7 +5,7 @@
 [![license](https://npmx.dev/api/registry/badge/license/@agntn/chains)](https://npmx.dev/package/@agntn/chains)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/agntn/chains)
 
-⛓️ Twenty-nine blockchains as classes, and an address check that actually decodes. Ask for `matic` and you get Polygon, chain ID and coin type included. Paste an address and you get the chains that would take it. Same thing from the terminal, from TypeScript or from an agent.
+⛓️ Thirty blockchains as classes, and an address check that actually decodes. Ask for `matic` and you get Polygon, chain ID and coin type included. Paste an address and you get the chains that would take it. Same thing from the terminal, from TypeScript or from an agent.
 
 ## Why?
 
@@ -15,7 +15,7 @@ Docs, one page per chain and a playground are at [chains.agntn.dev](https://chai
 
 ## ✨ Features
 
-- 🧬 **Twenty-nine chains, one abstract `Chain`.** Each chain is its own class with its own facts. `EVM` and `Move` hold what a family shares.
+- 🧬 **Thirty chains, one abstract `Chain`.** Each chain is its own class with its own facts. `EVM` and `Move` hold what a family shares.
 - 🏷️ **Aliases people actually type.** `matic`, `btc`, `arb`, `ripple`. Display names work too, so `BNB Chain` comes back as `bsc`.
 - 🔍 **Validators that decode.** Base58Check, Bech32, CashAddr, CIP-19, whatever the chain uses. Checksums get checked.
 - 🕵️ **Identify an address of unknown origin.** Every validator gets a go and you learn the family.
@@ -74,9 +74,10 @@ linea      evm     Linea
 zksync     evm     zkSync Era
 scroll     evm     Scroll
 berachain  evm     Berachain
+arc        evm     Arc
 ```
 
-Thirteen. Not helpful? It's the honest answer. Every EVM chain uses the same 20 bytes, so no decoder can tell them apart. Give it something with a checksum and the list gets short:
+Fourteen. Not helpful? It's the honest answer. Every EVM chain uses the same 20 bytes, so no decoder can tell them apart. Give it something with a checksum and the list gets short:
 
 ```bash
 chains identify bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a
@@ -153,19 +154,19 @@ Most of the API is right there. `create(key)` wants the canonical key. `getChain
 
 ## 🗺️ Chains
 
-| Family    | Chains                                                                                                        | What the check decodes                                                                                                               |
-| --------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `evm`     | ethereum, base, arbitrum, optimism, polygon, bsc, avalanche, fantom, gnosis, linea, zksync, scroll, berachain | 40 hex digits behind `0x`, any case                                                                                                  |
-| `utxo`    | bitcoin, litecoin, pepecoin, ecash, cardano, decred                                                           | Base58Check with the checksum, BLAKE-256 for Decred, Bech32 and Bech32m for `bc1` and `ltc1`, CashAddr for eCash, CIP-19 for Cardano |
-| `solana`  | solana                                                                                                        | 32 base58 bytes, exactly                                                                                                             |
-| `stellar` | stellar                                                                                                       | SEP-23 Strkeys with the CRC16, muxed accounts and contracts included                                                                 |
-| `xrpl`    | xrpl                                                                                                          | Base58Check under the ledger's own alphabet, classic accounts and X-addresses                                                        |
-| `move`    | aptos, sui                                                                                                    | All 32 bytes of hex, or the one-digit short form AIP-40 allows                                                                       |
-| `ton`     | ton                                                                                                           | The TEP-2 friendly form in either base64 alphabet, tag and workchain checked                                                         |
-| `tron`    | tron                                                                                                          | 25 Base58Check bytes under version `0x41`                                                                                            |
-| `octra`   | octra                                                                                                         | `oct` and 44 characters, that's the whole format                                                                                     |
-| `arweave` | arweave                                                                                                       | 43 characters of base64url, a 32-byte hash                                                                                           |
-| `monero`  | monero                                                                                                        | Block base58, the network byte and the 69 or 77 byte envelope                                                                        |
+| Family    | Chains                                                                                                             | What the check decodes                                                                                                               |
+| --------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `evm`     | ethereum, base, arbitrum, optimism, polygon, bsc, avalanche, fantom, gnosis, linea, zksync, scroll, berachain, arc | 40 hex digits behind `0x`, any case                                                                                                  |
+| `utxo`    | bitcoin, litecoin, pepecoin, ecash, cardano, decred                                                                | Base58Check with the checksum, BLAKE-256 for Decred, Bech32 and Bech32m for `bc1` and `ltc1`, CashAddr for eCash, CIP-19 for Cardano |
+| `solana`  | solana                                                                                                             | 32 base58 bytes, exactly                                                                                                             |
+| `stellar` | stellar                                                                                                            | SEP-23 Strkeys with the CRC16, muxed accounts and contracts included                                                                 |
+| `xrpl`    | xrpl                                                                                                               | Base58Check under the ledger's own alphabet, classic accounts and X-addresses                                                        |
+| `move`    | aptos, sui                                                                                                         | All 32 bytes of hex, or the one-digit short form AIP-40 allows                                                                       |
+| `ton`     | ton                                                                                                                | The TEP-2 friendly form in either base64 alphabet, tag and workchain checked                                                         |
+| `tron`    | tron                                                                                                               | 25 Base58Check bytes under version `0x41`                                                                                            |
+| `octra`   | octra                                                                                                              | `oct` and 44 characters, that's the whole format                                                                                     |
+| `arweave` | arweave                                                                                                            | 43 characters of base64url, a 32-byte hash                                                                                           |
+| `monero`  | monero                                                                                                             | Block base58, the network byte and the 69 or 77 byte envelope                                                                        |
 
 Transaction ids: `0x` and 64 hex digits on `evm`, 64 hex digits on `utxo` and `monero`, the address rule on `arweave`. The other families aren't checked yet and `validatesTxid` says `false` there. Testnet addresses are refused wherever the format can tell. Each chain's page says which checksum is verified and which is left alone: [Chains](https://chains.agntn.dev/chains).
 
@@ -185,7 +186,7 @@ omp install @agntn/chains
 }
 ```
 
-Five tools, the same five on MCP, Pi and OMP. A rejected address is an answer, not a tool error. An unknown chain comes back with the keys that do exist. And thirteen EVM matches are thirteen possibilities, the tool says so itself. [Agents guide](https://chains.agntn.dev/guide/agents).
+Five tools, the same five on MCP, Pi and OMP. A rejected address is an answer, not a tool error. An unknown chain comes back with the keys that do exist. And fourteen EVM matches are fourteen possibilities, the tool says so itself. [Agents guide](https://chains.agntn.dev/guide/agents).
 
 ## 🚫 What this does not do
 
