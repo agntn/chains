@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.3.7
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.6...v0.3.7)
+
+### 🚀 Enhancements
+
+- **arc:** Add Circle's Layer-1, USDC as gas ([#39](https://github.com/agntn/chains/pull/39))
+
+### 🩹 Fixes
+
+- **evm:** Honor the EIP-55 checksum ([#43](https://github.com/agntn/chains/pull/43))
+- **ton:** Check the CRC16 on friendly addresses ([#44](https://github.com/agntn/chains/pull/44))
+- **monero:** Insist on the Keccak checksum ([#47](https://github.com/agntn/chains/pull/47))
+- **ton:** Caip2 carries the global_id -239 ([#48](https://github.com/agntn/chains/pull/48))
+
+### 🏡 Chore
+
+- Add `renovate.json` ([15d7cd3](https://github.com/agntn/chains/commit/15d7cd3))
+
+### ❤️ Contributors
+
+- Aeitwoen ([@aeitwoen](https://github.com/aeitwoen))
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.3.6
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.5...v0.3.6)
