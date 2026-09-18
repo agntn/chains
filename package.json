@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@agntn/ox": "0.1.0",
-    "@earendil-works/pi-coding-agent": "0.84.2",
+    "@earendil-works/pi-coding-agent": "0.84.4",
     "@types/node": "26.2.0",
     "changelogen": "0.6.2",
     "obuild": "0.4.38",
