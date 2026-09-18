@@ -1,6 +1,7 @@
 import { decodeBase58 } from "../core/base58.js";
 import { BECH32, bech32Digits, bytesFromDigits, polymod } from "../core/bech32.js";
 import { UTXO } from "../core/chain.js";
+import { crc32 } from "../core/crc32.js";
 import { InvalidAddressError } from "../core/errors.js";
 
 type Prefix = "addr" | "stake";
@@ -32,40 +33,144 @@ const SHELLEY_TYPES: Readonly<
   15: { hrp: "stake", payload: HASH_LENGTH },
 };
 
-const BYRON_ENVELOPE_PREFIX = [0x82, 0xd8, 0x18, 0x58] as const;
-const BYRON_PAYLOAD_PREFIX = [0x83, 0x58, 0x1c] as const;
+/** An array of two, then tag 24 over the byte string that carries the payload. */
+const BYRON_ENVELOPE_PREFIX = [0x82, 0xd8, 0x18] as const;
+/** The payload is an array of three: the root, the attributes and the type. */
+const BYRON_PAYLOAD_OPENER = 0x83;
+/** CBOR major types the payload is written with. */
+const UNSIGNED = 0;
+const BYTES = 2;
+const MAP = 5;
+/** The attribute the ledger reads as a testnet magic; a mainnet address never carries it. */
+const NETWORK_MAGIC_ATTRIBUTE = 2;
+/** The types the ledger decodes: a verification key and a redeem key. */
+const BYRON_TYPES: readonly number[] = [0, 2];
+/** Bytes a CBOR argument takes after the head for the minor values that carry one. */
+const ARGUMENT_WIDTHS: Readonly<Partial<Record<number, number>>> = { 24: 1, 25: 2, 26: 4 };
 
-function hasBytesAt(decoded: ArrayLike<number>, expected: readonly number[], offset = 0): boolean {
-  return expected.every((byte, index) => decoded[offset + index] === byte);
+/** One CBOR head: the major type, its argument and how many bytes the head took. */
+interface CborHead {
+  readonly major: number;
+  readonly value: number;
+  readonly length: number;
 }
 
-function cborUnsignedLength(head: number): number {
-  if (head <= 0x17) return 1;
-  if (head === 0x18) return 2;
-  if (head === 0x19) return 3;
-  if (head === 0x1a) return 5;
-  return 0;
+function hasBytesAt(decoded: ArrayLike<number>, expected: readonly number[]): boolean {
+  return expected.every((byte, index) => decoded[index] === byte);
 }
 
 /**
- * The Byron envelope: array(2), tag(24), bytes opening as the three-item
- * array with its 28-byte root, then a CRC head matching the bytes it
- * claims. Attributes, type and the CRC value stay unparsed on purpose.
+ * Reads one CBOR head with an argument of up to four bytes, or nothing where the bytes
+ * run out or the head is indefinite or wider than that.
  *
- * @param {ArrayLike<number>} decoded - Candidate decoded Byron address bytes.
- * @returns {boolean} Whether the bytes have the expected Byron CBOR envelope.
+ * @param {ArrayLike<number>} bytes - CBOR bytes.
+ * @param {number} offset - Where the head starts.
+ * @returns {CborHead | undefined} The head, or undefined.
  */
-function isByronEnvelope(decoded: ArrayLike<number>): boolean {
-  if (!hasBytesAt(decoded, BYRON_ENVELOPE_PREFIX)) return false;
+function cborHead(bytes: ArrayLike<number>, offset: number): CborHead | undefined {
+  const initial = bytes[offset];
+  if (initial === undefined) return undefined;
+  const major = initial >> 5;
+  const minor = initial & 0x1f;
+  if (minor < 24) return { major, value: minor, length: 1 };
+  const width = ARGUMENT_WIDTHS[minor];
+  if (width === undefined || offset + width >= bytes.length) return undefined;
+  let value = 0;
+  for (let index = 1; index <= width; index++) value = value * 256 + (bytes[offset + index] ?? 0);
+  return { major, value, length: 1 + width };
+}
 
-  const payloadLength = decoded[4] ?? 0;
-  if (payloadLength < 33 || !hasBytesAt(decoded, BYRON_PAYLOAD_PREFIX, 5)) return false;
+/**
+ * The head at an offset when it is of the wanted major type, or nothing.
+ *
+ * @param {ArrayLike<number>} bytes - CBOR bytes.
+ * @param {number} offset - Where the head starts.
+ * @param {number} major - The major type the head has to be.
+ * @returns {CborHead | undefined} The head, or undefined.
+ */
+function headOf(bytes: ArrayLike<number>, offset: number, major: number): CborHead | undefined {
+  const head = cborHead(bytes, offset);
+  return head?.major === major ? head : undefined;
+}
 
-  const head = decoded[5 + payloadLength];
-  if (head === undefined) return false;
+/**
+ * The payload behind the envelope as the ledger's `decodeCrcProtected` reads it: an array
+ * of two, tag 24 over a byte string, then a CRC-32 that has to be the byte string's, with
+ * nothing after it.
+ *
+ * @param {string} address - Candidate Byron address.
+ * @returns {Uint8Array | undefined} The payload, or undefined when the checksum does not hold.
+ */
+function byronPayload(address: string): Uint8Array | undefined {
+  const decoded = decodeBase58(address, 128);
+  if (decoded === undefined || !hasBytesAt(decoded, BYRON_ENVELOPE_PREFIX)) return undefined;
+  const wrapper = headOf(decoded, BYRON_ENVELOPE_PREFIX.length, BYTES);
+  if (wrapper === undefined) return undefined;
+  const start = BYRON_ENVELOPE_PREFIX.length + wrapper.length;
+  const end = start + wrapper.value;
+  const checksum = headOf(decoded, end, UNSIGNED);
+  if (checksum === undefined || end + checksum.length !== decoded.length) return undefined;
+  const payload = decoded.subarray(start, end);
+  return checksum.value === crc32(payload) ? payload : undefined;
+}
 
-  const crcBytes = cborUnsignedLength(head);
-  return crcBytes > 0 && decoded.length === 5 + payloadLength + crcBytes;
+/**
+ * Walks the attribute map as the ledger decodes it, byte strings under ascending Word8
+ * keys it keeps unparsed unless it knows them, and stops at a network magic, which only
+ * a test network writes.
+ *
+ * @param {ArrayLike<number>} payload - Payload bytes.
+ * @param {number} offset - Where the map head starts.
+ * @returns {number | undefined} The offset after the map, or undefined.
+ */
+function skipMainnetAttributes(payload: ArrayLike<number>, offset: number): number | undefined {
+  const map = headOf(payload, offset, MAP);
+  if (map === undefined) return undefined;
+  let next = offset + map.length;
+  let previous = -1;
+  for (let entry = 0; entry < map.value; entry++) {
+    const key = headOf(payload, next, UNSIGNED);
+    const value = key && headOf(payload, next + key.length, BYTES);
+    if (key === undefined || value === undefined || key.value <= previous || key.value > 0xff) {
+      return undefined;
+    }
+    if (key.value === NETWORK_MAGIC_ATTRIBUTE) return undefined;
+    previous = key.value;
+    next += key.length + value.length + value.value;
+  }
+  return next;
+}
+
+/**
+ * The payload as the ledger decodes it: the 28-byte root, the attributes and a type it
+ * knows, ending where the bytes end.
+ *
+ * @param {ArrayLike<number>} payload - Bytes behind a checksum that holds.
+ * @returns {boolean} Whether the payload is a mainnet Byron address.
+ */
+function isMainnetByronPayload(payload: ArrayLike<number>): boolean {
+  if (payload[0] !== BYRON_PAYLOAD_OPENER) return false;
+  const root = headOf(payload, 1, BYTES);
+  if (root === undefined || root.value !== HASH_LENGTH) return false;
+  const typeOffset = skipMainnetAttributes(payload, 1 + root.length + HASH_LENGTH);
+  if (typeOffset === undefined) return false;
+  const type = headOf(payload, typeOffset, UNSIGNED);
+  return (
+    type !== undefined &&
+    BYRON_TYPES.includes(type.value) &&
+    typeOffset + type.length === payload.length
+  );
+}
+
+/**
+ * The checksum has to hold and the payload behind it has to be a mainnet address.
+ *
+ * @param {string} address - Candidate Byron address.
+ * @returns {boolean} Whether the address is one the mainnet ledger accepts.
+ */
+function validByronAddress(address: string): boolean {
+  const payload = byronPayload(address);
+  return payload !== undefined && isMainnetByronPayload(payload);
 }
 
 /**
@@ -135,16 +240,15 @@ export class Cardano extends UTXO {
   /**
    * Shelley and stake addresses decode: the Bech32 checksum under `addr` or `stake`, then
    * CIP-19's header, so the network tag has to be mainnet's, the type has to fit the prefix
-   * and the payload the type. Byron stays a CBOR envelope check: the CRC is unverified and
-   * a testnet address passes, because its network hides in an attribute this check does not open.
+   * and the payload the type. Byron addresses decode the way the ledger reads them: the
+   * CRC-32 has to be the payload's, the payload has to be the root, the attributes and a
+   * known type, and a network magic among the attributes makes it a testnet address.
    *
    * @param {string} address - Candidate Cardano address.
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    const decoded = decodeBase58(address, 128);
-    const byron = decoded !== undefined && isByronEnvelope(decoded);
-    if (!byron && !validShelleyAddress(address)) {
+    if (!validByronAddress(address) && !validShelleyAddress(address)) {
       throw new InvalidAddressError(this.key, address);
     }
     return address;
