@@ -14,7 +14,7 @@ Scope: canonical blockchain classes, aliases, address validation and txid valida
 - `src/core/base58check.ts` decodes Base58Check on top of `base58.ts` and refuses a checksum that does not hold. Bitcoin's legacy form, Litecoin, Pepecoin, TRON and the XRP Ledger read through it with SHA-256, Decred with BLAKE-256: the digest is an argument
 - `src/core/sha256.ts` is SHA-256 written out, because the core imports nothing at runtime and `assertAddress` cannot await the Web Crypto digest
 - `src/core/blake256.ts` is BLAKE-256 written out for the same reason. Decred's checksum is that digest taken twice, and no Web Crypto call would give it anyway
-- `src/core/keccak256.ts` is Keccak-256 written out for the same reason, with Keccak's own padding rather than SHA-3's. EIP-55 reads the case of an EVM address off it
+- `src/core/keccak256.ts` is Keccak-256 written out for the same reason, with Keccak's own padding rather than SHA-3's. EIP-55 reads the case of an EVM address off it, and Monero's addresses end with four bytes of it
 - `src/core/crc16.ts` is CRC-16/XMODEM, the checksum Stellar's Strkeys and TON's friendly addresses end with. It returns the number, because Stellar writes it little-endian and TON big-endian
 - `src/core/bech32.ts` reads Bech32 digits and packs them into bytes. The human-readable part and the digit bound are arguments, because BIP-173's 90-character cap is Bitcoin's rule and Cardano writes past it
 - `src/core/segwit.ts` checks BIP-173/350 SegWit addresses on top of `bech32.ts` for the chains that took Bitcoin's witness program rules. The human-readable part is an argument, `bc` for Bitcoin and `ltc` for Litecoin
