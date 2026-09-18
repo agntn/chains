@@ -1,4 +1,5 @@
 import { Chain } from "../core/chain.js";
+import { crc16Xmodem } from "../core/crc16.js";
 import { InvalidAddressError } from "../core/errors.js";
 
 const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
@@ -39,24 +40,6 @@ function decodeBase32(input: string, expectedBytes: number): Uint8Array | undefi
 
   if (offset !== expectedBytes || accumulator !== 0) return undefined;
   return decoded;
-}
-
-/**
- * Computes the CRC16-XModem checksum used by SEP-23 Strkeys.
- *
- * @param {ArrayLike<number>} payload - Bytes covered by the checksum.
- * @returns {number} The unsigned 16-bit checksum.
- */
-function crc16Xmodem(payload: ArrayLike<number>): number {
-  let checksum = 0;
-  for (let index = 0; index < payload.length; index++) {
-    const byte = payload[index] ?? 0;
-    checksum ^= byte << 8;
-    for (let bit = 0; bit < 8; bit++) {
-      checksum = checksum & 0x8000 ? ((checksum << 1) ^ 0x1021) & 0xffff : (checksum << 1) & 0xffff;
-    }
-  }
-  return checksum;
 }
 
 function isAddressStrkey(address: string): boolean {
