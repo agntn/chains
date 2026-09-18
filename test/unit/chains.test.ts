@@ -147,6 +147,11 @@ describe("chain metadata", () => {
     expect(create("solana").caip2).toBe("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp");
   });
 
+  /** -1 is the masterchain, one of the two workchains the validator accepts, not a network. */
+  it("carries TON's global_id, not a workchain", () => {
+    expect(create("ton").caip2).toBe("ton:-239");
+  });
+
   it("carries Stellar pubnet metadata", () => {
     expect(create("stellar")).toMatchObject({
       key: "stellar",
