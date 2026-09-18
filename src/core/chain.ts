@@ -4,6 +4,7 @@ import {
   InvalidTxidError,
   TxidValidationUnsupportedError,
 } from "./errors.js";
+import { keccak256 } from "./keccak256.js";
 import type { ChainInfo, ChainKey, ChainType } from "./types.js";
 
 export interface ChainConstructor {
@@ -62,10 +63,42 @@ const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 /** Keccak-256 of the signed transaction: `0x` and 32 bytes of hex, either case. */
 const EVM_TXID = /^0x[0-9a-fA-F]{64}$/;
 
+/**
+ * EIP-55: a letter is uppercase where the matching nibble of the Keccak-256 of the
+ * lowercase digits is 8 or more. An address in one case throughout carries no checksum
+ * and passes, the way every wallet reads it; mixed case has to match the hash.
+ *
+ * @param {string} digits - The forty hex digits after `0x`.
+ * @returns {boolean} Whether the letter case is the checksum or absent.
+ */
+function holdsChecksum(digits: string): boolean {
+  const lower = digits.toLowerCase();
+  if (digits === lower || digits === digits.toUpperCase()) return true;
+  const digest = keccak256(Uint8Array.from(lower, (digit) => digit.codePointAt(0) ?? 0));
+  for (let index = 0; index < digits.length; index++) {
+    const byte = digest[index >> 1] ?? 0;
+    const nibble = index % 2 === 0 ? byte >> 4 : byte & 0x0f;
+    const digit = lower.charAt(index);
+    if (digits.charAt(index) !== (nibble >= 8 ? digit.toUpperCase() : digit)) return false;
+  }
+  return true;
+}
+
 export abstract class EVM extends Chain {
   readonly type = "evm" as const;
+
+  /**
+   * `0x` and 40 hex digits, with the EIP-55 checksum verified when the case carries one.
+   * A checksummed address with one wrong digit fails, since the hash of the digits no
+   * longer matches the case; a lowercase address has no checksum to fail.
+   *
+   * @param {string} address - Candidate EVM address.
+   * @returns {string} The accepted address unchanged.
+   */
   override assertAddress(address: string): string {
-    if (!EVM_ADDRESS.test(address)) throw new InvalidAddressError(this.key, address);
+    if (!EVM_ADDRESS.test(address) || !holdsChecksum(address.slice(2))) {
+      throw new InvalidAddressError(this.key, address);
+    }
     return address;
   }
 
