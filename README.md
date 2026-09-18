@@ -77,7 +77,7 @@ berachain  evm     Berachain
 arc        evm     Arc
 ```
 
-Fourteen. Not helpful? It's the honest answer. Every EVM chain uses the same 20 bytes, so no decoder can tell them apart. Give it something with a checksum and the list gets short:
+Fourteen. Not helpful? It's the honest answer. Every EVM chain uses the same 20 bytes, so no decoder can tell them apart. Give it a format that belongs to one chain and the list gets short:
 
 ```bash
 chains identify bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a
@@ -156,7 +156,7 @@ Most of the API is right there. `create(key)` wants the canonical key. `getChain
 
 | Family    | Chains                                                                                                             | What the check decodes                                                                                                               |
 | --------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `evm`     | ethereum, base, arbitrum, optimism, polygon, bsc, avalanche, fantom, gnosis, linea, zksync, scroll, berachain, arc | 40 hex digits behind `0x`, any case                                                                                                  |
+| `evm`     | ethereum, base, arbitrum, optimism, polygon, bsc, avalanche, fantom, gnosis, linea, zksync, scroll, berachain, arc | 40 hex digits behind `0x`, mixed case has to pass EIP-55                                                                             |
 | `utxo`    | bitcoin, litecoin, pepecoin, ecash, cardano, decred                                                                | Base58Check with the checksum, BLAKE-256 for Decred, Bech32 and Bech32m for `bc1` and `ltc1`, CashAddr for eCash, CIP-19 for Cardano |
 | `solana`  | solana                                                                                                             | 32 base58 bytes, exactly                                                                                                             |
 | `stellar` | stellar                                                                                                            | SEP-23 Strkeys with the CRC16, muxed accounts and contracts included                                                                 |
