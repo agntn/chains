@@ -40,6 +40,8 @@ const aliases: Readonly<Record<string, ChainKey>> = {
   ar: "arweave",
   xmr: "monero",
   dcr: "decred",
+  "arc-mainnet": "arc",
+  circle: "arc",
 };
 /**
  * Matches a display name against the registry rather than a second hand-written table.

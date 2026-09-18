@@ -1,6 +1,7 @@
 import type { ChainConstructor } from "../core/chain.js";
 import { Aptos } from "./aptos.js";
 import { Arbitrum } from "./arbitrum.js";
+import { Arc } from "./arc.js";
 import { Arweave } from "./arweave.js";
 import { Avalanche } from "./avalanche.js";
 import { Base } from "./base.js";
@@ -60,4 +61,5 @@ export const builtins: readonly ChainConstructor[] = [
   Arweave,
   Monero,
   Decred,
+  Arc,
 ];
