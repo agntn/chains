@@ -81,6 +81,7 @@ export default defineNuxtConfig({
         "token:ada",
         "token:apt",
         "token:ar",
+        "token:arc",
         "token:arbitrum-one",
         "token:avax",
         "token:base",

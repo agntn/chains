@@ -32,6 +32,7 @@ const WALK = [
   "zksync",
   "scroll",
   "berachain",
+  "arc",
 ] as const;
 
 export interface AddressCheck {

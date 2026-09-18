@@ -38,6 +38,7 @@ const PRESENTATION: Record<ChainKey, { icon: string; alias: string; sample: stri
   zksync: { icon: "i-token-zksync", alias: "zksync-era", sample: EVM_SAMPLE },
   scroll: { icon: "i-token-scroll", alias: "Scroll", sample: EVM_SAMPLE },
   berachain: { icon: "i-token-berachain", alias: "bera", sample: EVM_SAMPLE },
+  arc: { icon: "i-token-arc", alias: "circle", sample: EVM_SAMPLE },
   bitcoin: {
     icon: "i-token-btc",
     alias: "btc",
