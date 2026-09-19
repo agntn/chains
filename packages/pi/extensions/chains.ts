@@ -70,7 +70,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
     promptSnippet:
       "Use chains_validate_address before sending funds or storing an address, to confirm it matches the target chain's format.",
     promptGuidelines: [
-      "A format check with the checksum verified where the format carries one, so a typo fails there. Not an on-chain existence check.",
+      "A format check with the checksum verified where the format carries one, so a typo fails there; an EVM address in one case carries none. Not an on-chain existence check.",
       "Chains without a registered validator report valid: false with a reason.",
       "When the owning chain is unknown, chains_identify_address checks every validator at once.",
     ],
