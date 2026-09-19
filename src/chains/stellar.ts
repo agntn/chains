@@ -1,8 +1,10 @@
 import { Chain } from "../core/chain.js";
 import { crc16Xmodem } from "../core/crc16.js";
-import { InvalidAddressError } from "../core/errors.js";
+import { InvalidAddressError, InvalidTxidError } from "../core/errors.js";
 
 const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+/** SHA-256 of the transaction as Horizon writes and reads it: 64 hex digits, lowercase only. */
+const TXID = /^[0-9a-f]{64}$/;
 const STRKEY_TYPES: Readonly<
   Partial<Record<string, { readonly bytes: number; readonly version: number }>>
 > = {
@@ -72,5 +74,17 @@ export class Stellar extends Chain {
   override assertAddress(address: string): string {
     if (!isAddressStrkey(address)) throw new InvalidAddressError(this.key, address);
     return address;
+  }
+
+  /**
+   * Uppercase is refused because Horizon refuses it: `isTransactionHash` wants the
+   * lowercase spelling, and a hash that passes here has to pass there.
+   *
+   * @param {string} txid - Candidate Stellar transaction hash.
+   * @returns {string} The accepted hash unchanged.
+   */
+  override assertTxid(txid: string): string {
+    if (!TXID.test(txid)) throw new InvalidTxidError(this.key, txid);
+    return txid;
   }
 }

@@ -19,7 +19,7 @@ Docs, one page per chain and a playground are at [chains.agntn.dev](https://chai
 - 🏷️ **Aliases people actually type.** `matic`, `btc`, `arb`, `ripple`. Display names work too, so `BNB Chain` comes back as `bsc`.
 - 🔍 **Validators that decode.** Base58Check, Bech32, CashAddr, CIP-19, whatever the chain uses. Checksums get checked.
 - 🕵️ **Identify an address of unknown origin.** Every validator gets a go and you learn the family.
-- 🔗 **Transaction ids, same idea.** `0x` and 64 hex on the EVM chains, 64 hex on the UTXO chains and Monero, 43 base64url characters on Arweave. A txid pasted wrong fails here, not three calls later inside an RPC.
+- 🔗 **Transaction ids, same idea.** `0x` and 64 hex on the EVM chains and Aptos, 64 hex on the UTXO chains, Monero, TRON and the XRP Ledger, lowercase only on Stellar and Octra because their nodes read nothing else, base58 decoded to 64 bytes on Solana and 32 on Sui, hex or padded base64 on TON, 43 base64url characters on Arweave. A txid pasted wrong fails here, not three calls later inside an RPC.
 - 🧾 **Metadata checked, not remembered.** Every `decimals` value was looked up at the source. XEC really has two.
 - 🫙 **Missing stays missing.** Octra has no coin type and no CAIP-2, so you get `undefined`. Nothing made up.
 - 🪶 **The core imports nothing at runtime.** Nothing registers itself on import either, so your bundler drops what you don't use.
@@ -150,7 +150,7 @@ identify("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984").matches.length; // 13
 create("bitcoin").decimals; // 8
 ```
 
-Most of the API is right there. `create(key)` wants the canonical key. `getChain(whatever)` takes any spelling and defaults to Ethereum. `chains()` lists the keys, `register(Yours)` adds one. `assertAddress` is a format check and nothing more. It doesn't know if the address exists. `assertTxid` is the same thing for a transaction id, on the EVM and UTXO chains, Monero and Arweave. The rest throw `TxidValidationUnsupportedError`, and `validatesTxid` tells you before you ask. Errors are one family under `ChainsError`, six of them. More: [Registry](https://chains.agntn.dev/guide/registry), [Address validation](https://chains.agntn.dev/guide/validation), [Identify](https://chains.agntn.dev/guide/identify), [Metadata](https://chains.agntn.dev/guide/metadata).
+Most of the API is right there. `create(key)` wants the canonical key. `getChain(whatever)` takes any spelling and defaults to Ethereum. `chains()` lists the keys, `register(Yours)` adds one. `assertAddress` is a format check and nothing more. It doesn't know if the address exists. `assertTxid` is the same thing for a transaction id, on every chain that ships. A custom chain that skips it throws `TxidValidationUnsupportedError`, and `validatesTxid` tells you before you ask. Errors are one family under `ChainsError`, six of them. More: [Registry](https://chains.agntn.dev/guide/registry), [Address validation](https://chains.agntn.dev/guide/validation), [Identify](https://chains.agntn.dev/guide/identify), [Metadata](https://chains.agntn.dev/guide/metadata).
 
 ## 🗺️ Chains
 
@@ -168,7 +168,7 @@ Most of the API is right there. `create(key)` wants the canonical key. `getChain
 | `arweave` | arweave                                                                                                            | 43 characters of base64url, a 32-byte hash                                                                                           |
 | `monero`  | monero                                                                                                             | Block base58, the network byte, the 69 or 77 byte envelope and the Keccak checksum                                                   |
 
-Transaction ids: `0x` and 64 hex digits on `evm`, 64 hex digits on `utxo` and `monero`, the address rule on `arweave`. The other families aren't checked yet and `validatesTxid` says `false` there. Testnet addresses are refused wherever the format can tell. Each chain's page says which checksum is verified and which is left alone: [Chains](https://chains.agntn.dev/chains).
+Transaction ids: `0x` and 64 hex digits on `evm` and Aptos, 64 hex digits on `utxo`, `monero`, `tron` and `xrpl`, the same 64 in lowercase only on `stellar` and `octra`, base58 decoding to 64 bytes on `solana` and 32 on Sui, 64 hex digits or 44 characters of padded base64 on `ton`, the address rule on `arweave`. Testnet addresses are refused wherever the format can tell. Each chain's page says which checksum is verified and which is left alone: [Chains](https://chains.agntn.dev/chains).
 
 ## 🤖 Agents
 

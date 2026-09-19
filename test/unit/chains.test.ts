@@ -336,21 +336,12 @@ describe("txid validation", () => {
     }
   });
 
-  it("names the chains whose ids are not covered yet", () => {
-    const unsupported = chains().filter((key) => !create(key).validatesTxid);
-    expect(unsupported.sort()).toEqual([
-      "aptos",
-      "octra",
-      "solana",
-      "stellar",
-      "sui",
-      "ton",
-      "tron",
-      "xrpl",
-    ]);
-    expect(() => create("solana").assertTxid(bitcoinTxid)).toThrow(TxidValidationUnsupportedError);
-    expect(() => create("solana").assertTxid(bitcoinTxid)).toThrow(
-      "Txid validation is not supported for solana",
+  it("carries a txid check on every built-in chain and names a missing one", () => {
+    expect(chains().filter((key) => !create(key).validatesTxid)).toEqual([]);
+    expect(new Unvalidated().validatesTxid).toBe(false);
+    expect(() => new Unvalidated().assertTxid(bitcoinTxid)).toThrow(TxidValidationUnsupportedError);
+    expect(() => new Unvalidated().assertTxid(bitcoinTxid)).toThrow(
+      "Txid validation is not supported for unvalidated",
     );
   });
 });
@@ -1199,6 +1190,6 @@ describe("validator capability", () => {
   it("reads the txid validator the same way", () => {
     expect(new Unvalidated().validatesTxid).toBe(false);
     expect(create("bitcoin").validatesTxid).toBe(true);
-    expect(create("solana").validatesTxid).toBe(false);
+    expect(create("solana").validatesTxid).toBe(true);
   });
 });

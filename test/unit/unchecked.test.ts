@@ -1,5 +1,8 @@
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { describe, expect, it } from "vitest";
 import { Chain, register, type ChainKey } from "../../src/index.ts";
+import { createMcpServer } from "../../src/mcp.ts";
 import {
   identifyAddress,
   lookupChain,
@@ -8,11 +11,12 @@ import {
 } from "../../src/tool-operations.ts";
 
 /**
- * Every registered chain validates since TRON, TON and the move chains got
- * validators, so the unchecked reporting kept for future chains has no live
- * case in the real registry. Registering a validator-less chain in this file
- * brings the case back; vitest isolates test modules, so the registration
- * never leaks into the counts the other files assert.
+ * Every registered chain validates addresses since TRON, TON and the move chains
+ * got validators, and txids since the eight chains outside the hex families got
+ * theirs, so the unchecked reporting kept for future chains has no live case in
+ * the real registry. Registering a validator-less chain in this file brings the
+ * case back; vitest isolates test modules, so the registration never leaks into
+ * the counts the other files assert.
  */
 class Unvalidated extends Chain {
   static readonly key = "unvalidated" as ChainKey;
@@ -62,6 +66,30 @@ describe("tool reporting for a chain without a validator", () => {
     expect(result.isError).toBe(true);
     expect(result.content[0]?.text).toContain("carries no txid validator");
     expect(result.details).toMatchObject({ chain: "unvalidated", txid: "anything", valid: false });
+  });
+
+  it("forwards the missing txid validator over MCP as a tool error", async () => {
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const server = createMcpServer();
+    const client = new Client({ name: "chains-test", version: "1.0.0" });
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+    try {
+      const result = await client.callTool({
+        name: "chains_validate_txid",
+        arguments: { chain: "unvalidated", txid: "anything" },
+      });
+      expect(result.isError).toBe(true);
+      expect(result.content).toEqual([
+        { type: "text", text: "Unvalidated (unvalidated) carries no txid validator" },
+      ]);
+      const lookup = await client.callTool({
+        name: "chains_lookup",
+        arguments: { chain: "unvalidated" },
+      });
+      expect(JSON.stringify(lookup.content)).toContain("txidValidation: unsupported");
+    } finally {
+      await Promise.all([client.close(), server.close()]);
+    }
   });
 
   it("warns about the missing validator in the lookup", () => {

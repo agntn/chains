@@ -1,6 +1,6 @@
 import { decodeBase58 } from "../core/base58.js";
 import { Chain } from "../core/chain.js";
-import { InvalidAddressError } from "../core/errors.js";
+import { InvalidAddressError, InvalidTxidError } from "../core/errors.js";
 
 export class Solana extends Chain {
   static readonly key = "solana" as const;
@@ -21,5 +21,17 @@ export class Solana extends Chain {
       throw new InvalidAddressError(this.key, address);
     }
     return address;
+  }
+
+  /**
+   * A transaction is named by its first signature, 64 Ed25519 bytes in base58, read
+   * the way `Signature::from_str` reads it: at most 88 characters, exactly 64 bytes.
+   *
+   * @param {string} txid - Candidate Solana transaction signature.
+   * @returns {string} The accepted signature unchanged.
+   */
+  override assertTxid(txid: string): string {
+    if (decodeBase58(txid, 88)?.length !== 64) throw new InvalidTxidError(this.key, txid);
+    return txid;
   }
 }

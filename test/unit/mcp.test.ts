@@ -444,22 +444,24 @@ describe("chains MCP server", () => {
       { type: "text", text: `Invalid Ethereum (ethereum) txid: "${txid}"` },
     ]);
 
-    const unsupported = await client.callTool({
+    const signature =
+      "4AwYqQ8RbD6yhTbE9h38YiYufC7UHJfxzhP3BZsEoJRp4cY6TzphNFEsUWMjkrKNjE5dFMbBoxVwvr9m8vJukavE";
+    const solana = await client.callTool({
       name: "chains_validate_txid",
-      arguments: { chain: "sol", txid },
+      arguments: { chain: "sol", txid: signature },
     });
-    expect(unsupported.isError).toBe(true);
-    expect(unsupported.content).toEqual([
-      { type: "text", text: "Solana (solana) carries no txid validator" },
+    expect(solana.isError).not.toBe(true);
+    expect(solana.content).toEqual([
+      { type: "text", text: `Valid Solana (solana) txid: "${signature}"` },
     ]);
   });
 
-  it("says in a lookup which chains carry no txid validator", async () => {
+  it("prints no txidValidation line once every built-in chain checks one", async () => {
     const client = await connectTestClient();
 
-    const solana = await client.callTool({ name: "chains_lookup", arguments: { chain: "sol" } });
-    expect(JSON.stringify(solana.content)).toContain("txidValidation: unsupported");
-    const bitcoin = await client.callTool({ name: "chains_lookup", arguments: { chain: "btc" } });
-    expect(JSON.stringify(bitcoin.content)).not.toContain("txidValidation");
+    for (const chain of ["sol", "xlm", "xrp", "apt", "sui", "ton", "trx", "oct", "btc"]) {
+      const lookup = await client.callTool({ name: "chains_lookup", arguments: { chain } });
+      expect(JSON.stringify(lookup.content), chain).not.toContain("txidValidation");
+    }
   });
 });
