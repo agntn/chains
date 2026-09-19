@@ -358,6 +358,30 @@ describe("agent extensions", () => {
     );
     expect(omp.slice(omp.indexOf("export default"))).toBe(pi.slice(pi.indexOf("export default")));
   });
+
+  /**
+   * The family names a static sentence carries, pulled out of the given source text.
+   *
+   * @param {string} source - Source file to read the sentence from.
+   * @param {Readonly<RegExp>} sentence - Pattern whose first group holds the comma-separated names.
+   * @returns {string[]} The named families, sorted.
+   */
+  function familiesNamedIn(source: string, sentence: Readonly<RegExp>): string[] {
+    const names = source.match(sentence)?.[1] ?? "";
+    return names.split(/,\s*|\s+and\s+/).sort();
+  }
+
+  it("names every registered family where the family filter is described", () => {
+    const families = [...new Set(chains().map((key) => create(key).type))].sort();
+    const read = (path: string): string => readFileSync(new URL(path, import.meta.url), "utf8");
+
+    expect(
+      familiesNamedIn(read("../../packages/pi/extensions/chains.ts"), /"Families are ([^".]+)\."/),
+    ).toEqual(families);
+    expect(familiesNamedIn(read("../../src/commands/list.ts"), /this family \(([^)]+)\)/)).toEqual(
+      families,
+    );
+  });
 });
 
 describe("error hierarchy", () => {

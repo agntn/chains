@@ -73,7 +73,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
     promptSnippet:
       "Use chains_validate_address before sending funds or storing an address, to confirm it matches the target chain's format.",
     promptGuidelines: [
-      "Validation is a format check, not a checksum or on-chain existence check.",
+      "A format check with the checksum verified where the format carries one, so a typo fails there. Not an on-chain existence check.",
       "Chains without a registered validator report valid: false with a reason.",
       "When the owning chain is unknown, chains_identify_address checks every validator at once.",
     ],
@@ -151,7 +151,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
     promptSnippet:
       "Use chains_list to see which blockchains are available, instead of guessing a chain name.",
     promptGuidelines: [
-      "Families are evm, utxo, solana, stellar, xrpl, move, ton, tron and octra.",
+      "Families are evm, utxo, solana, stellar, xrpl, move, ton, tron, octra, arweave and monero.",
       "Every key and name it prints resolves in chains_lookup.",
     ],
     parameters: Type.Object({
