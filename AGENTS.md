@@ -29,7 +29,7 @@ Scope: canonical blockchain classes, aliases, address validation and txid valida
 - `src/version.ts` is the version string
 - `test/unit/chains.test.ts` covers hierarchy, registry, metadata, and validation
 - `test/unit/mcp.test.ts` drives the MCP server over an in-memory transport
-- `test/unit/cli-loads.test.ts` runs the built bin's usage paths under `test/record-loads.ts`: `--help`, `-h`, `mcp --help`, no arguments and an unknown command must not load the MCP SDK, and `mcp` must
+- `test/unit/cli-loads.test.ts` runs the built bin's usage paths under `test/record-loads.ts`: `--help`, `-h`, `mcp --help`, no arguments and an unknown command must not load the MCP SDK, and `mcp` must load it
 - `docs/` is the Docus site behind chains.agntn.dev, with its own `AGENTS.md`. It aliases `@agntn/chains` to `src/index.ts` and bundles the sources itself, so it needs neither `dist/` nor the root `node_modules`
 
 ## Shape

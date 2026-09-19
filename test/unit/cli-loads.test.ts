@@ -1,11 +1,13 @@
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { beforeAll, describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "../..");
 const bin = resolve(root, "dist/cli.mjs");
 const hook = resolve(root, "test/record-loads.ts");
+const server = pathToFileURL(resolve(root, "dist/mcp.mjs")).href;
 
 /** What one run of the built bin printed, how it exited and every module URL it loaded. */
 interface BinRun {
@@ -82,7 +84,7 @@ describe("chains usage paths", () => {
     expect(packages).toContain("citty");
     expect(packages).not.toContain("@modelcontextprotocol/sdk");
     expect(packages).not.toContain("zod");
-    expect(run.loaded.filter((url) => url.includes("typebox"))).toEqual([]);
+    expect(run.loaded).not.toContain(server);
   });
 
   it("chains mcp serves the server over stdio", () => {
@@ -102,6 +104,6 @@ describe("chains usage paths", () => {
     expect(run.status).toBe(0);
     expect(response).toMatchObject({ id: 1, result: { serverInfo: { name: "chains" } } });
     expect(packagesOf(run.loaded)).toContain("@modelcontextprotocol/sdk");
-    expect(run.loaded.some((url) => url.includes("typebox"))).toBe(true);
+    expect(run.loaded).toContain(server);
   });
 });
