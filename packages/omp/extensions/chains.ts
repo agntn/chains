@@ -100,7 +100,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
       "Use chains_validate_txid before looking a transaction up or storing its id, to confirm it fits the target chain's format.",
     promptGuidelines: [
       "A format check only: it says nothing about whether the transaction exists or was mined.",
-      "EVM chains take 0x and 64 hex digits, UTXO chains and Monero 64 hex digits, Arweave 43 base64url characters. Other families report valid: false with a reason.",
+      "EVM chains and Aptos take 0x and 64 hex digits, UTXO chains, Monero, TRON and the XRP Ledger 64 hex digits, Stellar and Octra lowercase hex only, Solana a base58 signature of 64 bytes, Sui a base58 digest of 32, TON hex or padded base64, Arweave 43 base64url characters. A txid that fails reports valid: false with a reason.",
     ],
     parameters: Type.Object({
       chain: chainArgument,

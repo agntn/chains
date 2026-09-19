@@ -66,7 +66,7 @@ const tools: ToolDefinition[] = [
     name: "chains_validate_txid",
     title: "Validate Chain Txid",
     description:
-      "Check a transaction id against the format rules of a specific blockchain: 0x and 64 hex digits on EVM chains, 64 hex digits on UTXO chains and Monero, 43 base64url characters on Arweave. A format check only, not proof that the transaction exists. The other families carry no txid validator yet and answer with isError.",
+      "Check a transaction id against the format rules of a specific blockchain: 0x and 64 hex digits on EVM chains and Aptos, 64 hex digits on UTXO chains, Monero, TRON and the XRP Ledger, lowercase only on Stellar and Octra, base58 of 64 bytes on Solana and 32 on Sui, hex or padded base64 on TON, 43 base64url characters on Arweave. A format check only, not proof that the transaction exists. Every registered chain carries the check; a custom chain without one answers with isError.",
     inputSchema: Type.Object({
       chain: chainArgument,
       txid: valueArgument("Transaction id to validate"),

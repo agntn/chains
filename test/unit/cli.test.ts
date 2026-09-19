@@ -2,8 +2,20 @@ import { runCommand } from "citty";
 import consola from "consola";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import list from "../../src/commands/list.ts";
+import { Chain, register, type ChainKey } from "../../src/index.ts";
 import resolve from "../../src/commands/resolve.ts";
 import validate from "../../src/commands/validate.ts";
+
+/** No built-in chain lacks a txid check any more, so the CLI message needs a registered stand-in. */
+class Unvalidated extends Chain {
+  static readonly key = "unvalidated" as ChainKey;
+  readonly type = "octra" as const;
+  readonly name = "Unvalidated";
+  readonly symbol = "NONE";
+  readonly explorer = "https://example.com";
+}
+
+register(Unvalidated);
 
 const ESCAPE = String.fromCodePoint(27);
 const CSI = String.fromCodePoint(155);
@@ -79,10 +91,10 @@ describe("CLI output escaping", () => {
 
   it("names the missing txid validator instead of a format failure", async () => {
     const written = await capture("error", () =>
-      runCommand(validate, { rawArgs: ["solana", "deadbeef", "--txid"] }),
+      runCommand(validate, { rawArgs: ["unvalidated", "deadbeef", "--txid"] }),
     );
 
-    expect(written).toBe("Txid validation is not supported for solana");
+    expect(written).toBe("Txid validation is not supported for unvalidated");
     expect(process.exitCode).toBe(1);
   });
 });
