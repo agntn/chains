@@ -23,6 +23,9 @@ const live: Readonly<Record<string, string>> = {
 /** The TON hash above as tonapi writes it, and as tonscan puts it in a URL. */
 const tonHex = "c177a875c4bd6afb355258c26291ea6c5506f29b800214bfd0ca1508db55601d";
 const tonUrl = "wXeodcS9avs1UljCYpHqbFUG8puAAhS_0MoVCNtVYB0=";
+/** A TON hash from the same day with both special digits, in both alphabets. */
+const tonBothStd = "cK6uADJz/pRjbVXSEKtE+Nr89AZ866AslTXYc47zgfA=";
+const tonBothUrl = "cK6uADJz_pRjbVXSEKtE-Nr89AZ866AslTXYc47zgfA=";
 
 /**
  * Asserts that every candidate is refused with InvalidTxidError.
@@ -79,14 +82,18 @@ describe("txid validation on the chains outside the hex families", () => {
     ]);
   });
 
-  it("reads a TON hash in hex or padded base64, in either alphabet", () => {
+  it("reads a TON hash in hex or padded base64, in one alphabet at a time", () => {
     expect(create("ton").assertTxid(tonHex)).toBe(tonHex);
     expect(create("ton").assertTxid(tonHex.toUpperCase())).toBe(tonHex.toUpperCase());
     expect(create("ton").assertTxid(tonUrl)).toBe(tonUrl);
+    expect(create("ton").assertTxid(tonBothStd)).toBe(tonBothStd);
+    expect(create("ton").assertTxid(tonBothUrl)).toBe(tonBothUrl);
     rejects("ton", [
       live.ton.slice(0, -1),
       `${live.ton}=`,
       `${live.ton.slice(0, 42)}B=`,
+      tonBothStd.replace("/", "_"),
+      tonBothUrl.replace("-", "+"),
       "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
       `0x${tonHex}`,
       tonHex.slice(1),

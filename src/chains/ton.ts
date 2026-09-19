@@ -13,9 +13,10 @@ const FRIENDLY_ADDRESS = /^[A-Za-z0-9+/_-]{48}$/;
 const HEX_TXID = /^[0-9a-fA-F]{64}$/;
 /**
  * The same 32 bytes in base64 with their one `=`, toncenter's alphabet or tonscan's
- * URL-safe one; the 43rd digit carries four bits, so its two spare bits have to be zero.
+ * URL-safe one but never both in one string, which toncenter refuses as well; the 43rd
+ * digit carries four bits, so its two spare bits have to be zero.
  */
-const BASE64_TXID = /^[A-Za-z0-9+/_-]{42}[AEIMQUYcgkosw048]=$/;
+const BASE64_TXID = /^(?:[A-Za-z0-9+/]{42}|[A-Za-z0-9_-]{42})[AEIMQUYcgkosw048]=$/;
 
 /**
  * Decodes the 36 bytes behind a friendly address, or undefined when the text is not
