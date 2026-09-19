@@ -12,7 +12,7 @@ export default defineCommand({
     type: {
       type: "string",
       description:
-        "Only show chains of this family (evm, utxo, solana, stellar, xrpl, move, ton, tron, octra)",
+        "Only show chains of this family (evm, utxo, solana, stellar, xrpl, move, ton, tron, octra, arweave, monero)",
     },
     json: {
       type: "boolean",
