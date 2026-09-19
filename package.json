@@ -2,7 +2,7 @@
   "name": "@agntn/chains",
   "version": "0.3.7",
   "description": "Canonical blockchain classes with registry, aliases, and address validation",
-  "homepage": "https://github.com/agntn/chains#readme",
+  "homepage": "https://chains.agntn.dev",
   "bugs": "https://github.com/agntn/chains/issues",
   "license": "MIT",
   "author": "oritwoen (https://github.com/oritwoen)",
@@ -90,6 +90,7 @@
   "pi": {
     "extensions": [
       "./packages/pi/extensions/chains.ts"
-    ]
+    ],
+    "image": "https://chains.agntn.dev/image.png"
   }
 }
