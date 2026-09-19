@@ -831,9 +831,9 @@ describe("eCash address validation", () => {
 
 describe("Cardano address validation", () => {
   const cardano = create("cardano");
-  /** The 114-character Byron bootstrap example from CIP-19. */
+  /** The Daedalus address paid by 6bab31b9… in epoch 0, read off the chain through Koios. */
   const byron =
-    "37btjrVyb4KDXBNC4haBVPCrro8AQPHwvCMp3RFhhSVWwfFmZ6wwzSK6JK1hY6wHNmtrpTf1kdbva8TCneM2YsiXT7mrzT21EacHnPpz5YyUdj64na";
+    "DdzFFzCqrhsoXBAE5n7CWTHXUAPmwcJVj6D8mVfU8a3vAAgLBm449swRhAqxm9ZnPUYnKhLLAXCGy7UiqG439CiaioBa5MTnPGpavGvC";
 
   /** Payment types 0 through 7, then both stake credential kinds. */
   it("accepts the CIP-19 mainnet vectors", () => {
@@ -877,21 +877,28 @@ describe("Cardano address validation", () => {
     ).toThrow(InvalidAddressError);
   });
 
-  /**
-   * The CIP-19 example, then a synthetic minimal envelope, whose base58
-   * lands on the familiar Ae2 prefix purely by construction.
-   */
+  /** The Daedalus address, then an Icarus address paid by 47a44fdf… at block 4400000. */
   it("accepts a Byron bootstrap address", () => {
     expect(cardano.assertAddress(byron)).toBe(byron);
     expect(
-      cardano.assertAddress("Ae2tdPwUPEYwWS5R2H6DTA2XJnBULNKZrrxpHiiEnkDzcdDg2rmtjdAXs6T"),
+      cardano.assertAddress("Ae2tdPwUPEZK2a4yVK27MkEKgVEPtvdkjzzp7G6pGftbWTzy5sHSephRYzv"),
     ).toBeTruthy();
+  });
+
+  /** The CIP-19 example carries the legacy testnet magic among its attributes. */
+  it("rejects the Byron testnet example from CIP-19", () => {
+    expect(() =>
+      cardano.assertAddress(
+        "37btjrVyb4KDXBNC4haBVPCrro8AQPHwvCMp3RFhhSVWwfFmZ6wwzSK6JK1hY6wHNmtrpTf1kdbva8TCneM2YsiXT7mrzT21EacHnPpz5YyUdj64na",
+      ),
+    ).toThrow(InvalidAddressError);
   });
 
   /**
    * The first three fail the prefix; the crafted trio then dies one gate at
    * a time: payload below the 33-byte minimum, wrong array opener, and a
-   * CRC head claiming more bytes than remain.
+   * CRC head claiming more bytes than remain. The last one has the envelope
+   * and a checksum that does not hold.
    */
   it("rejects base58 that is not a Byron CBOR envelope", () => {
     expect(() => cardano.assertAddress("11111111111111111111111111111111")).toThrow(
@@ -907,6 +914,9 @@ describe("Cardano address validation", () => {
     ).toThrow(InvalidAddressError);
     expect(() =>
       cardano.assertAddress("VhLXUZmS1gXF9DUMPMU6SdiQxAmT6brEid4taqdutAgEG3ewdw55Zh29"),
+    ).toThrow(InvalidAddressError);
+    expect(() =>
+      cardano.assertAddress("Ae2tdPwUPEYwWS5R2H6DTA2XJnBULNKZrrxpHiiEnkDzcdDg2rmtjdAXs6T"),
     ).toThrow(InvalidAddressError);
   });
 
