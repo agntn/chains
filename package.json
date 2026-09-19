@@ -1,6 +1,6 @@
 {
   "name": "@agntn/chains",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "Canonical blockchain classes with registry, aliases, and address validation",
   "homepage": "https://chains.agntn.dev",
   "bugs": "https://github.com/agntn/chains/issues",

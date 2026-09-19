@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.3.8
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.7...v0.3.8)
+
+### 🚀 Enhancements
+
+- Txid checks for the eight remaining chains ([#57](https://github.com/agntn/chains/pull/57))
+
+### 🩹 Fixes
+
+- **cardano:** Verify the Byron CRC-32 and network ([#49](https://github.com/agntn/chains/pull/49))
+- **cli:** --help stops loading the MCP SDK ([#56](https://github.com/agntn/chains/pull/56))
+- Tool text names the checksum and all families ([#58](https://github.com/agntn/chains/pull/58))
+
+### 🏡 Chore
+
+- Add `pi` image ([24adb2d](https://github.com/agntn/chains/commit/24adb2d))
+
+### ❤️ Contributors
+
+- Aeitwoen ([@aeitwoen](https://github.com/aeitwoen))
+- Ori ([@oritwoen](https://github.com/oritwoen))
+- Aei ([@aeitwoen](https://github.com/aeitwoen))
+
 ## v0.3.7
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.6...v0.3.7)
