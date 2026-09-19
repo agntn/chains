@@ -29,6 +29,7 @@ Scope: canonical blockchain classes, aliases, address validation and txid valida
 - `src/version.ts` is the version string
 - `test/unit/chains.test.ts` covers hierarchy, registry, metadata, and validation
 - `test/unit/mcp.test.ts` drives the MCP server over an in-memory transport
+- `test/unit/cli-loads.test.ts` runs the built bin's usage paths under `test/record-loads.ts`: `--help`, `-h`, `mcp --help`, no arguments and an unknown command must not load the MCP SDK, and `mcp` must load it
 - `docs/` is the Docus site behind chains.agntn.dev, with its own `AGENTS.md`. It aliases `@agntn/chains` to `src/index.ts` and bundles the sources itself, so it needs neither `dist/` nor the root `node_modules`
 
 ## Shape
@@ -40,7 +41,8 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 - ESM-only. The core imports nothing at runtime, the CLI adds `citty` and `consola`, the MCP server adds `@modelcontextprotocol/sdk`, the extensions need `typebox` and `@earendil-works/pi-coding-agent`
 - Build with `obuild`, entries `src/index.ts`, `src/cli.ts`, `src/mcp.ts` and `src/tool-operations.ts`. `obuild` 0.4 accepts only `cwd`, `entries` and `hooks`, everything else is silently ignored
 - `sideEffects` names `dist/cli.mjs` and nothing else. That holds only while no module registers itself on import: put a `register()` call back at the top of a chain file and the class reaches the registry through a bare import, which a tree-shaker is free to drop. New chains go in `builtins`
-- Extensions load `dist/tool-operations.mjs`, so `pnpm build` has to run before `tsc -p tsconfig.extensions.json`
+- Extensions load `dist/tool-operations.mjs`, so `pnpm build` has to run before `tsc -p tsconfig.extensions.json`, and `test/unit/cli-loads.test.ts` runs `dist/cli.mjs`, so `pnpm test` builds first
+- `src/commands/mcp.ts` imports the server and the SDK inside `run()`. citty resolves every subcommand to print the usage, so a module-scope import there puts the whole SDK on `--help` and on every mistyped command
 - The OMP loader must keep both dynamic imports literal (`import("../../../dist/tool-operations.mjs")` or `import("../../../src/tool-operations.ts")`). An `import(url.href)` built from a runtime value loses bare-dependency resolution in the compiled OMP binary. Pi may keep the existsSync form.
 - MCP is built on the low-level `Server`, deprecated in the SDK, because `McpServer.registerTool` takes Standard Schema only and `typebox` 1.x is not one. The alternative is a second definition of every parameter
 - An MCP client reads `content` and never `details`, so tool text has to carry whatever the next call needs

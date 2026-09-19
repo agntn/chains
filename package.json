@@ -45,7 +45,7 @@
     "fmt:check": "pnpm build && oxlint . && oxfmt --check .",
     "lint": "pnpm build && oxlint .",
     "lint:fix": "pnpm build && oxlint . --fix",
-    "test": "vitest run",
+    "test": "pnpm build && vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit && pnpm build && tsc --noEmit -p tsconfig.extensions.json",
     "prepack": "pnpm run build",
