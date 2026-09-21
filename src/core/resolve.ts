@@ -42,6 +42,7 @@ const aliases: Readonly<Record<string, ChainKey>> = {
   dcr: "decred",
   "arc-mainnet": "arc",
   circle: "arc",
+  usdc: "arc",
 };
 /**
  * Matches a display name against the registry rather than a second hand-written table.

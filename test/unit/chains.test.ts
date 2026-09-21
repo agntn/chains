@@ -224,6 +224,7 @@ describe("chain resolution", () => {
     expect(getChain("oct")).toBeInstanceOf(Octra);
     expect(getChain("arc-mainnet")).toBeInstanceOf(Arc);
     expect(getChain("circle")).toBeInstanceOf(Arc);
+    expect(getChain("USDC")).toBeInstanceOf(Arc);
   });
 
   /** These three were canonical keys, so anything already holding one has to land on the same chain. */
@@ -475,6 +476,19 @@ describe("display name resolution", () => {
       const chain = create(key);
       expect(getChain(chain.name).key).toBe(key);
       expect(getChain(chain.name.toUpperCase()).key).toBe(key);
+    }
+  });
+
+  it("resolves every printed ticker, shared ones through the alias table", () => {
+    const holders = new Map<string, ChainKey[]>();
+    for (const key of chains()) {
+      const symbol = create(key).symbol.toLowerCase();
+      holders.set(symbol, [...(holders.get(symbol) ?? []), key]);
+    }
+    for (const [symbol, keys] of holders) {
+      const resolved = getChain(symbol).key;
+      if (keys.length === 1) expect(resolved, symbol).toBe(keys[0]);
+      else expect(keys, symbol).toContain(resolved);
     }
   });
 
