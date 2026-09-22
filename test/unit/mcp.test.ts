@@ -56,6 +56,30 @@ describe("chains MCP server", () => {
     expect(part?.text).toContain("decimals: 18");
   });
 
+  it("returns Aptos mainnet's numeric CAIP-2 reference through MCP", async () => {
+    const client = await connectTestClient();
+    const response = await client.callTool({
+      name: "chains_lookup",
+      arguments: { chain: "apt" },
+    });
+
+    expect(response.isError).not.toBe(true);
+    expect(response.content).toEqual([
+      {
+        type: "text",
+        text: [
+          "Aptos (aptos)",
+          "symbol: APT",
+          "decimals: 8",
+          "type: move",
+          "caip2: aptos:1",
+          "bip44: 637",
+          "explorer: https://explorer.aptoslabs.com",
+        ].join("\n"),
+      },
+    ]);
+  });
+
   it("resolves and validates Arweave through MCP", async () => {
     const client = await connectTestClient();
     const address = "kY9RAgTJEImkBpiKgVeXrsGV02T-D4dI3ZvSpnn7HSk";

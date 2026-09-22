@@ -152,6 +152,10 @@ describe("chain metadata", () => {
     expect(create("ton").caip2).toBe("ton:-239");
   });
 
+  it("uses the numeric Aptos mainnet reference from the CAIP-2 namespace", () => {
+    expect(create("aptos").caip2).toBe("aptos:1");
+  });
+
   it("carries Stellar pubnet metadata", () => {
     expect(create("stellar")).toMatchObject({
       key: "stellar",
