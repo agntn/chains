@@ -11,7 +11,7 @@ export class Aptos extends Move {
   override readonly decimals = 8;
   readonly explorer = "https://explorer.aptoslabs.com";
   readonly bip44 = 637;
-  readonly caip2 = "aptos:mainnet";
+  readonly caip2 = "aptos:1";
 
   /**
    * The node also reads bare hex, but never writes it, so it stays out the way it does
