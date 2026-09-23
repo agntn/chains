@@ -29,7 +29,7 @@ export default defineNuxtConfig({
     domain: "https://chains.agntn.dev",
     title: "@agntn/chains",
     description:
-      "Canonical blockchain classes, aliases and address validation for 29 chains, as a library, a CLI, an MCP server and Pi and OMP extensions.",
+      "Canonical blockchain classes, aliases and address validation for 31 chains, as a library, a CLI, an MCP server and Pi and OMP extensions.",
     sections: [
       {
         title: "Playground",
@@ -89,6 +89,7 @@ export default defineNuxtConfig({
         "token:bnb",
         "token:btc",
         "token:dcr",
+        "token:doge",
         "token:eth",
         "token:ftm",
         "token:gno",

@@ -173,17 +173,32 @@ describe("chains MCP server", () => {
     expect(part?.text).toContain("caip2: eip155:5042");
   });
 
+  /** A derivation path starts from the coin type, so the lookup has to print 3 and not leave it to memory. */
+  it("looks Dogecoin up through MCP by its ticker", async () => {
+    const client = await connectTestClient();
+    const lookup = await client.callTool({
+      name: "chains_lookup",
+      arguments: { chain: "doge" },
+    });
+    expect(lookup.isError).not.toBe(true);
+    const [part] = lookup.content as Array<{ text: string }>;
+    expect(part?.text).toContain("Dogecoin (dogecoin)");
+    expect(part?.text).toContain("decimals: 8");
+    expect(part?.text).toContain("caip2: bip122:1a91e3dace36e2be3bf030a65679fe82");
+    expect(part?.text).toContain("bip44: 3");
+  });
+
   it("names the registered chains when resolution fails", async () => {
     const client = await connectTestClient();
 
     const response = await client.callTool({
       name: "chains_lookup",
-      arguments: { chain: "dogecoin" },
+      arguments: { chain: "polkadot" },
     });
 
     expect(response.isError).toBe(true);
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain('Unsupported chain: "dogecoin"');
+    expect(part?.text).toContain('Unsupported chain: "polkadot"');
     expect(part?.text).toContain("Known chain keys: ethereum, base");
   });
 
@@ -264,7 +279,7 @@ describe("chains MCP server", () => {
 
     expect(response.isError).not.toBe(true);
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain("matches 14 of 30 checked chains");
+    expect(part?.text).toContain("matches 14 of 31 checked chains");
     expect(part?.text).toContain("evm (14): ethereum, base, arbitrum");
     expect(part?.text).toContain("does not prove the address is used");
     expect(part?.text).not.toContain("Not checked");
@@ -283,7 +298,7 @@ describe("chains MCP server", () => {
     });
 
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain("matches 1 of 30 checked chains");
+    expect(part?.text).toContain("matches 1 of 31 checked chains");
     expect(part?.text).toContain("solana (1): solana");
     expect(part?.text).not.toContain("utxo");
   });
@@ -298,7 +313,7 @@ describe("chains MCP server", () => {
 
     expect(response.isError).not.toBe(true);
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain('"nope" matches none of the 30 checked chains.');
+    expect(part?.text).toContain('"nope" matches none of the 31 checked chains.');
     expect(part?.text).not.toContain("does not prove");
     expect(part?.text).not.toContain("Not checked");
   });
@@ -320,7 +335,7 @@ describe("chains MCP server", () => {
     const [narrowed] = identified.content as Array<{ text: string }>;
     for (const character of invisible) expect(narrowed?.text).not.toContain(character);
     expect(narrowed?.text.split("\n")).toHaveLength(1);
-    expect(narrowed?.text).toContain("matches none of the 30 checked chains.");
+    expect(narrowed?.text).toContain("matches none of the 31 checked chains.");
 
     const validated = await client.callTool({
       name: "chains_validate_address",
@@ -355,7 +370,8 @@ describe("chains MCP server", () => {
     const all = await client.callTool({ name: "chains_list", arguments: {} });
     expect(all.isError).not.toBe(true);
     const listing = (all.content as Array<{ text: string }>).at(0)?.text;
-    expect(listing).toContain("30 chains registered.");
+    expect(listing).toContain("31 chains registered.");
+    expect(listing).toContain("dogecoin   DOGE   utxo    Dogecoin");
     expect(listing).toContain("arc        USDC   evm     Arc");
     expect(listing).toContain("litecoin   LTC    utxo    Litecoin");
     expect(listing).toContain("cardano    ADA    utxo    Cardano");

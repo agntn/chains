@@ -12,6 +12,7 @@ import {
   Chain,
   ChainsError,
   Decred,
+  Dogecoin,
   Ecash,
   Ethereum,
   EVM,
@@ -80,6 +81,7 @@ describe("chain registry", () => {
       "monero",
       "decred",
       "arc",
+      "dogecoin",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -116,6 +118,7 @@ describe("chain registry", () => {
     expect(create("monero")).toBeInstanceOf(Monero);
     expect(create("decred")).toBeInstanceOf(Decred);
     expect(create("arc")).toBeInstanceOf(Arc);
+    expect(create("dogecoin")).toBeInstanceOf(Dogecoin);
   });
 });
 
@@ -210,6 +213,20 @@ describe("chain metadata", () => {
       rpcDefault: "https://rpc.mainnet.arc.io",
     });
   });
+
+  /** Coin type 3 from SLIP-44, CAIP-2 from the genesis hash in the node's chainparams.cpp. */
+  it("carries Dogecoin mainnet metadata", () => {
+    expect(create("dogecoin")).toMatchObject({
+      key: "dogecoin",
+      name: "Dogecoin",
+      symbol: "DOGE",
+      decimals: 8,
+      type: "utxo",
+      bip44: 3,
+      caip2: "bip122:1a91e3dace36e2be3bf030a65679fe82",
+      explorer: "https://blockchair.com/dogecoin",
+    });
+  });
 });
 
 describe("chain resolution", () => {
@@ -220,6 +237,7 @@ describe("chain resolution", () => {
     expect(getChain("BTC")).toBeInstanceOf(Bitcoin);
     expect(getChain("ltc")).toBeInstanceOf(Litecoin);
     expect(getChain("pep")).toBeInstanceOf(Pepecoin);
+    expect(getChain("doge")).toBeInstanceOf(Dogecoin);
     expect(getChain("xec")).toBeInstanceOf(Ecash);
     expect(getChain("ada")).toBeInstanceOf(Cardano);
     expect(getChain("xlm")).toBeInstanceOf(Stellar);
@@ -298,13 +316,14 @@ describe("txid validation", () => {
   });
 
   it("is shared by the UTXO family as 64 hex digits without a prefix", () => {
-    /** Read live from litecoinspace, blockchair, koios and dcrdata on 2026-09-17. */
+    /** Read live from litecoinspace, blockchair, koios and dcrdata on 2026-09-17, BlockCypher on 2026-09-23. */
     const live = {
       bitcoin: bitcoinTxid,
       litecoin: "2c5be7fd40d54b93c2aa693d8af3d71fc0a5da8bd2fdbbcfdc29e6bfa2d4392c",
       ecash: "cfed9a93cc04b8d18bedf594acd8363c1a2003bcc67c3545b9c67fadb8117a7c",
       cardano: "16eedbe9f18fcd44313079c6e325ed5e1319aa8e3d70f640f39163f9dbf81dd2",
       decred: "81935340bd4b992acda410b20d5c284bd8f550e9f4917e7d841fa41114452a15",
+      dogecoin: "004bc2192c2f7ddd5bdbb7af4d942a76434fcafa8e1a70861002634ad229483f",
     } as const;
     for (const [key, txid] of Object.entries(live)) {
       const chain = create(key as ChainKey);
@@ -789,6 +808,49 @@ describe("Pepecoin address validation", () => {
   });
 });
 
+describe("Dogecoin address validation", () => {
+  const dogecoin = create("dogecoin");
+
+  /** Read off the node through BlockCypher on 2026-09-23; the first holds the largest balance on the chain. */
+  it("accepts pay-to-pubkey-hash addresses under version 0x1e", () => {
+    expect(dogecoin.assertAddress("DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L")).toBeTruthy();
+    expect(dogecoin.assertAddress("D6eytAzFWrJ7PL2eMhTFSqomh9YSVyxbgg")).toBeTruthy();
+  });
+
+  /** Version 0x16 writes a leading `9` or an `A`, both read off the same pass. */
+  it("accepts script-hash addresses under version 0x16", () => {
+    expect(dogecoin.assertAddress("9uqSjcKq8PP2wuBQMMiX3yBvknje27DWfV")).toBeTruthy();
+    expect(dogecoin.assertAddress("A6RVrq2W5x9UawVE48U6Umz7H2BNfEdub1")).toBeTruthy();
+  });
+
+  /** Bitcoin, Litecoin, TRON, and Pepecoin's own 0x38. */
+  it("rejects base58 addresses under another chain's version", () => {
+    for (const address of [
+      "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+      "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy",
+      "LYhttvnKawAv6RcHQ4eBkNtifuiEA99PFe",
+      "MUB2Z9EcLdxHkiyWJXqAfPAkVpnH9xVFB1",
+      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+      "PftB3JYp6r3PPkiLPoPoT6vdS77NR4mhyb",
+    ]) {
+      expect(() => dogecoin.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  /** SegWit never activated on Dogecoin, so the chain has no bech32 form to accept. */
+  it("rejects a bech32 witness program", () => {
+    expect(() => dogecoin.assertAddress("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")).toThrow(
+      InvalidAddressError,
+    );
+  });
+
+  it("rejects a checksum typo in a real address", () => {
+    expect(() => dogecoin.assertAddress("DH5yaieqoZN36fDVciNyRueRGvGLR3mr7M")).toThrow(
+      InvalidAddressError,
+    );
+  });
+});
+
 describe("eCash address validation", () => {
   const ecash = create("ecash");
 
@@ -1167,6 +1229,19 @@ describe("address identification", () => {
     const { matches } = identify("PftB3JYp6r3PPkiLPoPoT6vdS77NR4mhyb");
 
     expect(matches.map((chain) => chain.key)).toEqual(["pepecoin"]);
+  });
+
+  it("attributes a Dogecoin `D` address to Dogecoin alone", () => {
+    const { matches } = identify("DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L");
+
+    expect(matches.map((chain) => chain.key)).toEqual(["dogecoin"]);
+  });
+
+  /** Pepecoin kept Dogecoin's script version, so the same 25 bytes are an address on both. */
+  it("narrows a 0x16 script-hash address to Pepecoin and Dogecoin", () => {
+    const { matches } = identify("9uqSjcKq8PP2wuBQMMiX3yBvknje27DWfV");
+
+    expect(matches.map((chain) => chain.key)).toEqual(["pepecoin", "dogecoin"]);
   });
 
   it("attributes an eCash address to eCash alone, prefixed or bare", () => {
