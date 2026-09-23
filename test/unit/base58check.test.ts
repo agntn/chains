@@ -83,6 +83,7 @@ const chains: readonly {
   { key: "bitcoin", versions: [0x00, 0x05], alphabet: BITCOIN_ALPHABET },
   { key: "litecoin", versions: [0x30, 0x32], alphabet: BITCOIN_ALPHABET },
   { key: "pepecoin", versions: [0x38, 0x16], alphabet: BITCOIN_ALPHABET },
+  { key: "dogecoin", versions: [0x1e, 0x16], alphabet: BITCOIN_ALPHABET },
   { key: "tron", versions: [0x41], alphabet: BITCOIN_ALPHABET },
   { key: "xrpl", versions: [0x00], alphabet: XRP_ALPHABET },
 ];
@@ -126,6 +127,8 @@ describe("Base58Check validation", () => {
     ["litecoin", "MUB2Z9EcLdxHkiyWJXqAfPAkVpnH9xVFB1"],
     ["pepecoin", "PftB3JYp6r3PPkiLPoPoT6vdS77NR4mhyb"],
     ["pepecoin", "9xgJusiTHMsinDmj4KyxVj8LNskVaGkSGn"],
+    ["dogecoin", "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L"],
+    ["dogecoin", "A6RVrq2W5x9UawVE48U6Umz7H2BNfEdub1"],
     ["tron", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"],
     ["xrpl", "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"],
     ["xrpl", "XVPcpSm47b1CZkf5AkKM9a84dQHe3mTCLZc5ZAoh11sd5nY"],

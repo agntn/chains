@@ -28,7 +28,8 @@ export type ChainKey =
   | "arweave"
   | "monero"
   | "decred"
-  | "arc";
+  | "arc"
+  | "dogecoin";
 export type ChainType =
   | "evm"
   | "utxo"
