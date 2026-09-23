@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.3.9
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.8...v0.3.9)
+
+### 🚀 Enhancements
+
+- Add Dogecoin to the registry ([#67](https://github.com/agntn/chains/pull/67))
+
+### 🩹 Fixes
+
+- **arc:** USDC selects Arc ([#63](https://github.com/agntn/chains/pull/63))
+- **aptos:** Use the CAIP-2 mainnet reference ([#66](https://github.com/agntn/chains/pull/66))
+
+### ❤️ Contributors
+
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.3.8
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.7...v0.3.8)
