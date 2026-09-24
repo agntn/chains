@@ -32,7 +32,8 @@ export type ChainKey =
   | "dogecoin"
   | "bitcoincash"
   | "bitcoinsv"
-  | "bitcoingold";
+  | "bitcoingold"
+  | "dash";
 export type ChainType =
   | "evm"
   | "utxo"

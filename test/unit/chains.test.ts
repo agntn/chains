@@ -14,6 +14,7 @@ import {
   Cardano,
   Chain,
   ChainsError,
+  Dash,
   Decred,
   Dogecoin,
   Ecash,
@@ -88,6 +89,7 @@ describe("chain registry", () => {
       "bitcoincash",
       "bitcoinsv",
       "bitcoingold",
+      "dash",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -128,6 +130,7 @@ describe("chain registry", () => {
     expect(create("bitcoincash")).toBeInstanceOf(BitcoinCash);
     expect(create("bitcoinsv")).toBeInstanceOf(BitcoinSv);
     expect(create("bitcoingold")).toBeInstanceOf(BitcoinGold);
+    expect(create("dash")).toBeInstanceOf(Dash);
   });
 });
 
@@ -289,6 +292,20 @@ describe("chain metadata", () => {
     });
     expect(bitcoinGold.caip2).toBeUndefined();
   });
+
+  /** Coin type 5 from SLIP-44, CAIP-2 from the genesis hash Dash Core's chainparams.cpp asserts. */
+  it("carries Dash mainnet metadata", () => {
+    expect(create("dash")).toMatchObject({
+      key: "dash",
+      name: "Dash",
+      symbol: "DASH",
+      decimals: 8,
+      type: "utxo",
+      bip44: 5,
+      caip2: "bip122:00000ffd590b1485b3caadc19b22e637",
+      explorer: "https://insight.dash.org/insight",
+    });
+  });
 });
 
 describe("chain resolution", () => {
@@ -309,6 +326,7 @@ describe("chain resolution", () => {
     expect(getChain("btg")).toBeInstanceOf(BitcoinGold);
     expect(getChain("bitcoin-gold")).toBeInstanceOf(BitcoinGold);
     expect(getChain("Bitcoin Gold")).toBeInstanceOf(BitcoinGold);
+    expect(getChain("DASH")).toBeInstanceOf(Dash);
     expect(getChain("xec")).toBeInstanceOf(Ecash);
     expect(getChain("ada")).toBeInstanceOf(Cardano);
     expect(getChain("xlm")).toBeInstanceOf(Stellar);
@@ -389,7 +407,8 @@ describe("txid validation", () => {
   it("is shared by the UTXO family as 64 hex digits without a prefix", () => {
     /**
      * Read live from litecoinspace, blockchair, koios and dcrdata on 2026-09-17, BlockCypher on
-     * 2026-09-23, Blockchair again for Bitcoin Cash, WhatsOnChain and btgexplorer.com on 2026-09-24.
+     * 2026-09-23, Blockchair again for Bitcoin Cash, WhatsOnChain, btgexplorer.com and Dash Insight on
+     * 2026-09-24.
      */
     const live = {
       bitcoin: bitcoinTxid,
@@ -401,6 +420,7 @@ describe("txid validation", () => {
       bitcoincash: "f758a586b54d4dd51f239cc5a9354ad7b2a74870e38724bf33dada6c8cdaf95c",
       bitcoinsv: "a82b800db9f6757b99901edb417664ac37be6d30ae24c33891eb700fbfcfb6ab",
       bitcoingold: "72a8e471067dcbc1377e95df17456daae3fdbf9a843f7f4dd8abf8380d4d55d3",
+      dash: "44f1a46d7d55f1ab240ed73b4622bb5b3e7fcb2833350094060ef32ec0d518bf",
     } as const;
     for (const [key, txid] of Object.entries(live)) {
       const chain = create(key as ChainKey);
@@ -972,6 +992,69 @@ describe("Bitcoin Gold address validation", () => {
   });
 });
 
+describe("Dash address validation", () => {
+  const dash = create("dash");
+
+  /** Paid to in blocks 2544259 and 2544243, read through Dash Insight on 2026-09-24. */
+  it("accepts pay-to-pubkey-hash under 0x4c and script-hash under 0x10", () => {
+    for (const address of [
+      "XjszN1jZJthEoaQDhGthRkaHL9AqaG3Vzw",
+      "XvkxruHxW7pyHauVyfMakD6HWTECPLP1qv",
+      "7ZXhLLCE7CuZDBiggh3yh4YFYek8JJj1i3",
+    ]) {
+      expect(dash.assertAddress(address), address).toBe(address);
+    }
+  });
+
+  /** Mainnet vectors: https://github.com/dashpay/dash/blob/master/src/test/data/key_io_valid.json */
+  it("accepts Dash Core's mainnet vectors", () => {
+    for (const address of [
+      "XqZHYpoksmbEPtWstAEki3o8pJ8ZsPfXpK",
+      "7XShCrc5u9rZZv7j18WqbUMZMxp8k1Hq4z",
+      "XiXge21yt5xErdLNt1V29yJX2g29Xag9VM",
+      "7XuP9xVGyvkCAfW84QJkGfbiR7dX9TYaPH",
+    ]) {
+      expect(dash.assertAddress(address), address).toBe(address);
+    }
+  });
+
+  /** Testnet writes 0x8c (`y...`) and 0x13 (`8...`), regtest the same bytes. */
+  it("rejects testnet and regtest addresses from the same file", () => {
+    for (const address of [
+      "yf7WoPrbJCGhLLtpeBe7tteKEKwpvZ1w97",
+      "8yCvxUt2TYKEQb5Ak6n9DYiCx22xfa3Lio",
+      "ycjYu5VF3amLVDTSSA4E5sJjGjRpRof3np",
+    ]) {
+      expect(() => dash.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  it("rejects base58 addresses under another chain's version", () => {
+    for (const address of [
+      "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+      "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy",
+      "LYhttvnKawAv6RcHQ4eBkNtifuiEA99PFe",
+      "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L",
+      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+    ]) {
+      expect(() => dash.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  /** Dash never took SegWit, so there's no witness program to accept. */
+  it("rejects a bech32 witness program", () => {
+    expect(() => dash.assertAddress("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")).toThrow(
+      InvalidAddressError,
+    );
+  });
+
+  it("rejects a checksum typo in a real address", () => {
+    expect(() => dash.assertAddress("XjszN1jZJthEoaQDhGthRkaHL9AqaG3Vzx")).toThrow(
+      InvalidAddressError,
+    );
+  });
+});
+
 describe("Dogecoin address validation", () => {
   const dogecoin = create("dogecoin");
 
@@ -1432,6 +1515,19 @@ describe("address identification", () => {
     expect(
       identify("A6RVrq2W5x9UawVE48U6Umz7H2BNfEdub1").matches.map((chain) => chain.key),
     ).not.toContain("bitcoingold");
+  });
+
+  /** No other registered chain writes 0x4c or 0x10. */
+  it("names Dash alone for its addresses", () => {
+    for (const address of [
+      "XjszN1jZJthEoaQDhGthRkaHL9AqaG3Vzw",
+      "7ZXhLLCE7CuZDBiggh3yh4YFYek8JJj1i3",
+    ]) {
+      expect(
+        identify(address).matches.map((chain) => chain.key),
+        address,
+      ).toEqual(["dash"]);
+    }
   });
 
   /** The eCash twin of the same hash differs in the checksum alone, and that is enough. */
