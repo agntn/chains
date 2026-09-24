@@ -7,6 +7,12 @@ import { F4JUMBLE_MAX, f4jumbleInverse } from "../core/f4jumble.js";
 /** Most digits a Unified Address can carry: F4Jumble's longest input, then the checksum. */
 const UNIFIED_DIGITS = Math.ceil((F4JUMBLE_MAX * 8) / 5) + 6;
 
+/**
+ * Revision 0's floor under F4Jumble. Revision 2 lowered it to 38 for `tu` addresses and lets a
+ * reader keep 48 for `u`: between the two only an unassigned typecode fits.
+ */
+const REVISION_0_MIN = 48;
+
 /** The largest typecode or length a CompactSize may hold in a Unified Address. */
 const MAX_COMPACT_SIZE = 0x2000000;
 
@@ -98,7 +104,8 @@ function unwrapUnified(address: string): Uint8Array | undefined {
   const data = bech32Digits(address, "u", UNIFIED_DIGITS);
   if (data === undefined || polymod("u", data) !== BECH32M) return undefined;
   const jumbled = bytesFromDigits(data.slice(0, -6));
-  const padded = jumbled && f4jumbleInverse(jumbled);
+  if (!jumbled || jumbled.length < REVISION_0_MIN) return undefined;
+  const padded = f4jumbleInverse(jumbled);
   if (!padded) return undefined;
   const padding = padded.subarray(-16);
   if (padding[0] !== 0x75 || padding.subarray(1).some((byte) => byte !== 0)) return undefined;

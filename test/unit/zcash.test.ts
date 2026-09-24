@@ -275,6 +275,17 @@ describe("Zcash address validation", () => {
     expect(() => zcash.assertAddress(address), address).toThrow(InvalidAddressError);
   });
 
+  /**
+   * Revision 0 set F4Jumble's floor at 48 bytes, and ZIP-316 lets a reader keep it for `u`
+   * addresses. Below it only an unassigned typecode fits, which no producer writes.
+   */
+  it("keeps Revision 0's 48-byte floor under the jumble", () => {
+    expect(() => zcash.assertAddress(encodeUnified([item(0x04, 20)]))).toThrow(InvalidAddressError);
+    expect(() => zcash.assertAddress(encodeUnified([item(0x04, 29)]))).toThrow(InvalidAddressError);
+    const floor = encodeUnified([item(0x04, 30)]);
+    expect(zcash.assertAddress(floor)).toBe(floor);
+  });
+
   it.each(["x", "uview", "U", ""])("rejects a Unified Address padded with %j", (padded) => {
     const address = encodeUnified([orchard], "u", padded);
     expect(() => zcash.assertAddress(address), address).toThrow(InvalidAddressError);
