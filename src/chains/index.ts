@@ -8,6 +8,7 @@ import { Base } from "./base.js";
 import { Berachain } from "./berachain.js";
 import { Bitcoin } from "./bitcoin.js";
 import { BitcoinCash } from "./bitcoincash.js";
+import { BitcoinGold } from "./bitcoingold.js";
 import { BitcoinSv } from "./bitcoinsv.js";
 import { Bsc } from "./bsc.js";
 import { Cardano } from "./cardano.js";
@@ -68,4 +69,5 @@ export const builtins: readonly ChainConstructor[] = [
   Dogecoin,
   BitcoinCash,
   BitcoinSv,
+  BitcoinGold,
 ];

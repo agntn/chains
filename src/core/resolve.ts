@@ -33,6 +33,8 @@ const aliases: Readonly<Record<string, ChainKey>> = {
   "bitcoin-cash": "bitcoincash",
   bsv: "bitcoinsv",
   "bitcoin-sv": "bitcoinsv",
+  btg: "bitcoingold",
+  "bitcoin-gold": "bitcoingold",
   xec: "ecash",
   ada: "cardano",
   sol: "solana",

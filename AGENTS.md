@@ -11,14 +11,14 @@ Scope: canonical blockchain classes, aliases, address validation and txid valida
 - `src/core/identify.ts` partitions the registry by an address: matching validators and unchecked chains
 - `src/core/text.ts` holds the guards caller text passes through before any surface prints it
 - `src/core/base58.ts` decodes base58 for chains that check the bytes behind an address. The alphabet is an argument, Bitcoin's by default and the XRP Ledger's for `xrpl`
-- `src/core/base58check.ts` decodes Base58Check on top of `base58.ts` and refuses a checksum that does not hold. Bitcoin's legacy form, Litecoin, Pepecoin, Dogecoin, Bitcoin SV, TRON and the XRP Ledger read through it with SHA-256, Decred with BLAKE-256: the digest is an argument
+- `src/core/base58check.ts` decodes Base58Check on top of `base58.ts` and refuses a checksum that does not hold. Bitcoin's legacy form, Litecoin, Pepecoin, Dogecoin, Bitcoin SV, Bitcoin Gold, TRON and the XRP Ledger read through it with SHA-256, Decred with BLAKE-256: the digest is an argument
 - `src/core/sha256.ts` is SHA-256 written out, because the core imports nothing at runtime and `assertAddress` cannot await the Web Crypto digest
 - `src/core/blake256.ts` is BLAKE-256 written out for the same reason. Decred's checksum is that digest taken twice, and no Web Crypto call would give it anyway
 - `src/core/keccak256.ts` is Keccak-256 written out for the same reason, with Keccak's own padding rather than SHA-3's. EIP-55 reads the case of an EVM address off it, and Monero's addresses end with four bytes of it
 - `src/core/crc16.ts` is CRC-16/XMODEM, the checksum Stellar's Strkeys and TON's friendly addresses end with. It returns the number, because Stellar writes it little-endian and TON big-endian
 - `src/core/crc32.ts` is CRC-32 as zlib computes it, the checksum a Cardano Byron address closes with over its CBOR payload
 - `src/core/bech32.ts` reads Bech32 digits and packs them into bytes. The human-readable part and the digit bound are arguments, because BIP-173's 90-character cap is Bitcoin's rule and Cardano writes past it
-- `src/core/segwit.ts` checks BIP-173/350 SegWit addresses on top of `bech32.ts` for the chains that took Bitcoin's witness program rules. The human-readable part is an argument, `bc` for Bitcoin and `ltc` for Litecoin
+- `src/core/segwit.ts` checks BIP-173/350 SegWit addresses on top of `bech32.ts` for the chains that took Bitcoin's witness program rules. The human-readable part is an argument, `bc` for Bitcoin, `ltc` for Litecoin and `btg` for Bitcoin Gold
 - `src/core/cashaddr.ts` decodes CashAddr on top of `bech32.ts`'s byte packing for Bitcoin Cash and eCash. The prefix is an argument, and so is the choice of types and hash lengths: it hands back what the version byte says and each chain decides what it pays to
 - `src/chains/*.ts` is one concrete blockchain class per file
 - `src/chains/index.ts` holds `builtins`, the ordered list the registry is seeded from. A chain file that is not in it is not in the registry

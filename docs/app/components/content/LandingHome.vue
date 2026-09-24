@@ -39,7 +39,7 @@ const activeChain = computed(() => current.value.chain.key);
         Name a chain. <span class="text-primary">Check an address.</span>
       </h1>
       <p class="chains-enter chains-enter-2 mx-auto mt-6 max-w-xl text-base leading-7 text-muted">
-        Thirty-three blockchains as classes, one file each: chain ID, CAIP-2, coin type, decimals,
+        Thirty-four blockchains as classes, one file each: chain ID, CAIP-2, coin type, decimals,
         explorer, default RPC. The spellings people actually type resolve to the same class, and
         every chain checks its own address format by decoding it, not by counting characters.
         Library, CLI, MCP server, Pi and OMP extensions. Nothing here touches a network.
@@ -178,12 +178,12 @@ const activeChain = computed(() => current.value.chain.key);
 
     <LandingFeature
       eyebrow="Chains"
-      title="Thirty-three chains, eleven families"
+      title="Thirty-four chains, eleven families"
       to="/chains"
       link="All chains"
       :checks="[
         'Fourteen EVM chains that share one address format and one coin type, 60',
-        'Nine UTXO chains, and a UTXO heritage doesn\'t mean Bitcoin\'s encoding: CashAddr, CIP-19, two version bytes on Decred',
+        'Ten UTXO chains, and a UTXO heritage doesn\'t mean Bitcoin\'s encoding: CashAddr, CIP-19, two version bytes on Decred',
         'Solana, Stellar, XRP Ledger, Aptos, Sui, TON, TRON, Octra, Arweave and Monero on their own terms',
       ]"
       reverse

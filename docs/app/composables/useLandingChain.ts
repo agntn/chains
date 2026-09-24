@@ -34,6 +34,7 @@ const WALK = [
   "dogecoin",
   "bitcoincash",
   "bitcoinsv",
+  "bitcoingold",
   "berachain",
   "arc",
 ] as const;
