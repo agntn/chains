@@ -12,6 +12,7 @@ export class Bitcoin extends UTXO {
   readonly bip44 = 0;
   readonly caip2 = "bip122:000000000019d6689c085ae165831e93";
   override readonly magic = "f9beb4d9";
+  override readonly pow = "sha256d";
 
   /**
    * SegWit encoding and legacy Base58Check, checksum included: a typo fails on either branch.

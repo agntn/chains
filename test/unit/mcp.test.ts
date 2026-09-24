@@ -55,6 +55,7 @@ describe("chains MCP server", () => {
     expect(part?.text).toContain("chainId: 0x89");
     expect(part?.text).toContain("decimals: 18");
     expect(part?.text).not.toContain("magic:");
+    expect(part?.text).not.toContain("pow:");
   });
 
   /** Code that opens a P2P socket to a node needs the bytes every message starts with. */
@@ -67,6 +68,7 @@ describe("chains MCP server", () => {
     expect(lookup.isError).not.toBe(true);
     const [part] = lookup.content as Array<{ text: string }>;
     expect(part?.text).toContain("magic: f9beb4d9");
+    expect(part?.text).toContain("pow: sha256d");
   });
 
   it("returns Aptos mainnet's numeric CAIP-2 reference through MCP", async () => {

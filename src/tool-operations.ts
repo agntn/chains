@@ -9,7 +9,7 @@
  */
 
 import { quoted, stripControlCharacters } from "./core/text.js";
-import type { Chain } from "./index.js";
+import type { Chain, PowAlgorithm } from "./index.js";
 import {
   AddressValidationUnsupportedError,
   chains,
@@ -33,6 +33,7 @@ export interface ChainLookup {
   chainId?: string;
   caip2?: string;
   magic?: string;
+  pow?: PowAlgorithm;
   explorer: string;
   rpcDefault?: string;
   /** False when the chain inherits the base validator, which only throws. */
@@ -119,6 +120,17 @@ function unsupportedLine(name: string, supported: boolean): string | undefined {
 }
 
 /**
+ * One `<name>: <value>` line for a field the chain may not have, or nothing when it doesn't.
+ *
+ * @param {string} name - Field the line is about.
+ * @param {string | undefined} value - The chain's value, if any.
+ * @returns {string | undefined} The line to print, or undefined to leave it out.
+ */
+function optionalLine(name: string, value: string | undefined): string | undefined {
+  return value ? `${name}: ${value}` : undefined;
+}
+
+/**
  * Resolves a key, name, symbol, or alias to its canonical chain metadata.
  *
  * @param {string} input - Chain key, name, symbol, or alias.
@@ -149,6 +161,7 @@ export function lookupChain(input: string): ToolResult<ChainLookup | LookupFailu
     chainId: chain.chainId,
     caip2: chain.caip2,
     magic: chain.magic,
+    pow: chain.pow,
     explorer: chain.explorer,
     rpcDefault: chain.rpcDefault,
     validatesAddress: chain.validatesAddress,
@@ -160,7 +173,7 @@ export function lookupChain(input: string): ToolResult<ChainLookup | LookupFailu
     `symbol: ${details.symbol}`,
     `decimals: ${details.decimals ?? "unknown"}`,
     `type: ${details.type}`,
-    details.chainId ? `chainId: ${details.chainId}` : undefined,
+    optionalLine("chainId", details.chainId),
     // caip2 and bip44 are printed even when absent. An omitted coin type reads as
     // "not shown" rather than "does not exist", which invites the caller to supply
     // one from memory — and a derivation path on an invented coin type silently
@@ -170,9 +183,11 @@ export function lookupChain(input: string): ToolResult<ChainLookup | LookupFailu
     `bip44: ${details.bip44 ?? "none (no registered SLIP-0044 coin type)"}`,
     // Only chains on Bitcoin's wire protocol carry magic bytes, so the line shows up
     // for those alone.
-    details.magic ? `magic: ${details.magic}` : undefined,
+    optionalLine("magic", details.magic),
+    // Proof-of-stake and validator chains have no mining hash, so this one is optional too.
+    optionalLine("pow", details.pow),
     `explorer: ${details.explorer}`,
-    details.rpcDefault ? `rpc: ${details.rpcDefault}` : undefined,
+    optionalLine("rpc", details.rpcDefault),
     unsupportedLine("addressValidation", details.validatesAddress),
     unsupportedLine("txidValidation", details.validatesTxid),
   ].filter(Boolean);

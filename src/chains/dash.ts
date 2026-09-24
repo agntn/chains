@@ -11,6 +11,7 @@ export class Dash extends UTXO {
   readonly bip44 = 5;
   readonly caip2 = "bip122:00000ffd590b1485b3caadc19b22e637";
   override readonly magic = "bf0c6bbd";
+  override readonly pow = "x11";
 
   /**
    * Base58Check under 0x4c (`X...`) and 0x10 (`7...`), 25 bytes with the checksum verified.

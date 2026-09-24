@@ -10,6 +10,7 @@ export class Ecash extends UTXO {
   readonly explorer = "https://explorer.e.cash";
   readonly bip44 = 899;
   override readonly magic = "e3e1f3e8";
+  override readonly pow = "sha256d";
 
   /**
    * CashAddr with the checksum verified under the `ecash` prefix, written or not, so a bare

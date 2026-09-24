@@ -5,7 +5,7 @@ import {
   TxidValidationUnsupportedError,
 } from "./errors.js";
 import { keccak256 } from "./keccak256.js";
-import type { ChainInfo, ChainKey, ChainType } from "./types.js";
+import type { ChainInfo, ChainKey, ChainType, PowAlgorithm } from "./types.js";
 
 export interface ChainConstructor {
   readonly key: ChainKey;
@@ -24,6 +24,8 @@ export abstract class Chain implements ChainInfo {
   readonly caip2?: string;
   /** Unset on chains whose peers don't open every message with four magic bytes. */
   readonly magic?: string;
+  /** Unset on chains that don't mine, and on Arweave and Octra, whose proofs are no single hash. */
+  readonly pow?: PowAlgorithm;
   readonly rpcDefault?: string;
 
   get key(): ChainKey {

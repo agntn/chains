@@ -14,6 +14,7 @@ export class BitcoinCash extends UTXO {
   readonly bip44 = 145;
   readonly caip2 = "bip122:000000000000000000651ef99cb9fcbe";
   override readonly magic = "e3e1f3e8";
+  override readonly pow = "sha256d";
 
   /**
    * CashAddr with the checksum verified under the `bitcoincash` prefix, written or not, as

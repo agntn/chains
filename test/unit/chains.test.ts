@@ -353,6 +353,39 @@ describe("chain metadata", () => {
     expect(without).toContain("cardano");
     expect(without).toContain("monero");
   });
+
+  /**
+   * The work each node's header check demands: `GetHash` (double SHA-256) in
+   * Bitcoin and its forks, `GetPoWHash` (scrypt) in Litecoin's line, `HashX11` in Dash, the
+   * Equihash (n, k) in zcashd's and Bitcoin Gold's chainparams, dcrd's `PowHashV2` and Monero's
+   * `rx_slow_hash`.
+   */
+  it("names the proof-of-work hash of every mined chain", () => {
+    const pow = Object.fromEntries(chains().map((key) => [key, create(key).pow]));
+    expect(pow).toEqual(
+      expect.objectContaining({
+        bitcoin: "sha256d",
+        bitcoincash: "sha256d",
+        ecash: "sha256d",
+        bitcoinsv: "sha256d",
+        litecoin: "scrypt",
+        pepecoin: "scrypt",
+        dogecoin: "scrypt",
+        dash: "x11",
+        zcash: "equihash-200-9",
+        bitcoingold: "equihash-144-5",
+        decred: "blake3",
+        monero: "randomx",
+      }),
+    );
+    const without = Object.entries(pow)
+      .filter(([, value]) => value === undefined)
+      .map(([key]) => key);
+    expect(without).toHaveLength(chains().length - 12);
+    expect(without).toContain("ethereum");
+    expect(without).toContain("cardano");
+    expect(without).toContain("arweave");
+  });
 });
 
 describe("chain resolution", () => {

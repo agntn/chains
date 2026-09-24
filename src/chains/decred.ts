@@ -13,6 +13,7 @@ export class Decred extends UTXO {
   readonly explorer = "https://dcrdata.decred.org";
   readonly bip44 = 42;
   override readonly magic = "f900b4d9";
+  override readonly pow = "blake3";
 
   /**
    * Base58Check under dcrd's two version bytes with the BLAKE-256 checksum verified, so one
