@@ -17,7 +17,7 @@ Scope: canonical blockchain classes, aliases, address validation and txid valida
 - `src/core/keccak256.ts` is Keccak-256 written out for the same reason, with Keccak's own padding rather than SHA-3's. EIP-55 reads the case of an EVM address off it, and Monero's addresses end with four bytes of it
 - `src/core/crc16.ts` is CRC-16/XMODEM, the checksum Stellar's Strkeys and TON's friendly addresses end with. It returns the number, because Stellar writes it little-endian and TON big-endian
 - `src/core/crc32.ts` is CRC-32 as zlib computes it, the checksum a Cardano Byron address closes with over its CBOR payload
-- `src/core/bech32.ts` reads Bech32 digits and packs them into bytes. The human-readable part and the digit bound are arguments, because BIP-173's 90-character cap is Bitcoin's rule and Cardano writes past it
+- `src/core/bech32.ts` reads Bech32 digits and packs them into bytes. The human-readable part and the digit bound are arguments, because BIP-173's 90-character cap is Bitcoin's rule and Cardano and Litecoin's MWEB write past it
 - `src/core/segwit.ts` checks BIP-173/350 SegWit addresses on top of `bech32.ts` for the chains that took Bitcoin's witness program rules. The human-readable part is an argument, `bc` for Bitcoin, `ltc` for Litecoin and `btg` for Bitcoin Gold
 - `src/core/cashaddr.ts` decodes CashAddr on top of `bech32.ts`'s byte packing for Bitcoin Cash and eCash. The prefix is an argument, and so is the choice of types and hash lengths: it hands back what the version byte says and each chain decides what it pays to
 - `src/chains/*.ts` is one concrete blockchain class per file
