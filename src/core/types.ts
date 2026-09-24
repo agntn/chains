@@ -47,6 +47,18 @@ export type ChainType =
   | "octra"
   | "arweave"
   | "monero";
+/**
+ * The work a miner grinds to seal a block. Equihash carries its (n, k), because Zcash
+ * and Bitcoin Gold both run it with different parameters.
+ */
+export type PowAlgorithm =
+  | "sha256d"
+  | "scrypt"
+  | "x11"
+  | "equihash-200-9"
+  | "equihash-144-5"
+  | "blake3"
+  | "randomx";
 export interface ChainInfo {
   readonly name: string;
   readonly symbol: string;
@@ -58,6 +70,8 @@ export interface ChainInfo {
   readonly caip2?: string;
   /** Mainnet P2P message start, four bytes as lowercase hex in wire order. */
   readonly magic?: string;
+  /** Mainnet proof-of-work algorithm. */
+  readonly pow?: PowAlgorithm;
   readonly explorer: string;
   readonly rpcDefault?: string;
 }

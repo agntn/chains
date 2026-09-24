@@ -23,6 +23,7 @@ export function lookupText(chain: Chain): string {
     `caip2: ${chain.caip2 ?? "none (no registered CAIP-2 namespace)"}`,
     `bip44: ${chain.bip44 ?? "none (no registered SLIP-0044 coin type)"}`,
     chain.magic ? `magic: ${chain.magic}` : undefined,
+    chain.pow ? `pow: ${chain.pow}` : undefined,
     `explorer: ${chain.explorer}`,
     chain.rpcDefault ? `rpc: ${chain.rpcDefault}` : undefined,
     chain.validatesAddress ? undefined : "addressValidation: unsupported",

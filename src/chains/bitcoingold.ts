@@ -11,6 +11,7 @@ export class BitcoinGold extends UTXO {
   readonly explorer = "https://btgexplorer.com";
   readonly bip44 = 156;
   override readonly magic = "e1476d44";
+  override readonly pow = "equihash-144-5";
 
   /**
    * SegWit under `btg` and Base58Check under 0x26 (`G...`) or 0x17 (`A...`), checksum included.

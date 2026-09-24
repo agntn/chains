@@ -18,6 +18,7 @@ function printChain(chain: ChainInfo & { readonly key: string }): void {
     ["chainId", chain.chainId],
     ["caip2", chain.caip2],
     ["magic", chain.magic],
+    ["pow", chain.pow],
     ["explorer", chain.explorer],
     ["rpc", chain.rpcDefault],
   ];
@@ -60,6 +61,7 @@ export default defineCommand({
             chainId: chain.chainId,
             caip2: chain.caip2,
             magic: chain.magic,
+            pow: chain.pow,
             explorer: chain.explorer,
             rpcDefault: chain.rpcDefault,
           },

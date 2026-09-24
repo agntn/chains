@@ -9,7 +9,7 @@ export {
   InvalidTxidError,
   TxidValidationUnsupportedError,
 } from "./core/errors.js";
-export type { ChainInfo, ChainKey, ChainType } from "./core/types.js";
+export type { ChainInfo, ChainKey, ChainType, PowAlgorithm } from "./core/types.js";
 export { register, create, chains, has } from "./core/registry.js";
 export { getChain } from "./core/resolve.js";
 export { identify } from "./core/identify.js";
