@@ -32,6 +32,7 @@ import {
   UnsupportedChainError,
   UTXO,
   Xrpl,
+  Zcash,
   chains,
   create,
   getChain,
@@ -90,6 +91,7 @@ describe("chain registry", () => {
       "bitcoinsv",
       "bitcoingold",
       "dash",
+      "zcash",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -131,6 +133,7 @@ describe("chain registry", () => {
     expect(create("bitcoinsv")).toBeInstanceOf(BitcoinSv);
     expect(create("bitcoingold")).toBeInstanceOf(BitcoinGold);
     expect(create("dash")).toBeInstanceOf(Dash);
+    expect(create("zcash")).toBeInstanceOf(Zcash);
   });
 });
 
@@ -306,6 +309,20 @@ describe("chain metadata", () => {
       explorer: "https://insight.dash.org/insight",
     });
   });
+
+  /** Coin type 133 from SLIP-44, CAIP-2 from the genesis hash zcashd's chainparams.cpp asserts. */
+  it("carries Zcash mainnet metadata", () => {
+    expect(create("zcash")).toMatchObject({
+      key: "zcash",
+      name: "Zcash",
+      symbol: "ZEC",
+      decimals: 8,
+      type: "utxo",
+      bip44: 133,
+      caip2: "bip122:00040fe8ec8471911baa1db1266ea15d",
+      explorer: "https://blockchair.com/zcash",
+    });
+  });
 });
 
 describe("chain resolution", () => {
@@ -327,6 +344,8 @@ describe("chain resolution", () => {
     expect(getChain("bitcoin-gold")).toBeInstanceOf(BitcoinGold);
     expect(getChain("Bitcoin Gold")).toBeInstanceOf(BitcoinGold);
     expect(getChain("DASH")).toBeInstanceOf(Dash);
+    expect(getChain("zec")).toBeInstanceOf(Zcash);
+    expect(getChain("ZEC")).toBeInstanceOf(Zcash);
     expect(getChain("xec")).toBeInstanceOf(Ecash);
     expect(getChain("ada")).toBeInstanceOf(Cardano);
     expect(getChain("xlm")).toBeInstanceOf(Stellar);
@@ -407,8 +426,8 @@ describe("txid validation", () => {
   it("is shared by the UTXO family as 64 hex digits without a prefix", () => {
     /**
      * Read live from litecoinspace, blockchair, koios and dcrdata on 2026-09-17, BlockCypher on
-     * 2026-09-23, Blockchair again for Bitcoin Cash, WhatsOnChain, btgexplorer.com and Dash Insight on
-     * 2026-09-24.
+     * 2026-09-23, Blockchair again for Bitcoin Cash, WhatsOnChain, btgexplorer.com, Dash Insight and Blockchair's
+     * Zcash outputs on 2026-09-24.
      */
     const live = {
       bitcoin: bitcoinTxid,
@@ -421,6 +440,7 @@ describe("txid validation", () => {
       bitcoinsv: "a82b800db9f6757b99901edb417664ac37be6d30ae24c33891eb700fbfcfb6ab",
       bitcoingold: "72a8e471067dcbc1377e95df17456daae3fdbf9a843f7f4dd8abf8380d4d55d3",
       dash: "44f1a46d7d55f1ab240ed73b4622bb5b3e7fcb2833350094060ef32ec0d518bf",
+      zcash: "09870242a2a498637419f66759fb1596066e29718e15cfbb7c43667d731be0db",
     } as const;
     for (const [key, txid] of Object.entries(live)) {
       const chain = create(key as ChainKey);

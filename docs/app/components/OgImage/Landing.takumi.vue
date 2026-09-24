@@ -3,7 +3,7 @@
 defineProps<{ title?: string; description?: string }>();
 
 const TAGLINE =
-  "Thirty-five blockchains as classes: chain IDs, CAIP-2, coin types, explorers and address checks that decode. Library, CLI, MCP, Pi and OMP.";
+  "Thirty-six blockchains as classes: chain IDs, CAIP-2, coin types, explorers and address checks that decode. Library, CLI, MCP, Pi and OMP.";
 
 const { name: siteName } = useSiteConfig();
 
