@@ -56,6 +56,7 @@ const PRESENTATION: Record<ChainKey, { icon: string; alias: string; sample: stri
     alias: "bch",
     sample: "bitcoincash:qz3yjg59ypg6jqpwhaxgvjj44jm4hdx0w5wsxw2qez",
   },
+  bitcoinsv: { icon: "i-token-bsv", alias: "bsv", sample: "198fZubHNnhsdENHbktQLw96eDMnhZ4xXM" },
   ecash: {
     icon: "i-token-xec",
     alias: "xec",

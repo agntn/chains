@@ -5,7 +5,7 @@
 [![license](https://npmx.dev/api/registry/badge/license/@agntn/chains)](https://npmx.dev/package/@agntn/chains)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/agntn/chains)
 
-⛓️ Thirty-two blockchains as classes, and an address check that actually decodes. Ask for `matic` and you get Polygon, chain ID and coin type included. Paste an address and you get the chains that would take it. Same thing from the terminal, from TypeScript or from an agent.
+⛓️ Thirty-three blockchains as classes, and an address check that actually decodes. Ask for `matic` and you get Polygon, chain ID and coin type included. Paste an address and you get the chains that would take it. Same thing from the terminal, from TypeScript or from an agent.
 
 ## Why?
 
@@ -15,7 +15,7 @@ Docs, one page per chain and a playground are at [chains.agntn.dev](https://chai
 
 ## ✨ Features
 
-- 🧬 **Thirty-two chains, one abstract `Chain`.** Each chain is its own class with its own facts. `EVM` and `Move` hold what a family shares.
+- 🧬 **Thirty-three chains, one abstract `Chain`.** Each chain is its own class with its own facts. `EVM` and `Move` hold what a family shares.
 - 🏷️ **Aliases people actually type.** `matic`, `btc`, `arb`, `ripple`. Display names work too, so `BNB Chain` comes back as `bsc`.
 - 🔍 **Validators that decode.** Base58Check, Bech32, CashAddr, CIP-19, whatever the chain uses. Checksums get checked.
 - 🕵️ **Identify an address of unknown origin.** Every validator gets a go and you learn the family.
@@ -157,7 +157,7 @@ Most of the API is right there. `create(key)` wants the canonical key. `getChain
 | Family    | Chains                                                                                                             | What the check decodes                                                                                                                                |
 | --------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `evm`     | ethereum, base, arbitrum, optimism, polygon, bsc, avalanche, fantom, gnosis, linea, zksync, scroll, berachain, arc | 40 hex digits behind `0x`, mixed case has to pass EIP-55                                                                                              |
-| `utxo`    | bitcoin, litecoin, pepecoin, ecash, cardano, decred, dogecoin, bitcoincash                                         | Base58Check with the checksum, BLAKE-256 for Decred, Bech32 and Bech32m for `bc1` and `ltc1`, CashAddr for eCash and Bitcoin Cash, CIP-19 for Cardano |
+| `utxo`    | bitcoin, litecoin, pepecoin, ecash, cardano, decred, dogecoin, bitcoincash, bitcoinsv                              | Base58Check with the checksum, BLAKE-256 for Decred, Bech32 and Bech32m for `bc1` and `ltc1`, CashAddr for eCash and Bitcoin Cash, CIP-19 for Cardano |
 | `solana`  | solana                                                                                                             | 32 base58 bytes, exactly                                                                                                                              |
 | `stellar` | stellar                                                                                                            | SEP-23 Strkeys with the CRC16, muxed accounts and contracts included                                                                                  |
 | `xrpl`    | xrpl                                                                                                               | Base58Check under the ledger's own alphabet, classic accounts and X-addresses                                                                         |

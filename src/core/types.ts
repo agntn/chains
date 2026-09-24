@@ -30,7 +30,8 @@ export type ChainKey =
   | "decred"
   | "arc"
   | "dogecoin"
-  | "bitcoincash";
+  | "bitcoincash"
+  | "bitcoinsv";
 export type ChainType =
   | "evm"
   | "utxo"

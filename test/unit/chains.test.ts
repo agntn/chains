@@ -9,6 +9,7 @@ import {
   Arweave,
   Bitcoin,
   BitcoinCash,
+  BitcoinSv,
   Cardano,
   Chain,
   ChainsError,
@@ -84,6 +85,7 @@ describe("chain registry", () => {
       "arc",
       "dogecoin",
       "bitcoincash",
+      "bitcoinsv",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -122,6 +124,7 @@ describe("chain registry", () => {
     expect(create("arc")).toBeInstanceOf(Arc);
     expect(create("dogecoin")).toBeInstanceOf(Dogecoin);
     expect(create("bitcoincash")).toBeInstanceOf(BitcoinCash);
+    expect(create("bitcoinsv")).toBeInstanceOf(BitcoinSv);
   });
 });
 
@@ -247,6 +250,24 @@ describe("chain metadata", () => {
       explorer: "https://blockchair.com/bitcoin-cash",
     });
   });
+
+  /**
+   * Coin type 236 from SLIP-44. No CAIP-2: the chain shares Bitcoin's genesis, and the BIP-122
+   * namespace lists no fork block for Bitcoin SV the way it does for Bitcoin Cash.
+   */
+  it("carries Bitcoin SV mainnet metadata", () => {
+    const bitcoinSv = create("bitcoinsv");
+    expect(bitcoinSv).toMatchObject({
+      key: "bitcoinsv",
+      name: "Bitcoin SV",
+      symbol: "BSV",
+      decimals: 8,
+      type: "utxo",
+      bip44: 236,
+      explorer: "https://whatsonchain.com",
+    });
+    expect(bitcoinSv.caip2).toBeUndefined();
+  });
 });
 
 describe("chain resolution", () => {
@@ -261,6 +282,9 @@ describe("chain resolution", () => {
     expect(getChain("bch")).toBeInstanceOf(BitcoinCash);
     expect(getChain("bitcoin-cash")).toBeInstanceOf(BitcoinCash);
     expect(getChain("Bitcoin Cash")).toBeInstanceOf(BitcoinCash);
+    expect(getChain("bsv")).toBeInstanceOf(BitcoinSv);
+    expect(getChain("bitcoin-sv")).toBeInstanceOf(BitcoinSv);
+    expect(getChain("Bitcoin SV")).toBeInstanceOf(BitcoinSv);
     expect(getChain("xec")).toBeInstanceOf(Ecash);
     expect(getChain("ada")).toBeInstanceOf(Cardano);
     expect(getChain("xlm")).toBeInstanceOf(Stellar);
@@ -341,7 +365,7 @@ describe("txid validation", () => {
   it("is shared by the UTXO family as 64 hex digits without a prefix", () => {
     /**
      * Read live from litecoinspace, blockchair, koios and dcrdata on 2026-09-17, BlockCypher on
-     * 2026-09-23, Blockchair again for Bitcoin Cash on 2026-09-24.
+     * 2026-09-23, Blockchair again for Bitcoin Cash and WhatsOnChain on 2026-09-24.
      */
     const live = {
       bitcoin: bitcoinTxid,
@@ -351,6 +375,7 @@ describe("txid validation", () => {
       decred: "81935340bd4b992acda410b20d5c284bd8f550e9f4917e7d841fa41114452a15",
       dogecoin: "004bc2192c2f7ddd5bdbb7af4d942a76434fcafa8e1a70861002634ad229483f",
       bitcoincash: "f758a586b54d4dd51f239cc5a9354ad7b2a74870e38724bf33dada6c8cdaf95c",
+      bitcoinsv: "a82b800db9f6757b99901edb417664ac37be6d30ae24c33891eb700fbfcfb6ab",
     } as const;
     for (const [key, txid] of Object.entries(live)) {
       const chain = create(key as ChainKey);
@@ -835,6 +860,50 @@ describe("Pepecoin address validation", () => {
   });
 });
 
+describe("Bitcoin SV address validation", () => {
+  const bitcoinSv = create("bitcoinsv");
+
+  /** Read off block 968187 through WhatsOnChain on 2026-09-24; the second is 33 characters long. */
+  it("accepts pay-to-pubkey-hash addresses under version 0x00", () => {
+    expect(bitcoinSv.assertAddress("198fZubHNnhsdENHbktQLw96eDMnhZ4xXM")).toBeTruthy();
+    expect(bitcoinSv.assertAddress("1WWDT8tERveBm5YS8gt85sYJugempiovC")).toBeTruthy();
+  });
+
+  /** Genesis turned a pay-to-script-hash output into `bad-txns-vout-p2sh`, so nothing pays a `3...`. */
+  it("rejects a script-hash address", () => {
+    expect(() => bitcoinSv.assertAddress("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy")).toThrow(
+      InvalidAddressError,
+    );
+  });
+
+  /** The node decodes base58 alone: no witness program, no CashAddr. */
+  it("rejects Bech32 and CashAddr", () => {
+    for (const address of [
+      "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+      "bitcoincash:qz3yjg59ypg6jqpwhaxgvjj44jm4hdx0w5wsxw2qez",
+      "qz3yjg59ypg6jqpwhaxgvjj44jm4hdx0w5wsxw2qez",
+    ]) {
+      expect(() => bitcoinSv.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  it("rejects base58 addresses under another chain's version", () => {
+    for (const address of [
+      "LYhttvnKawAv6RcHQ4eBkNtifuiEA99PFe",
+      "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L",
+      "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+    ]) {
+      expect(() => bitcoinSv.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  it("rejects a checksum typo in a real address", () => {
+    expect(() => bitcoinSv.assertAddress("198fZubHNnhsdENHbktQLw96eDMnhZ4xXN")).toThrow(
+      InvalidAddressError,
+    );
+  });
+});
+
 describe("Dogecoin address validation", () => {
   const dogecoin = create("dogecoin");
 
@@ -1269,6 +1338,16 @@ describe("address identification", () => {
     const { matches } = identify("9uqSjcKq8PP2wuBQMMiX3yBvknje27DWfV");
 
     expect(matches.map((chain) => chain.key)).toEqual(["pepecoin", "dogecoin"]);
+  });
+
+  /** Bitcoin SV kept Bitcoin's pay-to-pubkey-hash byte for byte and dropped its script hash. */
+  it("names Bitcoin and Bitcoin SV for a 1 address and Bitcoin alone for a 3", () => {
+    expect(
+      identify("198fZubHNnhsdENHbktQLw96eDMnhZ4xXM").matches.map((chain) => chain.key),
+    ).toEqual(["bitcoin", "bitcoinsv"]);
+    expect(
+      identify("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy").matches.map((chain) => chain.key),
+    ).toEqual(["bitcoin"]);
   });
 
   /** The eCash twin of the same hash differs in the checksum alone, and that is enough. */
