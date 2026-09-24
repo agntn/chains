@@ -323,6 +323,36 @@ describe("chain metadata", () => {
       explorer: "https://blockchair.com/zcash",
     });
   });
+
+  /**
+   * The mainnet message start each node's chainparams.cpp writes into `pchMessageStart`, or
+   * `netMagic` where the node keeps Bitcoin's bytes as `diskMagic` for block files. Decred
+   * declares `0xd9b400f9` and writes it little-endian, so the wire reads `f900b4d9`.
+   */
+  it("carries the P2P magic bytes of every chain on Bitcoin's wire protocol", () => {
+    const magic = Object.fromEntries(chains().map((key) => [key, create(key).magic]));
+    expect(magic).toEqual(
+      expect.objectContaining({
+        bitcoin: "f9beb4d9",
+        litecoin: "fbc0b6db",
+        pepecoin: "c0a0f0e0",
+        dogecoin: "c0c0c0c0",
+        bitcoincash: "e3e1f3e8",
+        ecash: "e3e1f3e8",
+        bitcoinsv: "e3e1f3e8",
+        bitcoingold: "e1476d44",
+        dash: "bf0c6bbd",
+        zcash: "24e92764",
+        decred: "f900b4d9",
+      }),
+    );
+    const without = Object.entries(magic)
+      .filter(([, value]) => value === undefined)
+      .map(([key]) => key);
+    expect(without).toHaveLength(chains().length - 11);
+    expect(without).toContain("cardano");
+    expect(without).toContain("monero");
+  });
 });
 
 describe("chain resolution", () => {

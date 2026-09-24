@@ -192,6 +192,7 @@ const lookupRows = computed(() => {
     { label: "bip44", value: chain.bip44 === undefined ? "none" : String(chain.bip44) },
     { label: "chainId", value: chain.chainId ?? "none" },
     { label: "caip2", value: chain.caip2 ?? "none" },
+    { label: "magic", value: chain.magic ?? "none" },
     { label: "explorer", value: chain.explorer, href: chain.explorer },
     { label: "rpc", value: chain.rpcDefault ?? "none", href: chain.rpcDefault },
     { label: "validates", value: chain.validatesAddress ? "yes" : "no validator" },

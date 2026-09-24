@@ -32,6 +32,7 @@ export interface ChainLookup {
   bip44?: number;
   chainId?: string;
   caip2?: string;
+  magic?: string;
   explorer: string;
   rpcDefault?: string;
   /** False when the chain inherits the base validator, which only throws. */
@@ -147,6 +148,7 @@ export function lookupChain(input: string): ToolResult<ChainLookup | LookupFailu
     bip44: chain.bip44,
     chainId: chain.chainId,
     caip2: chain.caip2,
+    magic: chain.magic,
     explorer: chain.explorer,
     rpcDefault: chain.rpcDefault,
     validatesAddress: chain.validatesAddress,
@@ -166,6 +168,9 @@ export function lookupChain(input: string): ToolResult<ChainLookup | LookupFailu
     // type line already explains them.
     `caip2: ${details.caip2 ?? "none (no registered CAIP-2 namespace)"}`,
     `bip44: ${details.bip44 ?? "none (no registered SLIP-0044 coin type)"}`,
+    // Only chains on Bitcoin's wire protocol carry magic bytes, so the line shows up
+    // for those alone.
+    details.magic ? `magic: ${details.magic}` : undefined,
     `explorer: ${details.explorer}`,
     details.rpcDefault ? `rpc: ${details.rpcDefault}` : undefined,
     unsupportedLine("addressValidation", details.validatesAddress),

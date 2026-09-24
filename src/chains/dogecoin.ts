@@ -10,6 +10,7 @@ export class Dogecoin extends UTXO {
   readonly explorer = "https://blockchair.com/dogecoin";
   readonly bip44 = 3;
   readonly caip2 = "bip122:1a91e3dace36e2be3bf030a65679fe82";
+  override readonly magic = "c0c0c0c0";
 
   /**
    * Base58Check under 0x1e (`D...`) and 0x16 (`9...` or `A...`), 25 bytes with the

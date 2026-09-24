@@ -22,6 +22,8 @@ export abstract class Chain implements ChainInfo {
   readonly bip44?: number;
   readonly chainId?: string;
   readonly caip2?: string;
+  /** Unset on chains whose peers don't open every message with four magic bytes. */
+  readonly magic?: string;
   readonly rpcDefault?: string;
 
   get key(): ChainKey {
