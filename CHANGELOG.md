@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.3.10
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.9...v0.3.10)
+
+### 🚀 Enhancements
+
+- Add Bitcoin Cash with CashAddr ([#70](https://github.com/agntn/chains/pull/70))
+- Register Bitcoin SV ([#71](https://github.com/agntn/chains/pull/71))
+- Bitcoin Gold joins the UTXO family ([#72](https://github.com/agntn/chains/pull/72))
+- **litecoin:** Accept MWEB stealth addresses ([#73](https://github.com/agntn/chains/pull/73))
+- Support Dash addresses and metadata ([#74](https://github.com/agntn/chains/pull/74))
+- Zcash, Unified Addresses included ([#75](https://github.com/agntn/chains/pull/75))
+- P2P magic bytes in chain metadata ([#76](https://github.com/agntn/chains/pull/76))
+- Proof-of-work algorithm per chain ([#77](https://github.com/agntn/chains/pull/77))
+
+### ❤️ Contributors
+
+- Aeitwoen ([@aeitwoen](https://github.com/aeitwoen))
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.3.9
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.8...v0.3.9)
