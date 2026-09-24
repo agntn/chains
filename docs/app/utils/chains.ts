@@ -63,6 +63,11 @@ const PRESENTATION: Record<ChainKey, { icon: string; alias: string; sample: stri
     sample: "btg1qufmped88t65gh7vn9ftzjwlx9tf5a3en692wvq",
   },
   dash: { icon: "i-token-dash", alias: "dash", sample: "XjszN1jZJthEoaQDhGthRkaHL9AqaG3Vzw" },
+  zcash: {
+    icon: "i-token-zec",
+    alias: "zec",
+    sample: "u1ddnjsdcpm36r6aq79n3s68shjweksnmwtdltrh046s8m6xcws9ygyawalxx8n6hg6vegk0wh8zjnafxgh6msppjsljvyt0ynece3lvm0",
+  },
   ecash: {
     icon: "i-token-xec",
     alias: "xec",

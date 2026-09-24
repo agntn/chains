@@ -33,6 +33,7 @@ import { Sui } from "./sui.js";
 import { Ton } from "./ton.js";
 import { Tron } from "./tron.js";
 import { Xrpl } from "./xrpl.js";
+import { Zcash } from "./zcash.js";
 import { ZkSync } from "./zksync.js";
 
 /** Every chain the package ships. Not in this list, not in the registry. */
@@ -72,4 +73,5 @@ export const builtins: readonly ChainConstructor[] = [
   BitcoinSv,
   BitcoinGold,
   Dash,
+  Zcash,
 ];

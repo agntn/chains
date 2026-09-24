@@ -42,6 +42,7 @@ const nativeDecimals = {
   bitcoinsv: 8,
   bitcoingold: 8,
   dash: 8,
+  zcash: 8,
 } satisfies Record<ChainKey, number>;
 
 afterEach(() => {

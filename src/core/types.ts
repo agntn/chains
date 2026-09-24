@@ -33,7 +33,8 @@ export type ChainKey =
   | "bitcoincash"
   | "bitcoinsv"
   | "bitcoingold"
-  | "dash";
+  | "dash"
+  | "zcash";
 export type ChainType =
   | "evm"
   | "utxo"

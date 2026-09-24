@@ -137,6 +137,8 @@ describe("Base58Check validation", () => {
     ["bitcoingold", "ATAyJYuDeh9unZXcorvmi7fw1JSX2mwc5Q"],
     ["dash", "XjszN1jZJthEoaQDhGthRkaHL9AqaG3Vzw"],
     ["dash", "7ZXhLLCE7CuZDBiggh3yh4YFYek8JJj1i3"],
+    ["zcash", "t1TSE2jJnpSrV9ThaBh52oC4EWiNMUb4wAD"],
+    ["zcash", "t3PhSoyT2TiwCFrWWSezMunsanvVbxXXZAw"],
     ["tron", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"],
     ["xrpl", "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"],
     ["xrpl", "XVPcpSm47b1CZkf5AkKM9a84dQHe3mTCLZc5ZAoh11sd5nY"],
