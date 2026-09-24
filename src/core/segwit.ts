@@ -21,7 +21,7 @@ function validWitnessProgram(words: readonly number[], version: number): boolean
 /**
  * Accepts Bech32 for witness v0 and Bech32m for v1 through v16, as BIP-350 requires.
  * @param {string} address - Candidate address.
- * @param {string} hrp - Lowercase mainnet human-readable part: `bc` on Bitcoin, `ltc` on Litecoin.
+ * @param {string} hrp - Lowercase mainnet human-readable part: `bc` on Bitcoin, `ltc` on Litecoin, `btg` on Bitcoin Gold.
  * @returns {boolean} Whether its encoding and witness program are valid.
  */
 export function validSegwitAddress(address: string, hrp: string): boolean {

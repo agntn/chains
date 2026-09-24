@@ -9,6 +9,7 @@ import {
   Arweave,
   Bitcoin,
   BitcoinCash,
+  BitcoinGold,
   BitcoinSv,
   Cardano,
   Chain,
@@ -86,6 +87,7 @@ describe("chain registry", () => {
       "dogecoin",
       "bitcoincash",
       "bitcoinsv",
+      "bitcoingold",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -125,6 +127,7 @@ describe("chain registry", () => {
     expect(create("dogecoin")).toBeInstanceOf(Dogecoin);
     expect(create("bitcoincash")).toBeInstanceOf(BitcoinCash);
     expect(create("bitcoinsv")).toBeInstanceOf(BitcoinSv);
+    expect(create("bitcoingold")).toBeInstanceOf(BitcoinGold);
   });
 });
 
@@ -268,6 +271,24 @@ describe("chain metadata", () => {
     });
     expect(bitcoinSv.caip2).toBeUndefined();
   });
+
+  /**
+   * Coin type 156 from SLIP-44. No CAIP-2: the chain shares Bitcoin's genesis, and the BIP-122
+   * namespace lists no fork block for Bitcoin Gold.
+   */
+  it("carries Bitcoin Gold mainnet metadata", () => {
+    const bitcoinGold = create("bitcoingold");
+    expect(bitcoinGold).toMatchObject({
+      key: "bitcoingold",
+      name: "Bitcoin Gold",
+      symbol: "BTG",
+      decimals: 8,
+      type: "utxo",
+      bip44: 156,
+      explorer: "https://btgexplorer.com",
+    });
+    expect(bitcoinGold.caip2).toBeUndefined();
+  });
 });
 
 describe("chain resolution", () => {
@@ -285,6 +306,9 @@ describe("chain resolution", () => {
     expect(getChain("bsv")).toBeInstanceOf(BitcoinSv);
     expect(getChain("bitcoin-sv")).toBeInstanceOf(BitcoinSv);
     expect(getChain("Bitcoin SV")).toBeInstanceOf(BitcoinSv);
+    expect(getChain("btg")).toBeInstanceOf(BitcoinGold);
+    expect(getChain("bitcoin-gold")).toBeInstanceOf(BitcoinGold);
+    expect(getChain("Bitcoin Gold")).toBeInstanceOf(BitcoinGold);
     expect(getChain("xec")).toBeInstanceOf(Ecash);
     expect(getChain("ada")).toBeInstanceOf(Cardano);
     expect(getChain("xlm")).toBeInstanceOf(Stellar);
@@ -365,7 +389,7 @@ describe("txid validation", () => {
   it("is shared by the UTXO family as 64 hex digits without a prefix", () => {
     /**
      * Read live from litecoinspace, blockchair, koios and dcrdata on 2026-09-17, BlockCypher on
-     * 2026-09-23, Blockchair again for Bitcoin Cash and WhatsOnChain on 2026-09-24.
+     * 2026-09-23, Blockchair again for Bitcoin Cash, WhatsOnChain and btgexplorer.com on 2026-09-24.
      */
     const live = {
       bitcoin: bitcoinTxid,
@@ -376,6 +400,7 @@ describe("txid validation", () => {
       dogecoin: "004bc2192c2f7ddd5bdbb7af4d942a76434fcafa8e1a70861002634ad229483f",
       bitcoincash: "f758a586b54d4dd51f239cc5a9354ad7b2a74870e38724bf33dada6c8cdaf95c",
       bitcoinsv: "a82b800db9f6757b99901edb417664ac37be6d30ae24c33891eb700fbfcfb6ab",
+      bitcoingold: "72a8e471067dcbc1377e95df17456daae3fdbf9a843f7f4dd8abf8380d4d55d3",
     } as const;
     for (const [key, txid] of Object.entries(live)) {
       const chain = create(key as ChainKey);
@@ -904,6 +929,49 @@ describe("Bitcoin SV address validation", () => {
   });
 });
 
+describe("Bitcoin Gold address validation", () => {
+  const bitcoinGold = create("bitcoingold");
+
+  /** Read off blocks 965959 and 965960 through btgexplorer.com on 2026-09-24. */
+  it("accepts legacy addresses under version 0x26 and 0x17", () => {
+    for (const address of [
+      "GJjz2Du9BoJQ3CPcoyVTHUJZSj62i1693U",
+      "Ggfy5c1bZDdqfVnMrNqNSarAeNYzzMbj9Y",
+      "ATAyJYuDeh9unZXcorvmi7fw1JSX2mwc5Q",
+      "ASf5tcqTH4D3xmU6besNe2PrrZft3A8W6x",
+    ]) {
+      expect(bitcoinGold.assertAddress(address), address).toBe(address);
+    }
+  });
+
+  /** The fork moved both version bytes, so Bitcoin's legacy bytes are not a Bitcoin Gold address. */
+  it("rejects Bitcoin's legacy addresses", () => {
+    for (const address of [
+      "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+      "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy",
+    ]) {
+      expect(() => bitcoinGold.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  /** Dogecoin's 0x16 script hash also opens with an A, one version byte lower. */
+  it("rejects base58 addresses under another chain's version", () => {
+    for (const address of [
+      "A6RVrq2W5x9UawVE48U6Umz7H2BNfEdub1",
+      "LYhttvnKawAv6RcHQ4eBkNtifuiEA99PFe",
+      "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L",
+    ]) {
+      expect(() => bitcoinGold.assertAddress(address), address).toThrow(InvalidAddressError);
+    }
+  });
+
+  it("rejects a checksum typo in a real address", () => {
+    expect(() => bitcoinGold.assertAddress("GJjz2Du9BoJQ3CPcoyVTHUJZSj62i1693V")).toThrow(
+      InvalidAddressError,
+    );
+  });
+});
+
 describe("Dogecoin address validation", () => {
   const dogecoin = create("dogecoin");
 
@@ -1348,6 +1416,22 @@ describe("address identification", () => {
     expect(
       identify("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy").matches.map((chain) => chain.key),
     ).toEqual(["bitcoin"]);
+  });
+
+  /** A Bitcoin Gold script hash and a Dogecoin one both start with A and part on the version byte. */
+  it("names Bitcoin Gold alone for its legacy addresses", () => {
+    for (const address of [
+      "GJjz2Du9BoJQ3CPcoyVTHUJZSj62i1693U",
+      "ATAyJYuDeh9unZXcorvmi7fw1JSX2mwc5Q",
+    ]) {
+      expect(
+        identify(address).matches.map((chain) => chain.key),
+        address,
+      ).toEqual(["bitcoingold"]);
+    }
+    expect(
+      identify("A6RVrq2W5x9UawVE48U6Umz7H2BNfEdub1").matches.map((chain) => chain.key),
+    ).not.toContain("bitcoingold");
   });
 
   /** The eCash twin of the same hash differs in the checksum alone, and that is enough. */
