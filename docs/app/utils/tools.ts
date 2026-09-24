@@ -73,13 +73,14 @@ export function listText(family?: string): string {
   const all = chains().map((key) => create(key));
   const families = [...new Set(all.map((chain) => chain.type))];
   const rows = all.filter((chain) => family === undefined || chain.type === family);
+  const width = Math.max(...all.map((chain) => chain.key.length));
   return [
     family === undefined
       ? `${rows.length} chains registered.`
       : `${rows.length} registered ${family} chain${rows.length === 1 ? "" : "s"}.`,
     ...rows.map(
       (chain) =>
-        `${chain.key.padEnd(10)} ${chain.symbol.padEnd(6)} ${chain.type.padEnd(7)} ${chain.name}`,
+        `${chain.key.padEnd(width)} ${chain.symbol.padEnd(6)} ${chain.type.padEnd(7)} ${chain.name}`,
     ),
     `Families: ${families.join(", ")}. Every key and name above resolves in chains_lookup.`,
   ].join("\n");

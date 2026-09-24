@@ -202,13 +202,14 @@ export function listChains(family?: string): ToolResult<ChainListing> {
   }
 
   const rows = all.filter((chain) => family === undefined || chain.type === family);
+  const width = Math.max(...all.map((chain) => chain.key.length));
   const lines = [
     family === undefined
       ? `${rows.length} chains registered.`
       : `${rows.length} registered ${family} chain${rows.length === 1 ? "" : "s"}.`,
     ...rows.map(
       (chain) =>
-        `${chain.key.padEnd(10)} ${chain.symbol.padEnd(6)} ${chain.type.padEnd(7)} ${chain.name}`,
+        `${chain.key.padEnd(width)} ${chain.symbol.padEnd(6)} ${chain.type.padEnd(7)} ${chain.name}`,
     ),
     `Families: ${families.join(", ")}. Every key and name above resolves in chains_lookup.`,
   ];

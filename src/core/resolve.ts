@@ -29,6 +29,8 @@ const aliases: Readonly<Record<string, ChainKey>> = {
   ltc: "litecoin",
   pep: "pepecoin",
   doge: "dogecoin",
+  bch: "bitcoincash",
+  "bitcoin-cash": "bitcoincash",
   xec: "ecash",
   ada: "cardano",
   sol: "solana",

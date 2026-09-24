@@ -188,6 +188,20 @@ describe("chains MCP server", () => {
     expect(part?.text).toContain("bip44: 3");
   });
 
+  /** A fork shares its parent's genesis, so the CAIP-2 line has to carry the fork block, not Bitcoin's. */
+  it("looks Bitcoin Cash up through MCP by its ticker", async () => {
+    const client = await connectTestClient();
+    const lookup = await client.callTool({
+      name: "chains_lookup",
+      arguments: { chain: "bch" },
+    });
+    expect(lookup.isError).not.toBe(true);
+    const [part] = lookup.content as Array<{ text: string }>;
+    expect(part?.text).toContain("Bitcoin Cash (bitcoincash)");
+    expect(part?.text).toContain("caip2: bip122:000000000000000000651ef99cb9fcbe");
+    expect(part?.text).toContain("bip44: 145");
+  });
+
   it("names the registered chains when resolution fails", async () => {
     const client = await connectTestClient();
 
@@ -279,7 +293,7 @@ describe("chains MCP server", () => {
 
     expect(response.isError).not.toBe(true);
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain("matches 14 of 31 checked chains");
+    expect(part?.text).toContain("matches 14 of 32 checked chains");
     expect(part?.text).toContain("evm (14): ethereum, base, arbitrum");
     expect(part?.text).toContain("does not prove the address is used");
     expect(part?.text).not.toContain("Not checked");
@@ -298,7 +312,7 @@ describe("chains MCP server", () => {
     });
 
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain("matches 1 of 31 checked chains");
+    expect(part?.text).toContain("matches 1 of 32 checked chains");
     expect(part?.text).toContain("solana (1): solana");
     expect(part?.text).not.toContain("utxo");
   });
@@ -313,7 +327,7 @@ describe("chains MCP server", () => {
 
     expect(response.isError).not.toBe(true);
     const [part] = response.content as Array<{ text: string }>;
-    expect(part?.text).toContain('"nope" matches none of the 31 checked chains.');
+    expect(part?.text).toContain('"nope" matches none of the 32 checked chains.');
     expect(part?.text).not.toContain("does not prove");
     expect(part?.text).not.toContain("Not checked");
   });
@@ -335,7 +349,7 @@ describe("chains MCP server", () => {
     const [narrowed] = identified.content as Array<{ text: string }>;
     for (const character of invisible) expect(narrowed?.text).not.toContain(character);
     expect(narrowed?.text.split("\n")).toHaveLength(1);
-    expect(narrowed?.text).toContain("matches none of the 31 checked chains.");
+    expect(narrowed?.text).toContain("matches none of the 32 checked chains.");
 
     const validated = await client.callTool({
       name: "chains_validate_address",
@@ -370,15 +384,16 @@ describe("chains MCP server", () => {
     const all = await client.callTool({ name: "chains_list", arguments: {} });
     expect(all.isError).not.toBe(true);
     const listing = (all.content as Array<{ text: string }>).at(0)?.text;
-    expect(listing).toContain("31 chains registered.");
-    expect(listing).toContain("dogecoin   DOGE   utxo    Dogecoin");
-    expect(listing).toContain("arc        USDC   evm     Arc");
-    expect(listing).toContain("litecoin   LTC    utxo    Litecoin");
-    expect(listing).toContain("cardano    ADA    utxo    Cardano");
-    expect(listing).toContain("pepecoin   PEP    utxo    Pepecoin");
-    expect(listing).toContain("ecash      XEC    utxo    eCash");
-    expect(listing).toContain("bitcoin    BTC    utxo    Bitcoin");
-    expect(listing).toContain("stellar    XLM    stellar Stellar");
+    expect(listing).toContain("32 chains registered.");
+    expect(listing).toContain("dogecoin    DOGE   utxo    Dogecoin");
+    expect(listing).toContain("bitcoincash BCH    utxo    Bitcoin Cash");
+    expect(listing).toContain("arc         USDC   evm     Arc");
+    expect(listing).toContain("litecoin    LTC    utxo    Litecoin");
+    expect(listing).toContain("cardano     ADA    utxo    Cardano");
+    expect(listing).toContain("pepecoin    PEP    utxo    Pepecoin");
+    expect(listing).toContain("ecash       XEC    utxo    eCash");
+    expect(listing).toContain("bitcoin     BTC    utxo    Bitcoin");
+    expect(listing).toContain("stellar     XLM    stellar Stellar");
     expect(listing).toContain(
       "Families: evm, utxo, solana, stellar, xrpl, move, ton, tron, octra, arweave, monero.",
     );

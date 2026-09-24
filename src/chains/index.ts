@@ -7,6 +7,7 @@ import { Avalanche } from "./avalanche.js";
 import { Base } from "./base.js";
 import { Berachain } from "./berachain.js";
 import { Bitcoin } from "./bitcoin.js";
+import { BitcoinCash } from "./bitcoincash.js";
 import { Bsc } from "./bsc.js";
 import { Cardano } from "./cardano.js";
 import { Decred } from "./decred.js";
@@ -64,4 +65,5 @@ export const builtins: readonly ChainConstructor[] = [
   Decred,
   Arc,
   Dogecoin,
+  BitcoinCash,
 ];

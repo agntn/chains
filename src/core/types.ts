@@ -29,7 +29,8 @@ export type ChainKey =
   | "monero"
   | "decred"
   | "arc"
-  | "dogecoin";
+  | "dogecoin"
+  | "bitcoincash";
 export type ChainType =
   | "evm"
   | "utxo"

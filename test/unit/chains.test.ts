@@ -8,6 +8,7 @@ import {
   Arc,
   Arweave,
   Bitcoin,
+  BitcoinCash,
   Cardano,
   Chain,
   ChainsError,
@@ -82,6 +83,7 @@ describe("chain registry", () => {
       "decred",
       "arc",
       "dogecoin",
+      "bitcoincash",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -119,6 +121,7 @@ describe("chain registry", () => {
     expect(create("decred")).toBeInstanceOf(Decred);
     expect(create("arc")).toBeInstanceOf(Arc);
     expect(create("dogecoin")).toBeInstanceOf(Dogecoin);
+    expect(create("bitcoincash")).toBeInstanceOf(BitcoinCash);
   });
 });
 
@@ -227,6 +230,23 @@ describe("chain metadata", () => {
       explorer: "https://blockchair.com/dogecoin",
     });
   });
+
+  /**
+   * Coin type 145 from SLIP-44. BIP-122 keys a fork by its first block of its own, so the
+   * CAIP-2 reference is block 478559, the UAHF block Bitcoin Cash Node's chainparams.cpp pins.
+   */
+  it("carries Bitcoin Cash mainnet metadata", () => {
+    expect(create("bitcoincash")).toMatchObject({
+      key: "bitcoincash",
+      name: "Bitcoin Cash",
+      symbol: "BCH",
+      decimals: 8,
+      type: "utxo",
+      bip44: 145,
+      caip2: "bip122:000000000000000000651ef99cb9fcbe",
+      explorer: "https://blockchair.com/bitcoin-cash",
+    });
+  });
 });
 
 describe("chain resolution", () => {
@@ -238,6 +258,9 @@ describe("chain resolution", () => {
     expect(getChain("ltc")).toBeInstanceOf(Litecoin);
     expect(getChain("pep")).toBeInstanceOf(Pepecoin);
     expect(getChain("doge")).toBeInstanceOf(Dogecoin);
+    expect(getChain("bch")).toBeInstanceOf(BitcoinCash);
+    expect(getChain("bitcoin-cash")).toBeInstanceOf(BitcoinCash);
+    expect(getChain("Bitcoin Cash")).toBeInstanceOf(BitcoinCash);
     expect(getChain("xec")).toBeInstanceOf(Ecash);
     expect(getChain("ada")).toBeInstanceOf(Cardano);
     expect(getChain("xlm")).toBeInstanceOf(Stellar);
@@ -316,7 +339,10 @@ describe("txid validation", () => {
   });
 
   it("is shared by the UTXO family as 64 hex digits without a prefix", () => {
-    /** Read live from litecoinspace, blockchair, koios and dcrdata on 2026-09-17, BlockCypher on 2026-09-23. */
+    /**
+     * Read live from litecoinspace, blockchair, koios and dcrdata on 2026-09-17, BlockCypher on
+     * 2026-09-23, Blockchair again for Bitcoin Cash on 2026-09-24.
+     */
     const live = {
       bitcoin: bitcoinTxid,
       litecoin: "2c5be7fd40d54b93c2aa693d8af3d71fc0a5da8bd2fdbbcfdc29e6bfa2d4392c",
@@ -324,6 +350,7 @@ describe("txid validation", () => {
       cardano: "16eedbe9f18fcd44313079c6e325ed5e1319aa8e3d70f640f39163f9dbf81dd2",
       decred: "81935340bd4b992acda410b20d5c284bd8f550e9f4917e7d841fa41114452a15",
       dogecoin: "004bc2192c2f7ddd5bdbb7af4d942a76434fcafa8e1a70861002634ad229483f",
+      bitcoincash: "f758a586b54d4dd51f239cc5a9354ad7b2a74870e38724bf33dada6c8cdaf95c",
     } as const;
     for (const [key, txid] of Object.entries(live)) {
       const chain = create(key as ChainKey);
@@ -1242,6 +1269,16 @@ describe("address identification", () => {
     const { matches } = identify("9uqSjcKq8PP2wuBQMMiX3yBvknje27DWfV");
 
     expect(matches.map((chain) => chain.key)).toEqual(["pepecoin", "dogecoin"]);
+  });
+
+  /** The eCash twin of the same hash differs in the checksum alone, and that is enough. */
+  it("keeps Bitcoin Cash and eCash apart on one hash", () => {
+    expect(
+      identify("qz3yjg59ypg6jqpwhaxgvjj44jm4hdx0w5wsxw2qez").matches.map((c) => c.key),
+    ).toEqual(["bitcoincash"]);
+    expect(
+      identify("qz3yjg59ypg6jqpwhaxgvjj44jm4hdx0w5haj936l4").matches.map((c) => c.key),
+    ).toEqual(["ecash"]);
   });
 
   it("attributes an eCash address to eCash alone, prefixed or bare", () => {

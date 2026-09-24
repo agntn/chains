@@ -38,6 +38,7 @@ const nativeDecimals = {
   decred: 8,
   arc: 18,
   dogecoin: 8,
+  bitcoincash: 8,
 } satisfies Record<ChainKey, number>;
 
 afterEach(() => {
