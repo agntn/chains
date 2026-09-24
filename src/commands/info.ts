@@ -1,6 +1,30 @@
 import { defineCommand } from "citty";
 import consola from "consola";
+import type { ChainInfo } from "../core/types.js";
 import { resolveOrFail } from "./shared.js";
+
+/**
+ * One line per field, a field the chain doesn't have left out.
+ *
+ * @param {ChainInfo} chain - The resolved chain.
+ */
+function printChain(chain: ChainInfo & { readonly key: string }): void {
+  consola.log(`${chain.name} (${chain.key})`);
+  const rows: Array<[string, string | number | undefined]> = [
+    ["symbol", chain.symbol],
+    ["decimals", chain.decimals ?? "unknown"],
+    ["type", chain.type],
+    ["bip44", chain.bip44],
+    ["chainId", chain.chainId],
+    ["caip2", chain.caip2],
+    ["magic", chain.magic],
+    ["explorer", chain.explorer],
+    ["rpc", chain.rpcDefault],
+  ];
+  for (const [label, value] of rows) {
+    if (value !== undefined && value !== "") consola.log(`  ${label.padEnd(12)}${value}`);
+  }
+}
 
 export default defineCommand({
   meta: {
@@ -35,6 +59,7 @@ export default defineCommand({
             bip44: chain.bip44,
             chainId: chain.chainId,
             caip2: chain.caip2,
+            magic: chain.magic,
             explorer: chain.explorer,
             rpcDefault: chain.rpcDefault,
           },
@@ -45,14 +70,6 @@ export default defineCommand({
       return;
     }
 
-    consola.log(`${chain.name} (${chain.key})`);
-    consola.log(`  symbol      ${chain.symbol}`);
-    consola.log(`  decimals    ${chain.decimals ?? "unknown"}`);
-    consola.log(`  type        ${chain.type}`);
-    if (chain.bip44 !== undefined) consola.log(`  bip44       ${chain.bip44}`);
-    if (chain.chainId) consola.log(`  chainId     ${chain.chainId}`);
-    if (chain.caip2) consola.log(`  caip2       ${chain.caip2}`);
-    consola.log(`  explorer    ${chain.explorer}`);
-    if (chain.rpcDefault) consola.log(`  rpc         ${chain.rpcDefault}`);
+    printChain(chain);
   },
 });

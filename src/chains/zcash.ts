@@ -157,6 +157,7 @@ export class Zcash extends UTXO {
   readonly explorer = "https://blockchair.com/zcash";
   readonly bip44 = 133;
   readonly caip2 = "bip122:00040fe8ec8471911baa1db1266ea15d";
+  override readonly magic = "24e92764";
 
   /**
    * Transparent `t1...` and `t3...` are Base58Check under the two-byte versions 0x1cb8 and

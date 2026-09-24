@@ -29,6 +29,7 @@ export class Litecoin extends UTXO {
   readonly explorer = "https://litecoinspace.org";
   readonly bip44 = 2;
   readonly caip2 = "bip122:12a765e31ffd4059bada1e25190f6e98";
+  override readonly magic = "fbc0b6db";
 
   /**
    * SegWit under `ltc`, MWEB under `ltcmweb` and legacy Base58Check, checksum included: a typo

@@ -13,6 +13,7 @@ export class BitcoinCash extends UTXO {
   readonly explorer = "https://blockchair.com/bitcoin-cash";
   readonly bip44 = 145;
   readonly caip2 = "bip122:000000000000000000651ef99cb9fcbe";
+  override readonly magic = "e3e1f3e8";
 
   /**
    * CashAddr with the checksum verified under the `bitcoincash` prefix, written or not, as

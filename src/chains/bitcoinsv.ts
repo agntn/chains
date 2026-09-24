@@ -9,6 +9,7 @@ export class BitcoinSv extends UTXO {
   override readonly decimals = 8;
   readonly explorer = "https://whatsonchain.com";
   readonly bip44 = 236;
+  override readonly magic = "e3e1f3e8";
 
   /**
    * Base58Check under 0x00 (`1...`), 25 bytes with the checksum verified. The node decodes

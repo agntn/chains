@@ -56,6 +56,8 @@ export interface ChainInfo {
   readonly chainId?: string;
   readonly type: ChainType;
   readonly caip2?: string;
+  /** Mainnet P2P message start, four bytes as lowercase hex in wire order. */
+  readonly magic?: string;
   readonly explorer: string;
   readonly rpcDefault?: string;
 }
