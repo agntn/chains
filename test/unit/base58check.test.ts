@@ -86,6 +86,7 @@ const chains: readonly {
   { key: "dogecoin", versions: [0x1e, 0x16], alphabet: BITCOIN_ALPHABET },
   { key: "bitcoinsv", versions: [0x00], alphabet: BITCOIN_ALPHABET },
   { key: "bitcoingold", versions: [0x26, 0x17], alphabet: BITCOIN_ALPHABET },
+  { key: "dash", versions: [0x4c, 0x10], alphabet: BITCOIN_ALPHABET },
   { key: "tron", versions: [0x41], alphabet: BITCOIN_ALPHABET },
   { key: "xrpl", versions: [0x00], alphabet: XRP_ALPHABET },
 ];
@@ -134,6 +135,8 @@ describe("Base58Check validation", () => {
     ["bitcoinsv", "198fZubHNnhsdENHbktQLw96eDMnhZ4xXM"],
     ["bitcoingold", "GJjz2Du9BoJQ3CPcoyVTHUJZSj62i1693U"],
     ["bitcoingold", "ATAyJYuDeh9unZXcorvmi7fw1JSX2mwc5Q"],
+    ["dash", "XjszN1jZJthEoaQDhGthRkaHL9AqaG3Vzw"],
+    ["dash", "7ZXhLLCE7CuZDBiggh3yh4YFYek8JJj1i3"],
     ["tron", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"],
     ["xrpl", "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"],
     ["xrpl", "XVPcpSm47b1CZkf5AkKM9a84dQHe3mTCLZc5ZAoh11sd5nY"],

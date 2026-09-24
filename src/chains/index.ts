@@ -12,6 +12,7 @@ import { BitcoinGold } from "./bitcoingold.js";
 import { BitcoinSv } from "./bitcoinsv.js";
 import { Bsc } from "./bsc.js";
 import { Cardano } from "./cardano.js";
+import { Dash } from "./dash.js";
 import { Decred } from "./decred.js";
 import { Dogecoin } from "./dogecoin.js";
 import { Ecash } from "./ecash.js";
@@ -70,4 +71,5 @@ export const builtins: readonly ChainConstructor[] = [
   BitcoinCash,
   BitcoinSv,
   BitcoinGold,
+  Dash,
 ];

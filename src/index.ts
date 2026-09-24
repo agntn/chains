@@ -48,4 +48,5 @@ export { Dogecoin } from "./chains/dogecoin.js";
 export { BitcoinCash } from "./chains/bitcoincash.js";
 export { BitcoinSv } from "./chains/bitcoinsv.js";
 export { BitcoinGold } from "./chains/bitcoingold.js";
+export { Dash } from "./chains/dash.js";
 export { version } from "./version.js";

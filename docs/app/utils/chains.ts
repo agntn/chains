@@ -62,6 +62,7 @@ const PRESENTATION: Record<ChainKey, { icon: string; alias: string; sample: stri
     alias: "btg",
     sample: "btg1qufmped88t65gh7vn9ftzjwlx9tf5a3en692wvq",
   },
+  dash: { icon: "i-token-dash", alias: "dash", sample: "XjszN1jZJthEoaQDhGthRkaHL9AqaG3Vzw" },
   ecash: {
     icon: "i-token-xec",
     alias: "xec",
