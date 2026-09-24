@@ -11,7 +11,7 @@ Scope: canonical blockchain classes, aliases, address validation and txid valida
 - `src/core/identify.ts` partitions the registry by an address: matching validators and unchecked chains
 - `src/core/text.ts` holds the guards caller text passes through before any surface prints it
 - `src/core/base58.ts` decodes base58 for chains that check the bytes behind an address. The alphabet is an argument, Bitcoin's by default and the XRP Ledger's for `xrpl`
-- `src/core/base58check.ts` decodes Base58Check on top of `base58.ts` and refuses a checksum that does not hold. Bitcoin's legacy form, Litecoin, Pepecoin, TRON and the XRP Ledger read through it with SHA-256, Decred with BLAKE-256: the digest is an argument
+- `src/core/base58check.ts` decodes Base58Check on top of `base58.ts` and refuses a checksum that does not hold. Bitcoin's legacy form, Litecoin, Pepecoin, Dogecoin, Bitcoin SV, TRON and the XRP Ledger read through it with SHA-256, Decred with BLAKE-256: the digest is an argument
 - `src/core/sha256.ts` is SHA-256 written out, because the core imports nothing at runtime and `assertAddress` cannot await the Web Crypto digest
 - `src/core/blake256.ts` is BLAKE-256 written out for the same reason. Decred's checksum is that digest taken twice, and no Web Crypto call would give it anyway
 - `src/core/keccak256.ts` is Keccak-256 written out for the same reason, with Keccak's own padding rather than SHA-3's. EIP-55 reads the case of an EVM address off it, and Monero's addresses end with four bytes of it
