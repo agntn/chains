@@ -1,6 +1,6 @@
 import { defineCommand } from "citty";
 import consola from "consola";
-import { identify } from "../index.js";
+import { chains, identify } from "../index.js";
 
 export default defineCommand({
   meta: {
@@ -39,8 +39,9 @@ export default defineCommand({
     if (matches.length === 0) {
       consola.warn("No registered validator accepts this address");
     }
+    const width = Math.max(...chains().map((key) => key.length));
     for (const chain of matches) {
-      consola.log(`${chain.key.padEnd(10)} ${chain.type.padEnd(7)} ${chain.name}`);
+      consola.log(`${chain.key.padEnd(width)} ${chain.type.padEnd(7)} ${chain.name}`);
     }
     if (unchecked.length > 0) {
       consola.log(`Not checked (no validator): ${unchecked.map((chain) => chain.key).join(", ")}`);

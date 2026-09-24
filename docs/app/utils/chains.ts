@@ -51,6 +51,11 @@ const PRESENTATION: Record<ChainKey, { icon: string; alias: string; sample: stri
   },
   pepecoin: { icon: "i-lucide-leaf", alias: "pep", sample: "PftB3JYp6r3PPkiLPoPoT6vdS77NR4mhyb" },
   dogecoin: { icon: "i-token-doge", alias: "doge", sample: "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L" },
+  bitcoincash: {
+    icon: "i-token-bch",
+    alias: "bch",
+    sample: "bitcoincash:qz3yjg59ypg6jqpwhaxgvjj44jm4hdx0w5wsxw2qez",
+  },
   ecash: {
     icon: "i-token-xec",
     alias: "xec",

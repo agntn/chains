@@ -45,4 +45,5 @@ export { Monero } from "./chains/monero.js";
 export { Decred } from "./chains/decred.js";
 export { Arc } from "./chains/arc.js";
 export { Dogecoin } from "./chains/dogecoin.js";
+export { BitcoinCash } from "./chains/bitcoincash.js";
 export { version } from "./version.js";

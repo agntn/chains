@@ -47,9 +47,10 @@ export default defineCommand({
       return;
     }
 
+    const width = Math.max(...chains().map((key) => key.length));
     for (const chain of rows) {
       consola.log(
-        `${chain.key.padEnd(10)} ${chain.symbol.padEnd(6)} ${chain.type.padEnd(7)} ${chain.name}`,
+        `${chain.key.padEnd(width)} ${chain.symbol.padEnd(6)} ${chain.type.padEnd(7)} ${chain.name}`,
       );
     }
   },
