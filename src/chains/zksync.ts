@@ -1,4 +1,4 @@
-import { EVM } from "../core/chain.js";
+import { EVM } from "../core/chain.ts";
 
 export class ZkSync extends EVM {
   static readonly key = "zksync" as const;

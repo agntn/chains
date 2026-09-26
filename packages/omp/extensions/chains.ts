@@ -17,10 +17,8 @@ let toolOperationsPromise: Promise<typeof ChainsTools> | undefined;
  * Both specifiers stay literal on purpose: OMP's compiled loader rewrites bare
  * dependencies only for imports it can see statically, so an `import(url.href)`
  * built from a runtime value loses resolution inside the imported graph.
- * Dist comes first because the library's internal imports use `.js` specifiers
- * under NodeNext resolution, which a bare TypeScript-stripping runtime cannot
- * resolve back to `.ts` files. Run `pnpm build` before loading the extension
- * from a working tree.
+ * The source imports its modules with `.ts` specifiers, so a working tree with
+ * no build runs it as it is.
  *
  * @returns {Promise<typeof ChainsTools>} The cached shared executor module.
  */

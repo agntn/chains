@@ -1,6 +1,6 @@
-import { decodeBase58Check } from "../core/base58check.js";
-import { Chain } from "../core/chain.js";
-import { InvalidAddressError, InvalidTxidError } from "../core/errors.js";
+import { decodeBase58Check } from "../core/base58check.ts";
+import { Chain } from "../core/chain.ts";
+import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 
 /** The ledger's base58 digits: Bitcoin's 58 characters reordered, so `r` is zero. */
 export const XRP_ALPHABET = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";

@@ -1,6 +1,6 @@
 /** Chains error hierarchy. */
 
-import type { ChainKey } from "./types.js";
+import type { ChainKey } from "./types.ts";
 
 /** Base class for failures surfaced through chains. */
 export class ChainsError extends Error {

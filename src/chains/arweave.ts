@@ -1,5 +1,5 @@
-import { Chain } from "../core/chain.js";
-import { InvalidAddressError, InvalidTxidError } from "../core/errors.js";
+import { Chain } from "../core/chain.ts";
+import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 
 /** A 32-byte hash in unpadded base64url has two unused zero bits in its last digit. */
 const HASH = /^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/;

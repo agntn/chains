@@ -1,7 +1,7 @@
-import { decodeBase58Check } from "../core/base58check.js";
-import { UTXO } from "../core/chain.js";
-import { InvalidAddressError } from "../core/errors.js";
-import { validSegwitAddress } from "../core/segwit.js";
+import { decodeBase58Check } from "../core/base58check.ts";
+import { UTXO } from "../core/chain.ts";
+import { InvalidAddressError } from "../core/errors.ts";
+import { validSegwitAddress } from "../core/segwit.ts";
 
 export class Bitcoin extends UTXO {
   static readonly key = "bitcoin" as const;

@@ -1,6 +1,6 @@
-import { Chain } from "../core/chain.js";
-import { crc16Xmodem } from "../core/crc16.js";
-import { InvalidAddressError, InvalidTxidError } from "../core/errors.js";
+import { Chain } from "../core/chain.ts";
+import { crc16Xmodem } from "../core/crc16.ts";
+import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 
 /**
  * TEP-2 user-friendly form: 36 bytes in unpadded base64, so exactly 48

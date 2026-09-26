@@ -1,7 +1,7 @@
-import { builtins } from "../chains/index.js";
-import type { Chain, ChainConstructor } from "./chain.js";
-import { UnknownChainError } from "./errors.js";
-import type { ChainKey } from "./types.js";
+import { builtins } from "../chains/index.ts";
+import type { Chain, ChainConstructor } from "./chain.ts";
+import { UnknownChainError } from "./errors.ts";
+import type { ChainKey } from "./types.ts";
 
 /** Seeded from `builtins`, and `register` keeps it open. */
 const registry = new Map<ChainKey, ChainConstructor>(

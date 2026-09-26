@@ -1,6 +1,6 @@
-import { decodeBase58 } from "../core/base58.js";
-import { Chain } from "../core/chain.js";
-import { InvalidAddressError, InvalidTxidError } from "../core/errors.js";
+import { decodeBase58 } from "../core/base58.ts";
+import { Chain } from "../core/chain.ts";
+import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 
 export class Solana extends Chain {
   static readonly key = "solana" as const;

@@ -1,6 +1,6 @@
 import { defineCommand } from "citty";
 import consola from "consola";
-import { chains, identify } from "../index.js";
+import { chains, identify } from "../index.ts";
 
 export default defineCommand({
   meta: {

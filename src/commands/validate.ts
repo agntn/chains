@@ -1,8 +1,8 @@
 import { defineCommand } from "citty";
 import consola from "consola";
-import { quoted, stripControlCharacters } from "../core/text.js";
-import { ChainsError, InvalidAddressError, InvalidTxidError } from "../index.js";
-import { resolveOrFail } from "./shared.js";
+import { quoted, stripControlCharacters } from "../core/text.ts";
+import { ChainsError, InvalidAddressError, InvalidTxidError } from "../index.ts";
+import { resolveOrFail } from "./shared.ts";
 
 export default defineCommand({
   meta: {

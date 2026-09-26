@@ -1,6 +1,6 @@
-import { decodeBase58 } from "../core/base58.js";
-import { Move } from "../core/chain.js";
-import { InvalidTxidError } from "../core/errors.js";
+import { decodeBase58 } from "../core/base58.ts";
+import { Move } from "../core/chain.ts";
+import { InvalidTxidError } from "../core/errors.ts";
 
 export class Sui extends Move {
   static readonly key = "sui" as const;

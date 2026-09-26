@@ -1,4 +1,4 @@
-import { blake2b } from "./blake2b.js";
+import { blake2b } from "./blake2b.ts";
 
 /**
  * The inverse of ZIP-316's F4Jumble, the four-round Feistel permutation a Unified Address is

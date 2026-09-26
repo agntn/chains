@@ -8,8 +8,8 @@
  * Imports go through the package entrypoint, so executors see the public surface.
  */
 
-import { quoted, stripControlCharacters } from "./core/text.js";
-import type { Chain, PowAlgorithm } from "./index.js";
+import { quoted, stripControlCharacters } from "./core/text.ts";
+import type { Chain, PowAlgorithm } from "./index.ts";
 import {
   AddressValidationUnsupportedError,
   chains,
@@ -20,7 +20,7 @@ import {
   InvalidAddressError,
   InvalidTxidError,
   TxidValidationUnsupportedError,
-} from "./index.js";
+} from "./index.ts";
 
 /** Canonical metadata for a resolved chain. */
 export interface ChainLookup {

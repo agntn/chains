@@ -1,4 +1,4 @@
-import { BECH32, BECH32M, bech32Digits, polymod } from "./bech32.js";
+import { BECH32, BECH32M, bech32Digits, polymod } from "./bech32.ts";
 
 /** A 40-byte program is 64 digits, with the version before it and the checksum after. */
 const MAX_DIGITS = 71;

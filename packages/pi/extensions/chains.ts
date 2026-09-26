@@ -14,10 +14,8 @@ let toolOperationsPromise: Promise<typeof ChainsTools> | undefined;
  * Loads the built tool executors, falling back to source only when dist is absent.
  *
  * The executors are shared with the MCP server, so the tool answers stay identical
- * across surfaces. Dist comes first because the library's internal imports use `.js`
- * specifiers under NodeNext resolution, which a bare TypeScript-stripping runtime
- * cannot resolve back to `.ts` files. Run `pnpm build` before loading the extension
- * from a working tree.
+ * across surfaces. The source imports its modules with `.ts` specifiers, so a bare
+ * TypeScript-stripping runtime runs it as it is in a working tree with no build.
  *
  * @returns {Promise<typeof ChainsTools>} The cached shared executor module.
  */

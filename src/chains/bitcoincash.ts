@@ -1,6 +1,6 @@
-import { decodeCashAddr } from "../core/cashaddr.js";
-import { UTXO } from "../core/chain.js";
-import { InvalidAddressError } from "../core/errors.js";
+import { decodeCashAddr } from "../core/cashaddr.ts";
+import { UTXO } from "../core/chain.ts";
+import { InvalidAddressError } from "../core/errors.ts";
 
 /** Hash lengths Bitcoin Cash Node pays to, by type: 0 and 2 hash a key, 1 and 3 a script. */
 const HASH_LENGTHS: readonly (readonly number[])[] = [[20], [20, 32], [20], [20, 32]];

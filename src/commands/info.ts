@@ -1,7 +1,7 @@
 import { defineCommand } from "citty";
 import consola from "consola";
-import type { ChainInfo } from "../core/types.js";
-import { resolveOrFail } from "./shared.js";
+import type { ChainInfo } from "../core/types.ts";
+import { resolveOrFail } from "./shared.ts";
 
 /**
  * One line per field, a field the chain doesn't have left out.

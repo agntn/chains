@@ -1,4 +1,4 @@
-import { bytesFromDigits } from "./bech32.js";
+import { bytesFromDigits } from "./bech32.ts";
 
 const ALPHABET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
 const GENERATORS = [0x98f2bc8e61n, 0x79b76d99e2n, 0xf33e5fb3c4n, 0xae2eabe2a8n, 0x1e4f43e470n];

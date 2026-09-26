@@ -1,5 +1,5 @@
-import { Chain } from "../core/chain.js";
-import { InvalidAddressError, InvalidTxidError } from "../core/errors.js";
+import { Chain } from "../core/chain.ts";
+import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 
 /** `oct` and a fixed 44 characters, the only shape the node accepts. */
 const ADDRESS = /^oct[1-9A-HJ-NP-Za-km-z]{44}$/;

@@ -1,4 +1,4 @@
-import { EVM } from "../core/chain.js";
+import { EVM } from "../core/chain.ts";
 
 export class Gnosis extends EVM {
   static readonly key = "gnosis" as const;

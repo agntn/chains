@@ -1,8 +1,8 @@
-import { BITCOIN_ALPHABET } from "../core/base58.js";
-import { decodeBase58Check } from "../core/base58check.js";
-import { blake256 } from "../core/blake256.js";
-import { UTXO } from "../core/chain.js";
-import { InvalidAddressError } from "../core/errors.js";
+import { BITCOIN_ALPHABET } from "../core/base58.ts";
+import { decodeBase58Check } from "../core/base58check.ts";
+import { blake256 } from "../core/blake256.ts";
+import { UTXO } from "../core/chain.ts";
+import { InvalidAddressError } from "../core/errors.ts";
 
 /** Decred mainnet; network and address types follow dcrd's version 0 encoders. */
 export class Decred extends UTXO {

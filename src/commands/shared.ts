@@ -1,7 +1,7 @@
 import consola from "consola";
-import { stripControlCharacters } from "../core/text.js";
-import type { Chain } from "../index.js";
-import { ChainsError, getChain } from "../index.js";
+import { stripControlCharacters } from "../core/text.ts";
+import type { Chain } from "../index.ts";
+import { ChainsError, getChain } from "../index.ts";
 
 /**
  * Resolves CLI input to a chain, reporting known failures as a message rather

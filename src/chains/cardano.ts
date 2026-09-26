@@ -1,8 +1,8 @@
-import { decodeBase58 } from "../core/base58.js";
-import { BECH32, bech32Digits, bytesFromDigits, polymod } from "../core/bech32.js";
-import { UTXO } from "../core/chain.js";
-import { crc32 } from "../core/crc32.js";
-import { InvalidAddressError } from "../core/errors.js";
+import { decodeBase58 } from "../core/base58.ts";
+import { BECH32, bech32Digits, bytesFromDigits, polymod } from "../core/bech32.ts";
+import { UTXO } from "../core/chain.ts";
+import { crc32 } from "../core/crc32.ts";
+import { InvalidAddressError } from "../core/errors.ts";
 
 type Prefix = "addr" | "stake";
 
