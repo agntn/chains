@@ -1,3 +1,6 @@
+import { spawn } from "node:child_process";
+import { once } from "node:events";
+import { resolve as resolvePath } from "node:path";
 import { runCommand } from "citty";
 import consola from "consola";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -96,5 +99,58 @@ describe("CLI output escaping", () => {
 
     expect(written).toBe("Txid validation is not supported for unvalidated");
     expect(process.exitCode).toBe(1);
+  });
+});
+
+/** What reached the stream left open and how the CLI exited. */
+interface Closed {
+  readonly code: number | null;
+  readonly output: string;
+}
+
+/**
+ * Runs the CLI from source with one of its output streams closed before the first write, as after
+ * `| head -1` or a pager that quits early, and collects what reached the other one.
+ *
+ * @param {"stdout" | "stderr"} closed - The stream whose reader goes away.
+ * @param {readonly string[]} args - Arguments for `chains`.
+ * @returns {Promise<Closed>} The exit code and the text on the stream left open.
+ */
+async function closedPipe(
+  closed: "stdout" | "stderr",
+  ...args: readonly string[]
+): Promise<Closed> {
+  const child = spawn(
+    process.execPath,
+    [resolvePath(import.meta.dirname, "../../src/cli.ts"), ...args],
+    {
+      // consola keeps its output quiet under NODE_ENV=test, and the text has to reach the pipe.
+      env: { ...process.env, CONSOLA_LEVEL: "3" },
+      stdio: ["ignore", "pipe", "pipe"],
+      timeout: 10_000,
+    },
+  );
+  child[closed].destroy();
+  let output = "";
+  child[closed === "stdout" ? "stderr" : "stdout"]
+    .setEncoding("utf8")
+    .on("data", (chunk: string) => (output += chunk));
+  await once(child, "close");
+  return { code: child.exitCode, output };
+}
+
+describe("CLI with a closed pipe", () => {
+  it.each([[["list"]], [["list", "--json"]]])(
+    "chains %j ends quietly when stdout closes",
+    async (args) => {
+      await expect(closedPipe("stdout", ...args)).resolves.toEqual({ code: 0, output: "" });
+    },
+  );
+
+  it("keeps exit code 1 when stderr closes under a failure", async () => {
+    await expect(closedPipe("stderr", "validate", "bitcoin", "not-an-address")).resolves.toEqual({
+      code: 1,
+      output: "",
+    });
   });
 });
