@@ -1,8 +1,8 @@
-import { decodeBase58Check } from "../core/base58check.js";
-import { BECH32, bech32Digits, bytesFromDigits, polymod } from "../core/bech32.js";
-import { UTXO } from "../core/chain.js";
-import { InvalidAddressError } from "../core/errors.js";
-import { validSegwitAddress } from "../core/segwit.js";
+import { decodeBase58Check } from "../core/base58check.ts";
+import { BECH32, bech32Digits, bytesFromDigits, polymod } from "../core/bech32.ts";
+import { UTXO } from "../core/chain.ts";
+import { InvalidAddressError } from "../core/errors.ts";
+import { validSegwitAddress } from "../core/segwit.ts";
 
 /** Scan and spend public keys, 33 bytes each: 106 digits, the version before them, the checksum after. */
 const MWEB_DIGITS = 113;

@@ -1,5 +1,5 @@
-import { decodeBase58 } from "./base58.js";
-import { sha256 } from "./sha256.js";
+import { decodeBase58 } from "./base58.ts";
+import { sha256 } from "./sha256.ts";
 
 type Digest = (message: ArrayLike<number>) => Uint8Array;
 

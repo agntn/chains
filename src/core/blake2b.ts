@@ -1,4 +1,4 @@
-import { PERMUTATIONS } from "./blake256.js";
+import { PERMUTATIONS } from "./blake256.ts";
 
 /**
  * BLAKE2b as RFC 7693 writes it, with the personalization field that Zcash's F4Jumble hashes

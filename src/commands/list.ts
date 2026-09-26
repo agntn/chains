@@ -1,7 +1,7 @@
 import { defineCommand } from "citty";
 import consola from "consola";
-import { quoted } from "../core/text.js";
-import { chains, create } from "../index.js";
+import { quoted } from "../core/text.ts";
+import { chains, create } from "../index.ts";
 
 export default defineCommand({
   meta: {

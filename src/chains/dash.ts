@@ -1,6 +1,6 @@
-import { decodeBase58Check } from "../core/base58check.js";
-import { UTXO } from "../core/chain.js";
-import { InvalidAddressError } from "../core/errors.js";
+import { decodeBase58Check } from "../core/base58check.ts";
+import { UTXO } from "../core/chain.ts";
+import { InvalidAddressError } from "../core/errors.ts";
 
 export class Dash extends UTXO {
   static readonly key = "dash" as const;

@@ -1,6 +1,6 @@
-import type { Chain } from "./chain.js";
-import { InvalidAddressError } from "./errors.js";
-import { chains, create } from "./registry.js";
+import type { Chain } from "./chain.ts";
+import { InvalidAddressError } from "./errors.ts";
+import { chains, create } from "./registry.ts";
 
 /** The registry partitioned by one address. */
 export interface AddressMatches {

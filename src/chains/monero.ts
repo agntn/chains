@@ -1,6 +1,6 @@
-import { Chain } from "../core/chain.js";
-import { InvalidAddressError, InvalidTxidError } from "../core/errors.js";
-import { keccak256 } from "../core/keccak256.js";
+import { Chain } from "../core/chain.ts";
+import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
+import { keccak256 } from "../core/keccak256.ts";
 
 const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 /** Keccak-256 of the transaction, 32 bytes as hex, either case. */

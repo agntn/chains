@@ -32,7 +32,7 @@ Scope: canonical blockchain classes, aliases, address validation and txid valida
 - `src/version.ts` is the version string
 - `test/unit/chains.test.ts` covers hierarchy, registry, metadata, and validation
 - `test/unit/mcp.test.ts` drives the MCP server over an in-memory transport
-- `test/unit/cli-loads.test.ts` runs the built bin's usage paths under `test/record-loads.ts`: `--help`, `-h`, `mcp --help`, no arguments and an unknown command must not load the MCP SDK, and `mcp` must load it
+- `test/unit/cli-loads.test.ts` runs the built bin's usage paths under `test/record-loads.ts`: `--help`, `-h`, `mcp --help`, no arguments and an unknown command must not load the MCP SDK, and `mcp` must load it. It also checks which server `mcp` serves, the source inside a checkout and the bundle everywhere else, and that every module in `src/` imports under plain Node
 - `docs/` is the Docus site behind chains.agntn.dev, with its own `AGENTS.md`. It aliases `@agntn/chains` to `src/index.ts` and bundles the sources itself, so it needs neither `dist/` nor the root `node_modules`
 
 ## Shape
@@ -53,6 +53,8 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 - Lint and format with `oxlint` plus `oxfmt` (`pnpm run fmt`)
 - Test with vitest (`pnpm run test`)
 - `verbatimModuleSyntax: true`, so type imports use `import type`
+- `src/` runs under plain Node type stripping: relative imports end in `.ts`, never `.js`, and `erasableSyntaxOnly` keeps out `enum`, `namespace` and parameter properties
+- Inside a checkout, `dist/cli.mjs mcp` loads the server from `src/`, so a local MCP server needs a restart after a change, not `pnpm build`. The npm package and a copy under `node_modules` keep the bundle, and `CHAINS_DIST=1` forces it. A change to `src/cli.ts` itself still needs `pnpm build`
 - Canonical chain key is a lowercase `ChainKey` that names the chain rather than its ticker: `ethereum`, not `eth`. A short name is still a name, so `bsc`, `zksync` and `arbitrum` stay; ticker spellings belong in the alias table
 - Metadata that encodes the same fact twice gets a cross-field test, not just a type. `chainId` and the `eip155:` reference in `caip2` are checked against each other in `test/unit/chains.test.ts`; Linea shipped a testnet id against a mainnet CAIP-2 until that test existed
 - An address validator built only from a character-length window is wrong. Decode when the format is base58 with a known byte length, verify the checksum when the format is Base58Check, and follow the spec's case rules for bech32 and EIP-55. Octra is the exception: its address is a fixed 44 characters cut out of base58, not encoded from a payload, so the width is the whole format and decoding rejects real contract addresses

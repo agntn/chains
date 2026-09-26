@@ -3,9 +3,9 @@ import {
   InvalidAddressError,
   InvalidTxidError,
   TxidValidationUnsupportedError,
-} from "./errors.js";
-import { keccak256 } from "./keccak256.js";
-import type { ChainInfo, ChainKey, ChainType, PowAlgorithm } from "./types.js";
+} from "./errors.ts";
+import { keccak256 } from "./keccak256.ts";
+import type { ChainInfo, ChainKey, ChainType, PowAlgorithm } from "./types.ts";
 
 export interface ChainConstructor {
   readonly key: ChainKey;

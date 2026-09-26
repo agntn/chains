@@ -8,7 +8,7 @@ export default defineCommand({
   /** citty resolves every subcommand to print the usage, so the SDK loads here, not on `--help`. */
   async run() {
     const [{ createMcpServer }, { StdioServerTransport }] = await Promise.all([
-      import("../mcp.js"),
+      import("../mcp.ts"),
       import("@modelcontextprotocol/sdk/server/stdio.js"),
     ]);
     await createMcpServer().connect(new StdioServerTransport());

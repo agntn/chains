@@ -1,5 +1,5 @@
-import { Move } from "../core/chain.js";
-import { InvalidTxidError } from "../core/errors.js";
+import { Move } from "../core/chain.ts";
+import { InvalidTxidError } from "../core/errors.ts";
 
 /** `0x` and 32 bytes of hex as the node writes a hash; `HashValue::from_str` reads either case. */
 const TXID = /^0x[0-9a-fA-F]{64}$/;

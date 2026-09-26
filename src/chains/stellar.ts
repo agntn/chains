@@ -1,6 +1,6 @@
-import { Chain } from "../core/chain.js";
-import { crc16Xmodem } from "../core/crc16.js";
-import { InvalidAddressError, InvalidTxidError } from "../core/errors.js";
+import { Chain } from "../core/chain.ts";
+import { crc16Xmodem } from "../core/crc16.ts";
+import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 
 const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 /** SHA-256 of the transaction as Horizon writes and reads it: 64 hex digits, lowercase only. */

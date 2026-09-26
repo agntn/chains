@@ -1,7 +1,7 @@
-import type { Chain } from "./chain.js";
-import { UnsupportedChainError } from "./errors.js";
-import type { ChainKey } from "./types.js";
-import { chains, create } from "./registry.js";
+import type { Chain } from "./chain.ts";
+import { UnsupportedChainError } from "./errors.ts";
+import type { ChainKey } from "./types.ts";
+import { chains, create } from "./registry.ts";
 /**
  * Only spellings the registry cannot answer itself. Canonical keys resolve
  * straight off the registry, so a chain listed here under its own key is dead

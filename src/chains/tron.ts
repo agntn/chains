@@ -1,6 +1,6 @@
-import { decodeBase58Check } from "../core/base58check.js";
-import { Chain } from "../core/chain.js";
-import { InvalidAddressError, InvalidTxidError } from "../core/errors.js";
+import { decodeBase58Check } from "../core/base58check.ts";
+import { Chain } from "../core/chain.ts";
+import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 
 /** SHA-256 of `raw_data` as java-tron writes it, 64 hex digits; the node reads either case. */
 const TXID = /^[0-9a-fA-F]{64}$/;

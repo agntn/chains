@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { cpSync, existsSync, globSync, mkdirSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { beforeAll, describe, expect, it } from "vitest";
 
@@ -8,6 +9,17 @@ const root = resolve(import.meta.dirname, "../..");
 const bin = resolve(root, "dist/cli.mjs");
 const hook = resolve(root, "test/record-loads.ts");
 const server = pathToFileURL(resolve(root, "dist/mcp.mjs")).href;
+const sourceServer = pathToFileURL(resolve(root, "src/mcp.ts")).href;
+const initialize = `${JSON.stringify({
+  jsonrpc: "2.0",
+  id: 1,
+  method: "initialize",
+  params: {
+    protocolVersion: "2025-06-18",
+    capabilities: {},
+    clientInfo: { name: "chains-test", version: "1.0.0" },
+  },
+})}\n`;
 
 /** What one run of the built bin printed, how it exited and every module URL it loaded. */
 interface BinRun {
@@ -17,16 +29,23 @@ interface BinRun {
 }
 
 /**
- * Runs the built bin under the load hook. citty exits the process itself, so the hook reports then.
+ * Runs plain Node under the load hook. citty exits the process itself, so the hook reports then.
  *
- * @param {readonly string[]} args - Arguments for the bin.
+ * @param {readonly string[]} args - Node arguments after the hook import.
  * @param {string} input - What the child reads on stdin, empty by default.
+ * @param {Readonly<Record<string, string>>} env - Extra environment; an inherited `CHAINS_DIST` is dropped.
  * @returns {BinRun} The exit status, stdout and the loaded module URLs.
  */
-function runBin(args: readonly string[], input = ""): BinRun {
-  const result = spawnSync(process.execPath, ["--import", hook, bin, ...args], {
+function runNode(
+  args: readonly string[],
+  input = "",
+  env: Readonly<Record<string, string>> = {},
+): BinRun {
+  const { CHAINS_DIST: _inherited, ...environment } = process.env;
+  const result = spawnSync(process.execPath, ["--import", hook, ...args], {
     cwd: root,
     encoding: "utf8",
+    env: { ...environment, ...env },
     input,
     timeout: 20_000,
   });
@@ -39,6 +58,32 @@ function runBin(args: readonly string[], input = ""): BinRun {
     throw new TypeError(`the load hook reported something other than a list: ${report}`);
   }
   return { loaded: loaded.map(String), status: result.status, stdout: result.stdout };
+}
+
+/**
+ * Runs the built bin of the checkout under the load hook.
+ *
+ * @param {readonly string[]} args - Arguments for the bin.
+ * @param {string} input - What the child reads on stdin, empty by default.
+ * @param {Readonly<Record<string, string>>} env - Extra environment for the child.
+ * @returns {BinRun} The exit status, stdout and the loaded module URLs.
+ */
+function runBin(
+  args: readonly string[],
+  input = "",
+  env: Readonly<Record<string, string>> = {},
+): BinRun {
+  return runNode([bin, ...args], input, env);
+}
+
+/**
+ * The first JSON-RPC message a stdio server wrote.
+ *
+ * @param {BinRun} run - A run of `chains mcp` fed the initialize request.
+ * @returns {unknown} The parsed response.
+ */
+function firstResponse(run: BinRun): unknown {
+  return JSON.parse(run.stdout.trim().split("\n")[0] ?? "");
 }
 
 /**
@@ -87,23 +132,78 @@ describe("chains usage paths", () => {
     expect(run.loaded).not.toContain(server);
   });
 
-  it("chains mcp serves the server over stdio", () => {
-    const initialize = {
-      jsonrpc: "2.0",
-      id: 1,
-      method: "initialize",
-      params: {
-        protocolVersion: "2025-06-18",
-        capabilities: {},
-        clientInfo: { name: "chains-test", version: "1.0.0" },
-      },
-    };
-    const run = runBin(["mcp"], `${JSON.stringify(initialize)}\n`);
-    const response: unknown = JSON.parse(run.stdout.trim().split("\n")[0] ?? "");
+  it("chains mcp serves the live source inside a checkout", () => {
+    const run = runBin(["mcp"], initialize);
 
     expect(run.status).toBe(0);
-    expect(response).toMatchObject({ id: 1, result: { serverInfo: { name: "chains" } } });
+    expect(firstResponse(run)).toMatchObject({ id: 1, result: { serverInfo: { name: "chains" } } });
     expect(packagesOf(run.loaded)).toContain("@modelcontextprotocol/sdk");
+    expect(run.loaded).toContain(sourceServer);
+    expect(run.loaded).not.toContain(server);
+  });
+
+  it("chains mcp keeps the bundle under CHAINS_DIST=1", () => {
+    const run = runBin(["mcp"], initialize, { CHAINS_DIST: "1" });
+
+    expect(run.status).toBe(0);
+    expect(firstResponse(run)).toMatchObject({ id: 1, result: { serverInfo: { name: "chains" } } });
     expect(run.loaded).toContain(server);
+    expect(run.loaded).not.toContain(sourceServer);
+  });
+
+  it("chains mcp keeps the bundle when the package sits under node_modules", () => {
+    const cache = join(root, "node_modules/.cache");
+    mkdirSync(cache, { recursive: true });
+    const copy = mkdtempSync(join(cache, "chains-cli-"));
+    try {
+      for (const entry of ["dist", "src", "package.json"]) {
+        cpSync(join(root, entry), join(copy, entry), { recursive: true });
+      }
+      const run = runNode([join(copy, "dist/cli.mjs"), "mcp"], initialize);
+      const copiedSource = pathToFileURL(join(copy, "src/")).href;
+
+      expect(run.status).toBe(0);
+      expect(run.loaded).toContain(pathToFileURL(join(copy, "dist/mcp.mjs")).href);
+      expect(run.loaded.filter((url) => url.startsWith(copiedSource))).toEqual([]);
+    } finally {
+      rmSync(copy, { recursive: true, force: true });
+    }
+  });
+
+  it("chains mcp keeps the bundle in a package that ships no src", () => {
+    const copy = mkdtempSync(join(tmpdir(), "chains-cli-"));
+    try {
+      cpSync(join(root, "dist"), join(copy, "dist"), { recursive: true });
+      cpSync(join(root, "package.json"), join(copy, "package.json"));
+      symlinkSync(join(root, "node_modules"), join(copy, "node_modules"), "dir");
+      const run = runNode([join(copy, "dist/cli.mjs"), "mcp"], initialize);
+
+      expect(run.status).toBe(0);
+      expect(firstResponse(run)).toMatchObject({
+        id: 1,
+        result: { serverInfo: { name: "chains" } },
+      });
+      expect(run.loaded).toContain(pathToFileURL(join(copy, "dist/mcp.mjs")).href);
+    } finally {
+      rmSync(copy, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("chains source under plain Node", () => {
+  it("imports every module in src without a loader", () => {
+    const modules = globSync("src/**/*.ts", { cwd: root }).filter(
+      (file) => file !== join("src", "cli.ts"),
+    );
+    const script = modules
+      .map((file) => `await import(${JSON.stringify(pathToFileURL(join(root, file)).href)});`)
+      .join("\n");
+    const run = runNode(["--input-type=module", "-e", script]);
+
+    expect(modules.length).toBeGreaterThan(0);
+    expect(run.status).toBe(0);
+    expect(run.loaded).toEqual(
+      expect.arrayContaining(modules.map((file) => pathToFileURL(join(root, file)).href)),
+    );
   });
 });

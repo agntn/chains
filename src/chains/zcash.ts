@@ -1,8 +1,8 @@
-import { decodeBase58Check } from "../core/base58check.js";
-import { BECH32, BECH32M, bech32Digits, bytesFromDigits, polymod } from "../core/bech32.js";
-import { UTXO } from "../core/chain.js";
-import { InvalidAddressError } from "../core/errors.js";
-import { F4JUMBLE_MAX, f4jumbleInverse } from "../core/f4jumble.js";
+import { decodeBase58Check } from "../core/base58check.ts";
+import { BECH32, BECH32M, bech32Digits, bytesFromDigits, polymod } from "../core/bech32.ts";
+import { UTXO } from "../core/chain.ts";
+import { InvalidAddressError } from "../core/errors.ts";
+import { F4JUMBLE_MAX, f4jumbleInverse } from "../core/f4jumble.ts";
 
 /** Most digits a Unified Address can carry: F4Jumble's longest input, then the checksum. */
 const UNIFIED_DIGITS = Math.ceil((F4JUMBLE_MAX * 8) / 5) + 6;

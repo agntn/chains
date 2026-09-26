@@ -7,7 +7,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { Type, type TSchema } from "typebox";
 import { Value } from "typebox/value";
-import { stripControlCharacters } from "./core/text.js";
+import { stripControlCharacters } from "./core/text.ts";
 import {
   identifyAddress,
   listChains,
@@ -15,8 +15,8 @@ import {
   validateChainAddress,
   validateChainTxid,
   type ToolResult,
-} from "./tool-operations.js";
-import { version } from "./version.js";
+} from "./tool-operations.ts";
+import { version } from "./version.ts";
 
 interface ToolDefinition {
   name: string;

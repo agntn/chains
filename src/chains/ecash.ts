@@ -1,6 +1,6 @@
-import { decodeCashAddr } from "../core/cashaddr.js";
-import { UTXO } from "../core/chain.js";
-import { InvalidAddressError } from "../core/errors.js";
+import { decodeCashAddr } from "../core/cashaddr.ts";
+import { UTXO } from "../core/chain.ts";
+import { InvalidAddressError } from "../core/errors.ts";
 
 export class Ecash extends UTXO {
   static readonly key = "ecash" as const;

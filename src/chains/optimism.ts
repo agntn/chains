@@ -1,4 +1,4 @@
-import { EVM } from "../core/chain.js";
+import { EVM } from "../core/chain.ts";
 
 export class Optimism extends EVM {
   static readonly key = "optimism" as const;

@@ -1,6 +1,6 @@
 import { defineCommand } from "citty";
 import consola from "consola";
-import { resolveOrFail } from "./shared.js";
+import { resolveOrFail } from "./shared.ts";
 
 export default defineCommand({
   meta: {
