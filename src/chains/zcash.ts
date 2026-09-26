@@ -4,9 +4,6 @@ import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
 import { F4JUMBLE_MAX, f4jumbleInverse } from "../core/f4jumble.ts";
 
-/** Most digits a Unified Address can carry: F4Jumble's longest input, then the checksum. */
-const UNIFIED_DIGITS = Math.ceil((F4JUMBLE_MAX * 8) / 5) + 6;
-
 /**
  * Revision 0's floor under F4Jumble. Revision 2 lowered it to 38 for `tu` addresses and lets a
  * reader keep 48 for `u`: between the two only an unassigned typecode fits.
@@ -101,7 +98,8 @@ function validItem({ typecode, length }: Item, previous: number): boolean {
  * @returns {Uint8Array | undefined} The raw encoding, or undefined when a layer does not hold.
  */
 function unwrapUnified(address: string): Uint8Array | undefined {
-  const data = bech32Digits(address, "u", UNIFIED_DIGITS);
+  // Most digits a Unified Address can carry: F4Jumble's longest input, then the checksum.
+  const data = bech32Digits(address, "u", Math.ceil((F4JUMBLE_MAX * 8) / 5) + 6);
   if (data === undefined || polymod("u", data) !== BECH32M) return undefined;
   const jumbled = bytesFromDigits(data.slice(0, -6));
   if (!jumbled || jumbled.length < REVISION_0_MIN) return undefined;

@@ -1,4 +1,4 @@
-import { PERMUTATIONS } from "./blake256.ts";
+import { permutation } from "./blake256.ts";
 
 /**
  * BLAKE2b as RFC 7693 writes it, with the personalization field that Zcash's F4Jumble hashes
@@ -15,7 +15,7 @@ const INITIAL = [
 ] as const;
 
 /** Twelve rounds: BLAKE's ten permutations, then the first two again. */
-const ROUNDS = [...PERMUTATIONS, ...PERMUTATIONS.slice(0, 2)];
+const ROUNDS = 12;
 
 /** The four words each G call mixes, columns first and diagonals after, as half indices. */
 const SLOTS = [
@@ -117,14 +117,15 @@ function compress(
     v[a + 1] = shift === 0 ? high : (high >>> shift) | (low << (32 - shift));
   };
 
-  for (const permutation of ROUNDS) {
+  for (let round = 0; round < ROUNDS; round++) {
+    const sigma = permutation(round);
     for (let call = 0; call < 8; call++) {
       const [a, b, c, d] = SLOTS[call] ?? SLOTS[0];
-      add(a, b, (permutation[2 * call] ?? 0) * 2);
+      add(a, b, (sigma[2 * call] ?? 0) * 2);
       rotate(d, a, 32);
       add(c, d);
       rotate(b, c, 24);
-      add(a, b, (permutation[2 * call + 1] ?? 0) * 2);
+      add(a, b, (sigma[2 * call + 1] ?? 0) * 2);
       rotate(d, a, 16);
       add(c, d);
       rotate(b, c, 63);

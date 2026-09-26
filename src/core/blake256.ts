@@ -16,10 +16,10 @@ const INITIAL: Readonly<State> = [
 ];
 
 /**
- * The ten message permutations, which BLAKE2b takes over unchanged. Rounds eleven through
- * fourteen walk the first four again.
+ * The ten message permutations, which BLAKE2b takes over unchanged. Round r takes
+ * permutation r mod 10, so rounds eleven through fourteen walk the first four again.
  */
-export const PERMUTATIONS = [
+const PERMUTATIONS = [
   [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
   [14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3],
   [11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4],
@@ -32,7 +32,16 @@ export const PERMUTATIONS = [
   [10, 2, 8, 4, 7, 6, 1, 5, 15, 11, 9, 14, 3, 12, 13, 0],
 ] as const;
 
-const ROUNDS = [...PERMUTATIONS, ...PERMUTATIONS.slice(0, 4)];
+const ROUNDS = 14;
+
+/**
+ * Round r's message permutation, σ_(r mod 10).
+ * @param {number} round - Round index from zero.
+ * @returns {readonly number[]} The permutation.
+ */
+export function permutation(round: number): readonly number[] {
+  return PERMUTATIONS[round % PERMUTATIONS.length] ?? PERMUTATIONS[0];
+}
 
 /** The four words each G call of a round mixes: the columns first, then the diagonals. */
 const SLOTS = [
@@ -95,7 +104,8 @@ function compress(
     (CONSTANTS[6] ^ high) >>> 0,
     (CONSTANTS[7] ^ high) >>> 0,
   ];
-  for (const sigma of ROUNDS) {
+  for (let round = 0; round < ROUNDS; round++) {
+    const sigma = permutation(round);
     for (const [call, [a, b, c, d]] of SLOTS.entries()) {
       const i = sigma[2 * call] ?? 0;
       const j = sigma[2 * call + 1] ?? 0;
