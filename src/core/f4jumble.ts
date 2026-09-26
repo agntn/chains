@@ -13,8 +13,18 @@ const HASH_LENGTH = 64;
 export const F4JUMBLE_MIN = 38;
 export const F4JUMBLE_MAX = (2 ** 16 + 1) * HASH_LENGTH;
 
-const H_TAG = Array.from("UA_F4Jumble_H", (character) => character.codePointAt(0) ?? 0);
-const G_TAG = Array.from("UA_F4Jumble_G", (character) => character.codePointAt(0) ?? 0);
+const H_TAG = "UA_F4Jumble_H";
+const G_TAG = "UA_F4Jumble_G";
+
+/**
+ * The sixteen personalization bytes: the ASCII tag, then three more.
+ * @param {string} tag - `UA_F4Jumble_H` or `UA_F4Jumble_G`.
+ * @param {number[]} tail - i, then two zero bytes or the block counter.
+ * @returns {number[]} The personalization field.
+ */
+function personalization(tag: string, ...tail: readonly number[]): number[] {
+  return [...Array.from(tag, (character) => character.codePointAt(0) ?? 0), ...tail];
+}
 
 /**
  * H_i: BLAKE2b under `UA_F4Jumble_H` and [i, 0, 0], as long as the left half.
@@ -24,7 +34,7 @@ const G_TAG = Array.from("UA_F4Jumble_G", (character) => character.codePointAt(0
  * @returns {Uint8Array} The mask for the left half.
  */
 function hashRound(round: number, input: ArrayLike<number>, length: number): Uint8Array {
-  return blake2b(input, length, [...H_TAG, round, 0, 0]);
+  return blake2b(input, length, personalization(H_TAG, round, 0, 0));
 }
 
 /**
@@ -38,7 +48,7 @@ function hashRound(round: number, input: ArrayLike<number>, length: number): Uin
 function expandRound(round: number, input: ArrayLike<number>, length: number): Uint8Array {
   const output = new Uint8Array(Math.ceil(length / HASH_LENGTH) * HASH_LENGTH);
   for (let block = 0; block * HASH_LENGTH < length; block++) {
-    const personal = [...G_TAG, round, block & 0xff, block >>> 8];
+    const personal = personalization(G_TAG, round, block & 0xff, block >>> 8);
     output.set(blake2b(input, HASH_LENGTH, personal), block * HASH_LENGTH);
   }
   return output.subarray(0, length);

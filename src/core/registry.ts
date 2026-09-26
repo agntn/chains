@@ -3,21 +3,31 @@ import type { Chain, ChainConstructor } from "./chain.ts";
 import { UnknownChainError } from "./errors.ts";
 import type { ChainKey } from "./types.ts";
 
-/** Seeded from `builtins`, and `register` keeps it open. */
-const registry = new Map<ChainKey, ChainConstructor>(
-  builtins.map((chainClass) => [chainClass.key, chainClass] as const),
-);
+let registry: Map<ChainKey, ChainConstructor> | undefined;
+
+/**
+ * Seeded from `builtins` on first use, and `register` keeps it open.
+ *
+ * Built at module scope, the map was a call a bundler has to keep, and it held
+ * every chain class: an app importing `Bitcoin` alone shipped all of them.
+ *
+ * @returns {Map<ChainKey, ChainConstructor>} The registry.
+ */
+function entries(): Map<ChainKey, ChainConstructor> {
+  registry ??= new Map(builtins.map((chainClass) => [chainClass.key, chainClass] as const));
+  return registry;
+}
 export function register(chainClass: ChainConstructor): void {
-  registry.set(chainClass.key, chainClass);
+  entries().set(chainClass.key, chainClass);
 }
 export function create(key: ChainKey): Chain {
-  const ChainClass = registry.get(key);
+  const ChainClass = entries().get(key);
   if (!ChainClass) throw new UnknownChainError(key);
   return new ChainClass();
 }
 export function chains(): ChainKey[] {
-  return Array.from(registry.keys());
+  return Array.from(entries().keys());
 }
 export function has(key: ChainKey): boolean {
-  return registry.has(key);
+  return entries().has(key);
 }
