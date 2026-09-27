@@ -65,7 +65,7 @@
     "obuild": "0.4.40",
     "oxfmt": "0.63.0",
     "oxlint": "1.78.0",
-    "oxlint-tsgolint": "7.0.2002",
+    "oxlint-tsgolint": "7.0.2003",
     "rolldown": "1.2.11",
     "typescript": "7.0.2",
     "vitest": "4.1.11"
