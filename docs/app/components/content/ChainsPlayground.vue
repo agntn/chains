@@ -40,7 +40,7 @@ const OPERATIONS: ReadonlyArray<{
     key: "validate",
     label: "Validate",
     tool: "chains_validate_address",
-    about: "getChain(input).assertAddress(address): decoded, checksum verified where there is one.",
+    about: "getChain(input).assertAddress(address): decoded, checksum verified where the format has one.",
   },
   {
     key: "txid",

@@ -26,7 +26,7 @@ Names, symbols, families, coin types and identifiers come from the library throu
 - **Registry.** Bar `Call identify("<address>")`, meta `<matches> of <checked> accept`. Subject: the sample chain's reticle, the address whole on a solid ground, one sentence. Rule `Registry [ one validator per chain ]`, then a cell per chain in registry order (glyph, key, node): the sample's own chain a filled node on an accent edge, a chain that also accepts the format an accent outlined node, the rest quiet. Each cell has a `UTooltip` and links to its page. Footer: legend of the two nodes, previous and next.
 - **Verdict.** Bar `Call assertAddress("<address>")`. Subject: reticle, `Verdict / <key>`, `accepted once, rejected N×`. Readout: one row per check, the call, the returned value with a node (accent returned, red error), one line on what the row shows.
 - **Chain dossier.** ID bar with the key and `14 / 36`, meta `<type> · <symbol>`. Subject: reticle, `Chain / <family>`, name, the spellings as boxed strings. Readout: symbol with decimals, coin type, chain ID or CAIP-2, checks in the accent, a tick per optional field on the class (set in the accent). Bands `Network [ as the class declares it ]` and `Access [ library · CLI · playground ]` as leads, then `03 Full tool response` with the `chains_lookup` text. Values in the readout never wrap; the whole value is in the tooltip.
-- **Roster.** Columns chain (glyph, name, boxed key), symbol with decimals, family, chain ID or CAIP-2, coin type behind a leader. Coin types are not in the accent: 36 accent numbers read as a stain.
+- **Roster.** Columns chain (glyph, name, boxed key), symbol with decimals, family, chain ID or CAIP-2, coin type behind a leader. Coin types aren't in the accent. 36 accent numbers read as a stain.
 - **Playground.** Request: operations as leads, fields as `UInput` and `USelectMenu` with variant `none` in the readout, one chip per chain as `UButton` variant `chip`, CLI and tool JSON with copy. Response: a subject band per answer kind (lookup, verdict, census for identify, rows for list, error), `03 Full tool response`, footer to the chain page and the guide.
 
 ## Motion
@@ -44,7 +44,7 @@ Departures from the shared rules, recorded for the shared package:
 
 - The hero instrument is the registry map, not a walk of one record: the domain is many chains and one address, so the first screen shows the partition `identify()` makes. It hides below 48rem like any landing instrument; the file under it carries previous and next on a phone.
 - No network call anywhere: every instrument computes in the browser from the library, so no bar says `recorded` or `live`, and every footer that names locality says `no network`.
-- The version comes from the root `package.json`; there is no data version, so ID strips and footers carry none.
+- The version comes from the root `package.json`; there's no data version, so ID strips and footers carry none.
 - The OG images ship local Figtree and Fira Code TTFs, the keys mechanism.
 - `public/image.png`, the package image `package.json` points Pi at, is a copy of the built landing OG card. Copy it again from `.output/public/_og/s/` when the hero changes.
 
