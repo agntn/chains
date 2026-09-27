@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { chainsTheme } from "./shiki-theme";
 
 /** Bundled from the checkout's sources: a deploy needs neither dist/ nor the root node_modules. */
 const repoRoot = fileURLToPath(new URL("../", import.meta.url));
@@ -53,17 +54,25 @@ export default defineNuxtConfig({
   icon: {
     clientBundle: {
       icons: [
+        "lucide:arrow-down",
+        "lucide:arrow-left",
         "lucide:arrow-right",
+        "lucide:arrow-up",
         "lucide:arrow-up-right",
         "lucide:badge-check",
         "lucide:book-open",
         "lucide:bot",
         "lucide:check",
+        "lucide:check-circle",
+        "lucide:chevron-down",
         "lucide:chevron-left",
         "lucide:chevron-right",
+        "lucide:chevrons-up-down",
+        "lucide:circle-alert",
         "lucide:circle-check",
         "lucide:circle-x",
         "lucide:copy",
+        "lucide:expand",
         "lucide:external-link",
         "lucide:flask-conical",
         "lucide:leaf",
@@ -81,13 +90,13 @@ export default defineNuxtConfig({
         "token:ada",
         "token:apt",
         "token:ar",
-        "token:arc",
         "token:arbitrum-one",
+        "token:arc",
         "token:avax",
         "token:base",
+        "token:bch",
         "token:berachain",
         "token:bnb",
-        "token:bch",
         "token:bsv",
         "token:btc",
         "token:btg",
@@ -160,8 +169,8 @@ export default defineNuxtConfig({
   css: ["~/assets/fonts.css"],
   fonts: {
     families: [
-      { name: "Space Grotesk", provider: "local", weights: [400, 500, 600] },
-      { name: "Space Mono", provider: "local", weights: [400, 700] },
+      { name: "Figtree", provider: "local", weights: [400, 500] },
+      { name: "Fira Code", provider: "local", weights: [400, 500] },
     ],
   },
   content: {
@@ -173,9 +182,9 @@ export default defineNuxtConfig({
       markdown: {
         highlight: {
           theme: {
-            default: "github-light",
-            light: "github-light",
-            dark: "poimandres",
+            default: chainsTheme,
+            light: chainsTheme,
+            dark: chainsTheme,
           },
         },
       },
