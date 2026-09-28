@@ -384,7 +384,10 @@ export function validateChainTxid(input: string, rawTxid: string): ToolResult<Tx
     if (error instanceof InvalidTxidError) {
       return {
         content: [
-          { type: "text", text: `Invalid ${chain.name} (${chain.key}) txid: ${quoted(txid)}` },
+          {
+            type: "text",
+            text: `Invalid ${chain.name} (${chain.key}) txid: ${quoted(txid)}${error.reason ? ` - ${stripControlCharacters(error.reason)}` : ""}`,
+          },
         ],
         details: { chain: chain.key, txid, valid: false, reason: error.message },
       };

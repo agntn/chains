@@ -1,9 +1,7 @@
 import { decodeBase58Check } from "../core/base58check.ts";
 import { Chain } from "../core/chain.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
-
-/** SHA-256 of `raw_data` as java-tron writes it, 64 hex digits; the node reads either case. */
-const TXID = /^[0-9a-fA-F]{64}$/;
+import { hexTxidFault } from "../core/txid.ts";
 
 export class Tron extends Chain {
   static readonly key = "tron" as const;
@@ -34,13 +32,16 @@ export class Tron extends Chain {
   }
 
   /**
+   * SHA-256 of `raw_data` as java-tron writes it, 64 hex digits; the node reads either case.
+   *
    * No `0x`: the node strips one when it reads, but nothing on TRON writes one.
    *
    * @param {string} txid - Candidate TRON transaction id.
    * @returns {string} The accepted txid unchanged.
    */
   override assertTxid(txid: string): string {
-    if (!TXID.test(txid)) throw new InvalidTxidError(this.key, txid);
+    const fault = hexTxidFault(txid);
+    if (fault) throw new InvalidTxidError(this.key, txid, fault);
     return txid;
   }
 }

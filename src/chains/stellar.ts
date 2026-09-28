@@ -1,10 +1,9 @@
 import { Chain } from "../core/chain.ts";
 import { crc16Xmodem } from "../core/crc16.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
+import { hexTxidFault } from "../core/txid.ts";
 
 const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-/** SHA-256 of the transaction as Horizon writes and reads it: 64 hex digits, lowercase only. */
-const TXID = /^[0-9a-f]{64}$/;
 const STRKEY_TYPES: Readonly<
   Partial<Record<string, { readonly bytes: number; readonly version: number }>>
 > = {
@@ -77,6 +76,8 @@ export class Stellar extends Chain {
   }
 
   /**
+   * SHA-256 of the transaction as Horizon writes and reads it: 64 hex digits, lowercase only.
+   *
    * Uppercase is refused because Horizon refuses it: `isTransactionHash` wants the
    * lowercase spelling, and a hash that passes here has to pass there.
    *
@@ -84,7 +85,8 @@ export class Stellar extends Chain {
    * @returns {string} The accepted hash unchanged.
    */
   override assertTxid(txid: string): string {
-    if (!TXID.test(txid)) throw new InvalidTxidError(this.key, txid);
+    const fault = hexTxidFault(txid, { lowercase: true });
+    if (fault) throw new InvalidTxidError(this.key, txid, fault);
     return txid;
   }
 }

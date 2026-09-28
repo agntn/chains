@@ -1,10 +1,9 @@
 import { Chain } from "../core/chain.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 import { keccak256 } from "../core/keccak256.ts";
+import { hexTxidFault } from "../core/txid.ts";
 
 const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-/** Keccak-256 of the transaction, 32 bytes as hex, either case. */
-const TXID = /^[0-9a-fA-F]{64}$/;
 
 /**
  * Reads one block of digits as a number, or undefined on a digit outside the alphabet.
@@ -89,12 +88,15 @@ export class Monero extends Chain {
   }
 
   /**
+   * Keccak-256 of the transaction, 32 bytes as hex, either case.
+   *
    * Shape only, there's no transaction here to hash.
    * @param {string} txid - Candidate Monero transaction hash.
    * @returns {string} The accepted txid unchanged.
    */
   override assertTxid(txid: string): string {
-    if (!TXID.test(txid)) throw new InvalidTxidError(this.key, txid);
+    const fault = hexTxidFault(txid);
+    if (fault) throw new InvalidTxidError(this.key, txid, fault);
     return txid;
   }
 }

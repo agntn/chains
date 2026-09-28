@@ -5,6 +5,7 @@ import {
   TxidValidationUnsupportedError,
 } from "./errors.ts";
 import { keccak256 } from "./keccak256.ts";
+import { hexTxidFault } from "./txid.ts";
 import type { ChainInfo, ChainKey, ChainType, PowAlgorithm } from "./types.ts";
 
 export interface ChainConstructor {
@@ -66,8 +67,6 @@ export abstract class Chain implements ChainInfo {
 const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 /** `0x` and hex of any length, to tell a digit too many or too few from a wrong shape. */
 const EVM_HEX = /^0x[0-9a-fA-F]*$/;
-/** Keccak-256 of the signed transaction: `0x` and 32 bytes of hex, either case. */
-const EVM_TXID = /^0x[0-9a-fA-F]{64}$/;
 
 /**
  * EIP-55: a letter is uppercase where the matching nibble of the Keccak-256 of the
@@ -122,20 +121,32 @@ export abstract class EVM extends Chain {
     return address;
   }
 
+  /**
+   * Keccak-256 of the signed transaction: `0x` and 32 bytes of hex, either case.
+   *
+   * @param {string} txid - Candidate EVM transaction hash.
+   * @returns {string} The accepted hash unchanged.
+   */
   override assertTxid(txid: string): string {
-    if (!EVM_TXID.test(txid)) throw new InvalidTxidError(this.key, txid);
+    const fault = hexTxidFault(txid, { prefixed: true });
+    if (fault) throw new InvalidTxidError(this.key, txid, fault);
     return txid;
   }
 }
 
-/** A 32-byte transaction hash as 64 hex digits, either case and no `0x`. */
-const UTXO_TXID = /^[0-9a-fA-F]{64}$/;
-
 /** Bitcoin's lineage and Cardano share the shape of a txid, addresses stay with each chain. */
 export abstract class UTXO extends Chain {
   readonly type = "utxo" as const;
+
+  /**
+   * A 32-byte transaction hash as 64 hex digits, either case and no `0x`.
+   *
+   * @param {string} txid - Candidate transaction id.
+   * @returns {string} The accepted txid unchanged.
+   */
   override assertTxid(txid: string): string {
-    if (!UTXO_TXID.test(txid)) throw new InvalidTxidError(this.key, txid);
+    const fault = hexTxidFault(txid);
+    if (fault) throw new InvalidTxidError(this.key, txid, fault);
     return txid;
   }
 }

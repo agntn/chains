@@ -21,6 +21,7 @@ Scope: canonical blockchain classes, aliases, address validation and txid valida
 - `src/core/crc32.ts` is CRC-32 as zlib computes it, the checksum a Cardano Byron address closes with over its CBOR payload
 - `src/core/bech32.ts` reads Bech32 digits and packs them into bytes. The human-readable part and the digit bound are arguments, because BIP-173's 90-character cap is Bitcoin's rule and Cardano, Litecoin's MWEB and Zcash's Unified Addresses write past it
 - `src/core/segwit.ts` checks BIP-173/350 SegWit addresses on top of `bech32.ts` for the chains that took Bitcoin's witness program rules. The human-readable part is an argument, `bc` for Bitcoin, `ltc` for Litecoin and `btg` for Bitcoin Gold
+- `src/core/txid.ts` checks a txid written as 32 bytes of hex and names every rule it breaks in the same call, so validity and reason can't disagree. The `0x` prefix and the lowercase rule are arguments
 - `src/core/cashaddr.ts` decodes CashAddr on top of `bech32.ts`'s byte packing for Bitcoin Cash and eCash. The prefix is an argument, and so is the choice of types and hash lengths: it hands back what the version byte says and each chain decides what it pays to
 - `src/chains/*.ts` is one concrete blockchain class per file
 - `src/chains/index.ts` holds `builtins`, the ordered list the registry is seeded from. A chain file that is not in it is not in the registry

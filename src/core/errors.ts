@@ -76,12 +76,15 @@ export class AddressValidationUnsupportedError extends ChainsError {
 export class InvalidTxidError extends ChainsError {
   readonly chain: ChainKey;
   readonly txid: string;
+  /** What the check tripped on, under the contract of {@link InvalidAddressError.reason}. */
+  readonly reason?: string;
 
-  constructor(chain: ChainKey, txid: string) {
-    super(`Invalid ${chain} txid: ${txid}`);
+  constructor(chain: ChainKey, txid: string, reason?: string) {
+    super(`Invalid ${chain} txid: ${txid}${reason ? ` - ${reason}` : ""}`);
     this.name = "InvalidTxidError";
     this.chain = chain;
     this.txid = txid;
+    this.reason = reason;
   }
 }
 

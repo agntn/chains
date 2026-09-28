@@ -31,7 +31,16 @@ export class Solana extends Chain {
    * @returns {string} The accepted signature unchanged.
    */
   override assertTxid(txid: string): string {
-    if (decodeBase58(txid, 88)?.length !== 64) throw new InvalidTxidError(this.key, txid);
+    const bytes = decodeBase58(txid, 88);
+    if (bytes?.length !== 64) {
+      throw new InvalidTxidError(
+        this.key,
+        txid,
+        bytes
+          ? `decodes to ${bytes.length} bytes, not the 64 of a signature`
+          : "not base58 of at most 88 characters",
+      );
+    }
     return txid;
   }
 }

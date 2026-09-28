@@ -572,7 +572,10 @@ describe("chains MCP server", () => {
     });
     expect(invalid.isError).not.toBe(true);
     expect(invalid.content).toEqual([
-      { type: "text", text: `Invalid Ethereum (ethereum) txid: "${txid}"` },
+      {
+        type: "text",
+        text: `Invalid Ethereum (ethereum) txid: "${txid}" - no 0x in front of the hex digits`,
+      },
     ]);
 
     const signature =

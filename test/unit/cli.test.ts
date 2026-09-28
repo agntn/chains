@@ -98,7 +98,9 @@ describe("CLI output escaping", () => {
     );
 
     expect(written).not.toMatch(CONTROL);
-    expect(written).toBe('Invalid bitcoin txid: "deadbeef\\n\\u001b[32m Valid Bitcoin txid"');
+    expect(written).toBe(
+      'Invalid bitcoin txid: "deadbeef\\n\\u001b[32m Valid Bitcoin txid" - not 64 hex digits',
+    );
     expect(process.exitCode).toBe(1);
   });
 

@@ -48,9 +48,14 @@ export function validateText(
   return `${valid ? "Valid" : "Invalid"} ${chain.name} (${chain.key}) address: ${quoted(address)}${reason ? ` - ${stripControlCharacters(reason)}` : ""}`;
 }
 
-/** Mirrors the `chains_validate_txid` text for a checked transaction id. */
-export function validateTxidText(chain: Chain, txid: string, valid: boolean): string {
-  return `${valid ? "Valid" : "Invalid"} ${chain.name} (${chain.key}) txid: ${quoted(txid)}`;
+/** Mirrors the `chains_validate_txid` text for a checked transaction id, reason included. */
+export function validateTxidText(
+  chain: Chain,
+  txid: string,
+  valid: boolean,
+  reason?: string,
+): string {
+  return `${valid ? "Valid" : "Invalid"} ${chain.name} (${chain.key}) txid: ${quoted(txid)}${reason ? ` - ${stripControlCharacters(reason)}` : ""}`;
 }
 
 /** Mirrors the `chains_identify_address` text: the partition grouped by family. */
