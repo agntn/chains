@@ -45,6 +45,21 @@ function checksumFault(hrp: string, data: readonly number[], version: number): s
     : `a Bech32 checksum under witness version ${version}, where BIP-350 wants Bech32m`;
 }
 
+/** Letters, the separator, then Bech32 digits alone: a SegWit address, whichever chain it was written for. */
+const BECH32_SHAPE = /^[a-z]+1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]+$/i;
+
+/**
+ * Whether the SegWit reader should explain a rejection rather than the Base58Check one: the
+ * address opens with this chain's prefix, or it is Bech32 written for another chain or network.
+ * Only the reason depends on it. What passes is Base58Check or SegWit, whichever holds.
+ * @param {string} address - Candidate address the Base58Check reader turned down.
+ * @param {string} hrp - Lowercase human-readable part of this chain.
+ * @returns {boolean} Whether the address reads as SegWit.
+ */
+export function segwitShaped(address: string, hrp: string): boolean {
+  return address.slice(0, hrp.length + 1).toLowerCase() === `${hrp}1` || BECH32_SHAPE.test(address);
+}
+
 /**
  * Checks a SegWit address and says what is wrong with it: Bech32 for witness v0 and Bech32m
  * for v1 through v16, as BIP-350 requires. Every fault the digits show is named at once.

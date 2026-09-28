@@ -1,7 +1,7 @@
 import { base58CheckFault } from "../core/base58check.ts";
 import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
-import { segwitFault } from "../core/segwit.ts";
+import { segwitFault, segwitShaped } from "../core/segwit.ts";
 
 export class BitcoinGold extends UTXO {
   static readonly key = "bitcoingold" as const;
@@ -22,9 +22,8 @@ export class BitcoinGold extends UTXO {
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    const fault = /^btg1/i.test(address)
-      ? segwitFault(address, "btg")
-      : base58CheckFault(address, 35, { width: 25, versions: [0x26, 0x17] });
+    const legacy = base58CheckFault(address, 35, { width: 25, versions: [0x26, 0x17] });
+    const fault = legacy && segwitShaped(address, "btg") ? segwitFault(address, "btg") : legacy;
     if (fault) throw new InvalidAddressError(this.key, address, fault);
     return address;
   }

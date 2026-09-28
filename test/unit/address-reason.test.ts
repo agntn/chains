@@ -280,6 +280,14 @@ describe("Base58Check and SegWit rejection reason", () => {
       "digits that do not pack into whole bytes with zero padding",
     ],
     ["bitcoin", "bc1gmk9yu", "6 characters after bc1, fewer than the 7 a checksum takes"],
+    ["bitcoin", "ltc1qhdhvrwe6rgqns8fz28tee0hphr5x7ulw5exv4w", "does not start with bc1"],
+    [
+      "bitcoin",
+      "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
+      "does not start with bc1",
+    ],
+    ["litecoin", "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", "does not start with ltc1"],
+    ["bitcoingold", "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", "does not start with btg1"],
     [
       "dogecoin",
       "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",

@@ -2,7 +2,7 @@ import { base58CheckFault } from "../core/base58check.ts";
 import { BECH32, bytesFromDigits, polymod, readBech32Digits } from "../core/bech32.ts";
 import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
-import { segwitFault } from "../core/segwit.ts";
+import { segwitFault, segwitShaped } from "../core/segwit.ts";
 
 /** Scan and spend public keys, 33 bytes each: 106 digits, the version before them, the checksum after. */
 const MWEB_DIGITS = 113;
@@ -50,10 +50,9 @@ export class Litecoin extends UTXO {
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    let fault: string | undefined;
-    if (/^ltcmweb1/i.test(address)) fault = mwebFault(address);
-    else if (/^ltc1/i.test(address)) fault = segwitFault(address, "ltc");
-    else fault = base58CheckFault(address, 35, { width: 25, versions: [0x30, 0x32] });
+    let fault = base58CheckFault(address, 35, { width: 25, versions: [0x30, 0x32] });
+    if (fault && /^ltcmweb1/i.test(address)) fault = mwebFault(address);
+    else if (fault && segwitShaped(address, "ltc")) fault = segwitFault(address, "ltc");
     if (fault) throw new InvalidAddressError(this.key, address, fault);
     return address;
   }
