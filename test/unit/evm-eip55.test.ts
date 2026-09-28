@@ -214,8 +214,8 @@ describe("EVM rejection reason", () => {
     const error = new InvalidAddressError("bitcoin", "1Bad");
     expect(error.reason).toBeUndefined();
     expect(error.message).toBe("Invalid bitcoin address: 1Bad");
-    expect(validateChainAddress("bitcoin", "1Bad").content).toEqual([
-      { type: "text", text: 'Invalid Bitcoin (bitcoin) address: "1Bad"' },
+    expect(validateChainAddress("solana", "1Bad").content).toEqual([
+      { type: "text", text: 'Invalid Solana (solana) address: "1Bad"' },
     ]);
   });
 });

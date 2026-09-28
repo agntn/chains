@@ -52,7 +52,7 @@ describe("CLI output escaping", () => {
 
     expect(written).not.toMatch(CONTROL);
     expect(written).toBe(
-      'Invalid bitcoin address: "1BadAddress\\n\\u001b[32m Valid Bitcoin address"',
+      'Invalid bitcoin address: "1BadAddress\\n\\u001b[32m Valid Bitcoin address" - 39 characters, more than the 35 this chain writes; 7 characters that are not base58 digits, the first "\\n" at position 12',
     );
   });
 
