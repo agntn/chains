@@ -168,7 +168,10 @@ describe("chains MCP server", () => {
     });
     expect(invalid.isError).not.toBe(true);
     expect(invalid.content).toEqual([
-      { type: "text", text: `Invalid Decred (decred) address: "${address}0"` },
+      {
+        type: "text",
+        text: `Invalid Decred (decred) address: "${address}0" - 1 character that is not a base58 digit, the first "0" at position 36`,
+      },
     ]);
   });
 

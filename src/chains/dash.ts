@@ -1,4 +1,4 @@
-import { decodeBase58Check } from "../core/base58check.ts";
+import { base58CheckFault } from "../core/base58check.ts";
 import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
 
@@ -21,10 +21,8 @@ export class Dash extends UTXO {
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    const decoded = decodeBase58Check(address, 34);
-    if (decoded?.length !== 25 || (decoded[0] !== 0x4c && decoded[0] !== 0x10)) {
-      throw new InvalidAddressError(this.key, address);
-    }
+    const fault = base58CheckFault(address, 34, { width: 25, versions: [0x4c, 0x10] });
+    if (fault) throw new InvalidAddressError(this.key, address, fault);
     return address;
   }
 }

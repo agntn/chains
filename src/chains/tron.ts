@@ -1,4 +1,4 @@
-import { decodeBase58Check } from "../core/base58check.ts";
+import { base58CheckFault } from "../core/base58check.ts";
 import { Chain } from "../core/chain.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 import { hexTxidFault } from "../core/txid.ts";
@@ -24,10 +24,8 @@ export class Tron extends Chain {
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    const decoded = decodeBase58Check(address, 34);
-    if (decoded?.length !== 25 || decoded[0] !== 0x41) {
-      throw new InvalidAddressError(this.key, address);
-    }
+    const fault = base58CheckFault(address, 34, { width: 25, versions: [0x41] });
+    if (fault) throw new InvalidAddressError(this.key, address, fault);
     return address;
   }
 
