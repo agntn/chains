@@ -1,6 +1,7 @@
 import { Chain } from "../core/chain.ts";
 import { crc16Xmodem } from "../core/crc16.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
+import { hexTxidFault } from "../core/txid.ts";
 
 /**
  * TEP-2 user-friendly form: 36 bytes in unpadded base64, so exactly 48
@@ -17,6 +18,22 @@ const HEX_TXID = /^[0-9a-fA-F]{64}$/;
  * digit carries four bits, so its two spare bits have to be zero.
  */
 const BASE64_TXID = /^(?:[A-Za-z0-9+/]{42}|[A-Za-z0-9_-]{42})[AEIMQUYcgkosw048]=$/;
+/** Hex digits with or without `0x`, to read a txid meant as hex by the hex rule. */
+const HEX_LIKE = /^(?:0x)?[0-9a-fA-F]+$/;
+
+/**
+ * Says why a TON txid fits neither spelling, reading it as the one it was meant to be.
+ *
+ * @param {string} txid - A txid both spellings refused.
+ * @returns {string} The rule it breaks.
+ */
+function tonTxidFault(txid: string): string {
+  if (BASE64_TXID.test(`${txid}=`)) {
+    return "base64 without its closing =, which TON's own tools never leave out";
+  }
+  const hex = HEX_LIKE.test(txid) ? hexTxidFault(txid) : undefined;
+  return hex ?? "neither 64 hex digits nor 44 characters of base64 ending in =";
+}
 
 /**
  * Decodes the 36 bytes behind a friendly address, or undefined when the text is not
@@ -76,7 +93,7 @@ export class Ton extends Chain {
    */
   override assertTxid(txid: string): string {
     if (!HEX_TXID.test(txid) && !BASE64_TXID.test(txid)) {
-      throw new InvalidTxidError(this.key, txid);
+      throw new InvalidTxidError(this.key, txid, tonTxidFault(txid));
     }
     return txid;
   }

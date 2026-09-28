@@ -2,6 +2,9 @@ import { decodeBase58 } from "../core/base58.ts";
 import { Move } from "../core/chain.ts";
 import { InvalidTxidError } from "../core/errors.ts";
 
+/** Hex with `0x`, how Sui writes an address and never a digest. */
+const HEX = /^0x[0-9a-fA-F]+$/;
+
 export class Sui extends Move {
   static readonly key = "sui" as const;
   readonly name = "Sui";
@@ -20,7 +23,13 @@ export class Sui extends Move {
    * @returns {string} The accepted digest unchanged.
    */
   override assertTxid(txid: string): string {
-    if (decodeBase58(txid, 44)?.length !== 32) throw new InvalidTxidError(this.key, txid);
+    const bytes = decodeBase58(txid, 44);
+    if (bytes?.length !== 32) {
+      let reason = "not base58 of at most 44 characters";
+      if (bytes) reason = `decodes to ${bytes.length} bytes, not the 32 of a digest`;
+      else if (HEX.test(txid)) reason = "hex, and Sui writes a digest in base58";
+      throw new InvalidTxidError(this.key, txid, reason);
+    }
     return txid;
   }
 }

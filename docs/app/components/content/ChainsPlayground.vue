@@ -159,7 +159,12 @@ const answer = computed<Answer>(() => {
       return { kind: "txid", chain, valid: true, text: validateTxidText(chain, id, true) };
     } catch (error) {
       if (error instanceof InvalidTxidError) {
-        return { kind: "txid", chain, valid: false, text: validateTxidText(chain, id, false) };
+        return {
+          kind: "txid",
+          chain,
+          valid: false,
+          text: validateTxidText(chain, id, false, error.reason),
+        };
       }
       if (error instanceof TxidValidationUnsupportedError) return failure(error);
       throw error;

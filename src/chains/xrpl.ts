@@ -1,15 +1,10 @@
 import { decodeBase58Check } from "../core/base58check.ts";
 import { Chain } from "../core/chain.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
+import { hexTxidFault } from "../core/txid.ts";
 
 /** The ledger's base58 digits: Bitcoin's 58 characters reordered, so `r` is zero. */
 export const XRP_ALPHABET = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";
-
-/**
- * SHA-512Half of the signed transaction: 64 hex digits, uppercase as rippled writes them and
- * either case as its `parseHex` reads them.
- */
-const TXID = /^[0-9a-fA-F]{64}$/;
 
 function containsOnlyZeroes(bytes: ArrayLike<number>, start: number, end: number): boolean {
   for (let index = start; index < end; index++) {
@@ -62,6 +57,9 @@ export class Xrpl extends Chain {
   }
 
   /**
+   * SHA-512Half of the signed transaction: 64 hex digits, uppercase as rippled writes
+   * them and either case as its `parseHex` reads them.
+   *
    * The hash only. A CTID (XLS-37) locates a transaction too, but rippled takes it as
    * a separate parameter, not as the transaction hash.
    *
@@ -69,7 +67,8 @@ export class Xrpl extends Chain {
    * @returns {string} The accepted hash unchanged.
    */
   override assertTxid(txid: string): string {
-    if (!TXID.test(txid)) throw new InvalidTxidError(this.key, txid);
+    const fault = hexTxidFault(txid);
+    if (fault) throw new InvalidTxidError(this.key, txid, fault);
     return txid;
   }
 }

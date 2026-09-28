@@ -13,10 +13,9 @@ import { resolveOrFail } from "./shared.ts";
  * @returns {string} One line with no control characters from the caller or a custom chain.
  */
 function failureLine(error: Readonly<ChainsError>, rejection: string): string {
-  if (error instanceof InvalidAddressError) {
+  if (error instanceof InvalidAddressError || error instanceof InvalidTxidError) {
     return error.reason ? `${rejection} - ${stripControlCharacters(error.reason)}` : rejection;
   }
-  if (error instanceof InvalidTxidError) return rejection;
   return stripControlCharacters(error.message);
 }
 

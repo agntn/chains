@@ -132,7 +132,7 @@ describe("txid validation on the chains outside the hex families", () => {
     const rejected = validateChainTxid("xlm", live.stellar.toUpperCase());
     expect(rejected.isError).toBeUndefined();
     expect(rejected.content[0]?.text).toBe(
-      `Invalid Stellar (stellar) txid: "${live.stellar.toUpperCase()}"`,
+      `Invalid Stellar (stellar) txid: "${live.stellar.toUpperCase()}" - uppercase hex digits, and this chain reads lowercase only`,
     );
   });
 });

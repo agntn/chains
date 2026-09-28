@@ -3,6 +3,19 @@ import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 
 /** A 32-byte hash in unpadded base64url has two unused zero bits in its last digit. */
 const HASH = /^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/;
+const BASE64URL = /^[A-Za-z0-9_-]*$/;
+
+/**
+ * Says which part of the hash rule a string misses.
+ *
+ * @param {string} text - A string {@link HASH} refused.
+ * @returns {string} The rule it breaks.
+ */
+function hashFault(text: string): string {
+  if (!BASE64URL.test(text)) return "characters outside base64url";
+  if (text.length !== 43) return `${text.length} base64url characters, not 43`;
+  return "the last character sets bits a 32-byte hash leaves zero";
+}
 
 /** Arweave mainnet with canonical base64url addresses, without a CRC suffix. */
 export class Arweave extends Chain {
@@ -34,7 +47,7 @@ export class Arweave extends Chain {
    * @returns {string} The accepted txid unchanged.
    */
   override assertTxid(txid: string): string {
-    if (!HASH.test(txid)) throw new InvalidTxidError(this.key, txid);
+    if (!HASH.test(txid)) throw new InvalidTxidError(this.key, txid, hashFault(txid));
     return txid;
   }
 }
