@@ -333,7 +333,7 @@ export function validateChainAddress(input: string, rawAddress: string): ToolRes
         content: [
           {
             type: "text",
-            text: `Invalid ${chain.name} (${chain.key}) address: ${quoted(address)}`,
+            text: `Invalid ${chain.name} (${chain.key}) address: ${quoted(address)}${error.reason ? ` - ${stripControlCharacters(error.reason)}` : ""}`,
           },
         ],
         details: { chain: chain.key, address, valid: false, reason: error.message },

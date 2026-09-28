@@ -4,6 +4,22 @@ import { quoted, stripControlCharacters } from "../core/text.ts";
 import { ChainsError, InvalidAddressError, InvalidTxidError } from "../index.ts";
 import { resolveOrFail } from "./shared.ts";
 
+/**
+ * The line a failed check prints: the rejection with its reason when the validator gave one,
+ * or the message of an error that means nothing was checked.
+ *
+ * @param {Readonly<ChainsError>} error - What the check threw.
+ * @param {string} rejection - The rejection line, caller input already quoted.
+ * @returns {string} One line with no control characters from the caller or a custom chain.
+ */
+function failureLine(error: Readonly<ChainsError>, rejection: string): string {
+  if (error instanceof InvalidAddressError) {
+    return error.reason ? `${rejection} - ${stripControlCharacters(error.reason)}` : rejection;
+  }
+  if (error instanceof InvalidTxidError) return rejection;
+  return stripControlCharacters(error.message);
+}
+
 export default defineCommand({
   meta: {
     name: "validate",
@@ -38,11 +54,7 @@ export default defineCommand({
       consola.success(`Valid ${chain.name} ${subject}`);
     } catch (error) {
       if (!(error instanceof ChainsError)) throw error;
-      consola.error(
-        error instanceof InvalidAddressError || error instanceof InvalidTxidError
-          ? `Invalid ${chain.key} ${subject}: ${quoted(args.value)}`
-          : stripControlCharacters(error.message),
-      );
+      consola.error(failureLine(error, `Invalid ${chain.key} ${subject}: ${quoted(args.value)}`));
       process.exitCode = 1;
     }
   },

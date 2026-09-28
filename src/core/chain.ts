@@ -64,6 +64,8 @@ export abstract class Chain implements ChainInfo {
 }
 
 const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/;
+/** `0x` and hex of any length, to tell a digit too many or too few from a wrong shape. */
+const EVM_HEX = /^0x[0-9a-fA-F]*$/;
 /** Keccak-256 of the signed transaction: `0x` and 32 bytes of hex, either case. */
 const EVM_TXID = /^0x[0-9a-fA-F]{64}$/;
 
@@ -94,14 +96,28 @@ export abstract class EVM extends Chain {
   /**
    * `0x` and 40 hex digits, with the EIP-55 checksum verified when the case carries one.
    * A checksummed address with one wrong digit fails, since the hash of the digits no
-   * longer matches the case; a lowercase address has no checksum to fail.
+   * longer matches the case; a lowercase address has no checksum to fail. The error
+   * says which rule failed, a digit count or the checksum.
    *
    * @param {string} address - Candidate EVM address.
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    if (!EVM_ADDRESS.test(address) || !holdsChecksum(address.slice(2))) {
-      throw new InvalidAddressError(this.key, address);
+    if (!EVM_ADDRESS.test(address)) {
+      throw new InvalidAddressError(
+        this.key,
+        address,
+        EVM_HEX.test(address)
+          ? `${address.length - 2} hex digits after 0x, not 40`
+          : "not 0x followed by 40 hex digits",
+      );
+    }
+    if (!holdsChecksum(address.slice(2))) {
+      throw new InvalidAddressError(
+        this.key,
+        address,
+        "the mixed case does not match the EIP-55 checksum, so a digit or a letter's case is mistyped",
+      );
     }
     return address;
   }

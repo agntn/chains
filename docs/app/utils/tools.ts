@@ -7,9 +7,14 @@ import { chains, create, identify, type Chain } from "@agntn/chains";
  * change here.
  */
 
+/** Mirrors `stripControlCharacters` in `src/core/text.ts`: control characters blanked. */
+export function stripControlCharacters(text: string): string {
+  return text.replaceAll(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu, " ");
+}
+
 /** Mirrors `quoted` in `src/core/text.ts`: JSON quotes, control characters blanked. */
 export function quoted(value: string): string {
-  return JSON.stringify(value).replaceAll(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu, " ");
+  return stripControlCharacters(JSON.stringify(value));
 }
 
 /** Mirrors the `chains_lookup` text for a resolved chain. */
@@ -33,9 +38,14 @@ export function lookupText(chain: Chain): string {
     .join("\n");
 }
 
-/** Mirrors the `chains_validate_address` text for a checked address. */
-export function validateText(chain: Chain, address: string, valid: boolean): string {
-  return `${valid ? "Valid" : "Invalid"} ${chain.name} (${chain.key}) address: ${quoted(address)}`;
+/** Mirrors the `chains_validate_address` text for a checked address, reason included. */
+export function validateText(
+  chain: Chain,
+  address: string,
+  valid: boolean,
+  reason?: string,
+): string {
+  return `${valid ? "Valid" : "Invalid"} ${chain.name} (${chain.key}) address: ${quoted(address)}${reason ? ` - ${stripControlCharacters(reason)}` : ""}`;
 }
 
 /** Mirrors the `chains_validate_txid` text for a checked transaction id. */

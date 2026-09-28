@@ -170,7 +170,12 @@ const answer = computed<Answer>(() => {
     return { kind: "validate", chain, valid: true, text: validateText(chain, trimmed, true) };
   } catch (error) {
     if (error instanceof InvalidAddressError) {
-      return { kind: "validate", chain, valid: false, text: validateText(chain, trimmed, false) };
+      return {
+        kind: "validate",
+        chain,
+        valid: false,
+        text: validateText(chain, trimmed, false, error.reason),
+      };
     }
     if (error instanceof AddressValidationUnsupportedError) return failure(error);
     throw error;

@@ -74,6 +74,16 @@ describe("CLI output escaping", () => {
     expect(written).toBe('No registered chain has type: "evm\\nutxo"');
   });
 
+  it("says why an EVM address fails", async () => {
+    const address = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F98";
+
+    const written = await capture("error", () =>
+      runCommand(validate, { rawArgs: ["ethereum", address] }),
+    );
+
+    expect(written).toBe(`Invalid ethereum address: "${address}" - 39 hex digits after 0x, not 40`);
+  });
+
   it("still exits 1 on a rejected address", async () => {
     await capture("error", () => runCommand(validate, { rawArgs: ["bitcoin", "not-an-address"] }));
 

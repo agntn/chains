@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { keccak256 } from "../../src/core/keccak256.ts";
-import { chains, create, identify, InvalidAddressError } from "../../src/index.ts";
+import {
+  chains,
+  create,
+  Ethereum,
+  identify,
+  InvalidAddressError,
+  register,
+} from "../../src/index.ts";
 import { identifyAddress, validateChainAddress } from "../../src/tool-operations.ts";
 
 const hex = (bytes: ArrayLike<number>) =>
@@ -148,5 +155,67 @@ describe("EVM address checksum", () => {
       valid: false,
       chain: "arbitrum",
     });
+  });
+});
+
+describe("EVM rejection reason", () => {
+  it.each([
+    [uni.slice(0, -1), "39 hex digits after 0x, not 40"],
+    [`${uni}0`, "41 hex digits after 0x, not 40"],
+    ["0x", "0 hex digits after 0x, not 40"],
+    [uni.slice(2), "not 0x followed by 40 hex digits"],
+    [`0x${"g".repeat(40)}`, "not 0x followed by 40 hex digits"],
+    [
+      recase(uni, 1),
+      "the mixed case does not match the EIP-55 checksum, so a digit or a letter's case is mistyped",
+    ],
+    [
+      mistype(uni, 39),
+      "the mixed case does not match the EIP-55 checksum, so a digit or a letter's case is mistyped",
+    ],
+  ])("says why %s fails", (address, reason) => {
+    expect(() => create("base").assertAddress(address)).toThrow(
+      expect.objectContaining({
+        chain: "base",
+        address,
+        reason,
+        message: `Invalid base address: ${address} - ${reason}`,
+      }),
+    );
+  });
+
+  it("carries the reason into the tool text, where an MCP client reads it", () => {
+    const typo = recase(uni, 1);
+    expect(validateChainAddress("eth", typo).content).toEqual([
+      {
+        type: "text",
+        text: `Invalid Ethereum (ethereum) address: "${typo}" - the mixed case does not match the EIP-55 checksum, so a digit or a letter's case is mistyped`,
+      },
+    ]);
+  });
+
+  it("strips control characters from a reason a custom chain wrote", () => {
+    class Echo extends Ethereum {
+      override assertAddress(address: string): string {
+        throw new InvalidAddressError(this.key, address, `bad\n${address}`);
+      }
+    }
+    register(Echo);
+    try {
+      const [part] = validateChainAddress("ethereum", "0x1").content;
+      expect(part?.text).not.toMatch(/[\p{Cc}]/u);
+      expect(part?.text).toBe('Invalid Ethereum (ethereum) address: "0x1" - bad 0x1');
+    } finally {
+      register(Ethereum);
+    }
+  });
+
+  it("leaves a rejection without a reason as it was", () => {
+    const error = new InvalidAddressError("bitcoin", "1Bad");
+    expect(error.reason).toBeUndefined();
+    expect(error.message).toBe("Invalid bitcoin address: 1Bad");
+    expect(validateChainAddress("bitcoin", "1Bad").content).toEqual([
+      { type: "text", text: 'Invalid Bitcoin (bitcoin) address: "1Bad"' },
+    ]);
   });
 });
