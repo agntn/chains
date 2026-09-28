@@ -348,7 +348,10 @@ describe("chains MCP server", () => {
 
     expect(response.isError).not.toBe(true);
     expect(response.content).toEqual([
-      { type: "text", text: 'Invalid Ethereum (ethereum) address: "not-an-address"' },
+      {
+        type: "text",
+        text: 'Invalid Ethereum (ethereum) address: "not-an-address" - not 0x followed by 40 hex digits',
+      },
     ]);
   });
 

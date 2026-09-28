@@ -45,12 +45,19 @@ export class InvalidAddressError extends ChainsError {
    */
   readonly chain: ChainKey;
   readonly address: string;
+  /**
+   * What the check tripped on, when the validator can tell: a model that only reads
+   * "invalid" retries the same string or guesses at the fault. A custom chain writes
+   * its own, so a surface strips control characters before printing it.
+   */
+  readonly reason?: string;
 
-  constructor(chain: ChainKey, address: string) {
-    super(`Invalid ${chain} address: ${address}`);
+  constructor(chain: ChainKey, address: string, reason?: string) {
+    super(`Invalid ${chain} address: ${address}${reason ? ` - ${reason}` : ""}`);
     this.name = "InvalidAddressError";
     this.chain = chain;
     this.address = address;
+    this.reason = reason;
   }
 }
 
