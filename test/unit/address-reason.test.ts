@@ -286,6 +286,8 @@ describe("Base58Check and SegWit rejection reason", () => {
       "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
       "does not start with bc1",
     ],
+    ["bitcoin", "b31qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", "does not start with bc1"],
+    ["bitcoin", "B31QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4", "does not start with bc1"],
     ["litecoin", "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", "does not start with ltc1"],
     ["bitcoingold", "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", "does not start with btg1"],
     [
