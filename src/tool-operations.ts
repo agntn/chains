@@ -22,6 +22,9 @@ import {
   TxidValidationUnsupportedError,
 } from "./index.ts";
 
+/** Re-exported so an agent surface throws inside the hierarchy, not a raw `Error`. */
+export { ChainsError };
+
 /** Canonical metadata for a resolved chain. */
 export interface ChainLookup {
   key: string;

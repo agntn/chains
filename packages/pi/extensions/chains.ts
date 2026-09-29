@@ -41,14 +41,17 @@ const chainArgument = Type.String({
  *
  * Pi records whatever `execute` returns as a successful call, whatever its `isError`
  * says, and marks the call failed only when it throws. The executor's text becomes
- * the message, so the model reads the same words MCP sends.
+ * the message of a `ChainsError`, so the model reads the same words MCP sends.
  *
  * @param {ChainsTools.ToolResult<Details>} result - Result of a shared executor.
- * @returns {AgentToolResult<Details>} The result, when the tool answered.
+ * @returns {Promise<AgentToolResult<Details>>} The result, when the tool answered.
  */
-function settle<Details>(result: ChainsTools.ToolResult<Details>): AgentToolResult<Details> {
+async function settle<Details>(
+  result: ChainsTools.ToolResult<Details>,
+): Promise<AgentToolResult<Details>> {
   if (!result.isError) return result;
-  throw new Error(result.content.map((part) => part.text).join("\n"));
+  const { ChainsError } = await loadToolOperations();
+  throw new ChainsError(result.content.map((part) => part.text).join("\n"));
 }
 
 export default function chainsExtension(pi: ExtensionAPI): void {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ChainsError } from "../../dist/tool-operations.mjs";
 import ompExtension from "../../packages/omp/extensions/chains.ts";
 import piExtension from "../../packages/pi/extensions/chains.ts";
 
@@ -37,7 +38,9 @@ describe("Pi extension", () => {
 
   /** Pi records whatever `execute` returns as a successful call and reads only a throw as failed. */
   it.each(failures)("throws when %s could not answer", async (name, params, message) => {
-    await expect(tools.get(name)!.execute("call", params)).rejects.toThrow(message);
+    const call = tools.get(name)!.execute("call", params);
+    await expect(call).rejects.toThrow(message);
+    await expect(call).rejects.toBeInstanceOf(ChainsError);
   });
 
   it("answers a rejected address instead of throwing", async () => {
