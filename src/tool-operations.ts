@@ -95,7 +95,7 @@ export interface TxidCheck {
 export interface ToolResult<Details> {
   content: Array<{ type: "text"; text: string }>;
   details: Details;
-  /** Set when the tool could not answer. MCP forwards it, the agent harnesses drop it. */
+  /** Set when the tool could not answer. MCP and OMP read it, the Pi extension throws instead. */
   isError?: boolean;
 }
 

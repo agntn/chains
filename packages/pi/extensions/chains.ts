@@ -36,6 +36,21 @@ const chainArgument = Type.String({
   maxLength: 64,
 });
 
+/**
+ * Hands a shared result to Pi, throwing when the tool could not answer.
+ *
+ * Pi records whatever `execute` returns as a successful call, whatever its `isError`
+ * says, and marks the call failed only when it throws. The executor's text becomes
+ * the message, so the model reads the same words MCP sends.
+ *
+ * @param {ChainsTools.ToolResult<Details>} result - Result of a shared executor.
+ * @returns {AgentToolResult<Details>} The result, when the tool answered.
+ */
+function settle<Details>(result: ChainsTools.ToolResult<Details>): AgentToolResult<Details> {
+  if (!result.isError) return result;
+  throw new Error(result.content.map((part) => part.text).join("\n"));
+}
+
 export default function chainsExtension(pi: ExtensionAPI): void {
   pi.registerTool({
     name: "chains_lookup",
@@ -56,8 +71,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
       params,
     ): Promise<AgentToolResult<ChainsTools.ChainLookup | ChainsTools.LookupFailure>> {
       const { lookupChain } = await loadToolOperations();
-      const { content, details } = lookupChain(params.chain);
-      return { content, details };
+      return settle(lookupChain(params.chain));
     },
   });
 
@@ -69,7 +83,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
       "Use chains_validate_address before sending funds or storing an address, to confirm it matches the target chain's format.",
     promptGuidelines: [
       "A format check with the checksum verified where the format carries one, so a typo fails there; an EVM address in one case carries none. Not an on-chain existence check.",
-      "Chains without a registered validator report valid: false with a reason.",
+      "A chain without a registered validator fails the call, because nothing was checked.",
       "When the owning chain is unknown, chains_identify_address checks every validator at once.",
     ],
     parameters: Type.Object({
@@ -82,8 +96,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
     }),
     async execute(_toolCallId, params): Promise<AgentToolResult<ChainsTools.AddressCheck>> {
       const { validateChainAddress } = await loadToolOperations();
-      const { content, details } = validateChainAddress(params.chain, params.address);
-      return { content, details };
+      return settle(validateChainAddress(params.chain, params.address));
     },
   });
 
@@ -107,8 +120,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
     }),
     async execute(_toolCallId, params): Promise<AgentToolResult<ChainsTools.TxidCheck>> {
       const { validateChainTxid } = await loadToolOperations();
-      const { content, details } = validateChainTxid(params.chain, params.txid);
-      return { content, details };
+      return settle(validateChainTxid(params.chain, params.txid));
     },
   });
 
@@ -134,8 +146,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
       params,
     ): Promise<AgentToolResult<ChainsTools.AddressIdentification>> {
       const { identifyAddress } = await loadToolOperations();
-      const { content, details } = identifyAddress(params.address);
-      return { content, details };
+      return settle(identifyAddress(params.address));
     },
   });
 
@@ -160,8 +171,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
     }),
     async execute(_toolCallId, params): Promise<AgentToolResult<ChainsTools.ChainListing>> {
       const { listChains } = await loadToolOperations();
-      const { content, details } = listChains(params.family);
-      return { content, details };
+      return settle(listChains(params.family));
     },
   });
 }
