@@ -149,6 +149,7 @@ describe("chains usage paths", () => {
     expect(firstResponse(run)).toMatchObject({ id: 1, result: { serverInfo: { name: "chains" } } });
     expect(run.loaded).toContain(server);
     expect(run.loaded).not.toContain(sourceServer);
+    expect(packagesOf(run.loaded)).not.toContain("typebox");
   });
 
   it("chains mcp keeps the bundle when the package sits under node_modules", () => {
