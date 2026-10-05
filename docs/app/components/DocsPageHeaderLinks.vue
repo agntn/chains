@@ -1,26 +1,21 @@
 <script setup lang="ts">
 /**
  * The page header's copy controls, overriding Docus: the same actions, drawn as boxed segments with the
- * top right corner cut, and the menu in the tooltip's grammar (`.chains-menu` in app.css).
+ * top right corner cut, and the menu in the tooltip's grammar (`.chains-menu` in app.css). Minus
+ * the MCP pair, since this site doesn't serve `/mcp`.
  */
 import { useClipboard } from "@vueuse/core";
-import { joinURL, withTrailingSlash } from "ufo";
+import { withTrailingSlash } from "ufo";
 
 const route = useRoute();
-const toast = useToast();
 const runtimeConfig = useRuntimeConfig();
 const appBaseURL = runtimeConfig.app?.baseURL || "/";
-const mcpRoute = (runtimeConfig.public.mcp as { route?: string } | undefined)?.route || "/mcp";
 
 const { copy, copied } = useClipboard();
 const { t } = useDocusI18n();
 
 const markdownLink = computed(
   () => `${window?.location?.origin}${withTrailingSlash(appBaseURL)}raw${route.path}.md`,
-);
-const mcpServerUrl = computed(() => `${window?.location?.origin}${joinURL(appBaseURL, mcpRoute)}`);
-const mcpDeeplink = computed(
-  () => `${window?.location?.origin}${joinURL(appBaseURL, mcpRoute, "deeplink")}`,
 );
 const items = computed(() => [
   [
@@ -48,22 +43,6 @@ const items = computed(() => [
       icon: "i-simple-icons:anthropic",
       target: "_blank",
       to: `https://claude.ai/new?q=${encodeURIComponent(`Read ${markdownLink.value} so I can ask questions about it.`)}`,
-    },
-  ],
-  [
-    {
-      label: "Copy MCP Server URL",
-      icon: "i-lucide-link",
-      onSelect() {
-        void copy(mcpServerUrl.value);
-        toast.add({ title: "Copied to clipboard", icon: "i-lucide-check-circle" });
-      },
-    },
-    {
-      label: "Add MCP Server",
-      icon: "i-simple-icons:cursor",
-      target: "_blank",
-      to: mcpDeeplink.value,
     },
   ],
 ]);
