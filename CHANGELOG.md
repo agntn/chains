@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.3.12
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.11...v0.3.12)
+
+### 🚀 Enhancements
+
+- Say what an address pays to ([#110](https://github.com/agntn/chains/pull/110))
+
+### 🩹 Fixes
+
+- Give every shadowed field its override ([#112](https://github.com/agntn/chains/pull/112))
+- **address:** Survive a six-megabyte lookalike ([#119](https://github.com/agntn/chains/pull/119))
+
+### ❤️ Contributors
+
+- Ori
+- Aeitwoen
+
 ## v0.3.11
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.10...v0.3.11)
