@@ -8,7 +8,7 @@ import { tokens } from "../../utils/tokens";
 const { copied, copy } = useCopied();
 
 const INSTALL = "pnpm add @agntn/chains";
-/** `>=24` in the root package.json, read as a sentence. */
+/** `>=26` in the root package.json, read as a sentence. */
 const NODE = `Node.js ${engines.node.replace(/^>=\s*/u, "")} or newer`;
 
 interface Line {

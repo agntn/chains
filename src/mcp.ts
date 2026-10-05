@@ -55,7 +55,7 @@ const tools: ToolDefinition[] = [
     name: "chains_validate_address",
     title: "Validate Chain Address",
     description:
-      "Check an address against the format rules of a specific blockchain, checksum included where the format carries one, so a typo fails there; an EVM address in one case carries none. Not an on-chain existence check. When the owning chain is unknown, chains_identify_address checks every validator at once.",
+      "Check an address against the format rules of a specific blockchain, checksum included where the format carries one, so a typo fails there; an EVM address in one case carries none. A valid UTXO address comes back with its kind (p2pkh, p2wpkh, p2tr...) and the hash or witness program it pays to, in hex. Not an on-chain existence check. When the owning chain is unknown, chains_identify_address checks every validator at once.",
     inputSchema: Type.Object({
       chain: chainArgument,
       address: valueArgument("Address to validate"),

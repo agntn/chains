@@ -1,4 +1,6 @@
-import { decodeCashAddr } from "../core/cashaddr.ts";
+import { settle } from "../core/address.ts";
+import type { DecodedAddress } from "../core/address.ts";
+import { cashAddrKind, decodeCashAddr } from "../core/cashaddr.ts";
 import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
 
@@ -11,8 +13,8 @@ export class BitcoinCash extends UTXO {
   readonly symbol = "BCH";
   override readonly decimals = 8;
   readonly explorer = "https://blockchair.com/bitcoin-cash";
-  readonly bip44 = 145;
-  readonly caip2 = "bip122:000000000000000000651ef99cb9fcbe";
+  override readonly bip44 = 145;
+  override readonly caip2 = "bip122:000000000000000000651ef99cb9fcbe";
   override readonly magic = "e3e1f3e8";
   override readonly pow = "sha256d";
 
@@ -31,5 +33,17 @@ export class BitcoinCash extends UTXO {
       throw new InvalidAddressError(this.key, address);
     }
     return address;
+  }
+
+  /**
+   * The CashAddr type and hash, 32-byte script hashes read as the double SHA-256 they are.
+   *
+   * @param {string} address - Candidate Bitcoin Cash address.
+   * @returns {DecodedAddress} Kind and payload.
+   */
+  override decodeAddress(address: string): DecodedAddress {
+    this.assertAddress(address);
+    const content = decodeCashAddr(address, "bitcoincash");
+    return settle(this.key, address, content && cashAddrKind(content.type, content.hash));
   }
 }

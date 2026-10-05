@@ -1,6 +1,6 @@
+import { keccak256 } from "@agntn/hashes/keccak";
 import { Chain } from "../core/chain.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
-import { keccak256 } from "../core/keccak256.ts";
 import { hexTxidFault } from "../core/txid.ts";
 
 const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -58,7 +58,7 @@ function isMainnet(bytes: readonly number[]): boolean {
  * @returns {boolean} Whether the checksum holds.
  */
 function holdsChecksum(bytes: readonly number[]): boolean {
-  const digest = keccak256(bytes.slice(0, -4));
+  const digest = keccak256(Uint8Array.from(bytes.slice(0, -4)));
   return bytes.slice(-4).every((byte, index) => byte === digest[index]);
 }
 
@@ -69,8 +69,8 @@ export class Monero extends Chain {
   readonly name = "Monero";
   readonly symbol = "XMR";
   override readonly decimals = 12;
-  readonly bip44 = 128;
-  readonly caip2 = "monero:418015bb9ae982a1975da7d79277c270";
+  override readonly bip44 = 128;
+  override readonly caip2 = "monero:418015bb9ae982a1975da7d79277c270";
   override readonly pow = "randomx";
   readonly explorer = "https://xmrchain.net";
 

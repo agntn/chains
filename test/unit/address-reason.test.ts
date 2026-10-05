@@ -1,9 +1,34 @@
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { BITCOIN_ALPHABET, decodeBase58 } from "../../src/core/base58.ts";
-import { blake256 } from "../../src/core/blake256.ts";
-import { sha256 } from "../../src/core/sha256.ts";
+import { blake256 } from "@agntn/hashes/blake256";
 import { create, InvalidAddressError, type ChainKey } from "../../src/index.ts";
-import { validateChainAddress } from "../../src/tool-operations.ts";
+import { identifyAddress, validateChainAddress } from "../../src/tool-operations.ts";
+
+const BITCOIN_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+const sha256 = (message: ArrayLike<number>) =>
+  new Uint8Array(createHash("sha256").update(Uint8Array.from(message)).digest());
+
+/* The BigInt base58 reader the package had before it took base58 from encodings. */
+function decodeBase58(input: string, maxLength: number): Uint8Array | undefined {
+  if (input.length === 0 || input.length > maxLength) return undefined;
+  let value = 0n;
+  for (const character of input) {
+    const digit = BITCOIN_ALPHABET.indexOf(character);
+    if (digit < 0) return undefined;
+    value = value * 58n + BigInt(digit);
+  }
+  const digits: number[] = [];
+  while (value > 0n) {
+    digits.unshift(Number(value % 256n));
+    value /= 256n;
+  }
+  let leadingZeros = 0;
+  while (input[leadingZeros] === "1") leadingZeros++;
+  const bytes = new Uint8Array(leadingZeros + digits.length);
+  bytes.set(digits, leadingZeros);
+  return bytes;
+}
 
 /**
  * The validators as they stood before they named a reason, frozen here so a reworded fault
@@ -18,7 +43,7 @@ function oldBase58Check(
   maxLength: number,
   digest: (message: ArrayLike<number>) => Uint8Array = sha256,
 ): Uint8Array | undefined {
-  const bytes = decodeBase58(input, maxLength, BITCOIN_ALPHABET);
+  const bytes = decodeBase58(input, maxLength);
   if (bytes === undefined || bytes.length < 4) return undefined;
   const checksum = digest(digest(bytes.subarray(0, -4)));
   for (let index = 0; index < 4; index++) {
@@ -337,6 +362,19 @@ describe("Base58Check and SegWit rejection reason", () => {
       "decodes to 24 bytes, not 25; version byte 0x00, where this chain writes 0x1e or 0x16; the Base58Check checksum does not hold, so a character is wrong",
     );
   });
+
+  it(
+    "explains a multi-megabyte Bech32 lookalike instead of running out of stack",
+    { timeout: 30_000 },
+    () => {
+      const huge = `u1${"q".repeat(6_000_000)}`;
+      expect(reasonOf("bitcoin", huge)).toMatch(/^does not start with bc1; /);
+      expect(reasonOf("litecoin", huge)).toMatch(/^does not start with ltc1; /);
+      expect(reasonOf("bitcoingold", huge)).toMatch(/^does not start with btg1; /);
+      expect(identifyAddress(huge).details.matches).toEqual([]);
+      expect(validateChainAddress("bitcoin", huge).details).toMatchObject({ valid: false });
+    },
+  );
 
   it("prints the reason in the tool answer with the caller's control characters escaped", () => {
     expect(

@@ -1,3 +1,4 @@
+import { base64 } from "@agntn/encodings/base64";
 import { Chain } from "../core/chain.ts";
 import { crc16Xmodem } from "../core/crc16.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
@@ -38,15 +39,16 @@ function tonTxidFault(txid: string): string {
 /**
  * Decodes the 36 bytes behind a friendly address, or undefined when the text is not
  * one or its checksum does not hold: the last two bytes are the CRC-16/XMODEM of the
- * 34 before them, big-endian.
+ * 34 before them, big-endian. Either base64 alphabet reads, a mix of the two too.
  *
  * @param {string} address - Candidate TON user-friendly address.
  * @returns {Uint8Array | undefined} Tag, workchain, account id and CRC16, or undefined.
  */
 function friendlyBytes(address: string): Uint8Array | undefined {
   if (!FRIENDLY_ADDRESS.test(address)) return undefined;
-  const binary = atob(address.replaceAll("-", "+").replaceAll("_", "/"));
-  const bytes = Uint8Array.from(binary, (character) => character.codePointAt(0) ?? 0);
+  const bytes = base64.decode(address.replaceAll("+", "-").replaceAll("/", "_"), {
+    alphabet: "url",
+  });
   const checksum = crc16Xmodem(bytes.subarray(0, 34));
   return bytes[34] === checksum >> 8 && bytes[35] === (checksum & 0xff) ? bytes : undefined;
 }
@@ -58,9 +60,9 @@ export class Ton extends Chain {
   readonly symbol = "TON";
   override readonly decimals = 9;
   readonly explorer = "https://tonscan.org";
-  readonly bip44 = 607;
+  override readonly bip44 = 607;
   /** The mainnet global_id, the id TON Connect and WalletConnect carry; -1 is a workchain. */
-  readonly caip2 = "ton:-239";
+  override readonly caip2 = "ton:-239";
 
   /**
    * The 36 bytes are a tag, a workchain id, the 32-byte account id and a CRC16.

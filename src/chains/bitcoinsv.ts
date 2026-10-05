@@ -1,6 +1,11 @@
+import { legacyAddress, legacyLayout, settle } from "../core/address.ts";
+import type { DecodedAddress, LegacyVersions } from "../core/address.ts";
 import { base58CheckFault } from "../core/base58check.ts";
 import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
+
+/** Version bytes of the legacy addresses, in the order the reason names them. */
+const VERSIONS: LegacyVersions = [[0x00, "p2pkh"]];
 
 export class BitcoinSv extends UTXO {
   static readonly key = "bitcoinsv" as const;
@@ -8,7 +13,7 @@ export class BitcoinSv extends UTXO {
   readonly symbol = "BSV";
   override readonly decimals = 8;
   readonly explorer = "https://whatsonchain.com";
-  readonly bip44 = 236;
+  override readonly bip44 = 236;
   override readonly magic = "e3e1f3e8";
   override readonly pow = "sha256d";
 
@@ -22,8 +27,19 @@ export class BitcoinSv extends UTXO {
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    const fault = base58CheckFault(address, 35, { width: 25, versions: [0x00] });
+    const fault = base58CheckFault(address, 35, legacyLayout(VERSIONS));
     if (fault) throw new InvalidAddressError(this.key, address, fault);
     return address;
+  }
+
+  /**
+   * The kind behind the version byte, with the hash it pays to.
+   *
+   * @param {string} address - Candidate Bitcoin SV address.
+   * @returns {DecodedAddress} Kind and payload.
+   */
+  override decodeAddress(address: string): DecodedAddress {
+    this.assertAddress(address);
+    return settle(this.key, address, legacyAddress(address, 35, VERSIONS));
   }
 }

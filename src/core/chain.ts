@@ -1,10 +1,12 @@
+import { keccak256 } from "@agntn/hashes/keccak";
+import type { DecodedAddress } from "./address.ts";
 import {
+  AddressDecodingUnsupportedError,
   AddressValidationUnsupportedError,
   InvalidAddressError,
   InvalidTxidError,
   TxidValidationUnsupportedError,
 } from "./errors.ts";
-import { keccak256 } from "./keccak256.ts";
 import { hexTxidFault } from "./txid.ts";
 import type { ChainInfo, ChainKey, ChainType, PowAlgorithm } from "./types.ts";
 
@@ -48,6 +50,17 @@ export abstract class Chain implements ChainInfo {
 
   assertAddress(_address: string): string {
     throw new AddressValidationUnsupportedError(this.key);
+  }
+
+  /**
+   * Checks the address, then says what it pays to: `account` here, a script kind on the UTXO chains.
+   *
+   * @param {string} address - Candidate address.
+   * @returns {DecodedAddress} The kind, and the payload when the address carries one.
+   */
+  decodeAddress(address: string): DecodedAddress {
+    this.assertAddress(address);
+    return { kind: "account" };
   }
 
   /**
@@ -137,6 +150,18 @@ export abstract class EVM extends Chain {
 /** Bitcoin's lineage and Cardano share the shape of a txid, addresses stay with each chain. */
 export abstract class UTXO extends Chain {
   readonly type = "utxo" as const;
+
+  /**
+   * A UTXO address pays to a script, and a chain that never said which one can't guess.
+   *
+   * @param {string} address - Candidate address.
+   * @returns {DecodedAddress} Never; every built-in UTXO chain overrides it.
+   * @throws {AddressDecodingUnsupportedError} When the address holds.
+   */
+  override decodeAddress(address: string): DecodedAddress {
+    this.assertAddress(address);
+    throw new AddressDecodingUnsupportedError(this.key);
+  }
 
   /**
    * A 32-byte transaction hash as 64 hex digits, either case and no `0x`.

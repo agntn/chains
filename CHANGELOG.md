@@ -1,5 +1,65 @@
 # Changelog
 
+## v0.4.0
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.12...v0.4.0)
+
+### 💅 Refactors
+
+- ⚠️ Let encodings do the codec math ([#114](https://github.com/agntn/chains/pull/114))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️ Let encodings do the codec math ([#114](https://github.com/agntn/chains/pull/114))
+
+### ❤️ Contributors
+
+- Aeitwoen ([@aeitwoen](https://github.com/aeitwoen))
+
+## v0.3.12
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.11...v0.3.12)
+
+### 🚀 Enhancements
+
+- Say what an address pays to ([#110](https://github.com/agntn/chains/pull/110))
+
+### 🩹 Fixes
+
+- Give every shadowed field its override ([#112](https://github.com/agntn/chains/pull/112))
+- **address:** Survive a six-megabyte lookalike ([#119](https://github.com/agntn/chains/pull/119))
+
+### ❤️ Contributors
+
+- Ori
+- Aeitwoen
+
+## v0.3.11
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.10...v0.3.11)
+
+### 🚀 Enhancements
+
+- **mcp:** Restart instead of rebuild ([#83](https://github.com/agntn/chains/pull/83))
+- **docs:** Move to the agntn instrument design ([#87](https://github.com/agntn/chains/pull/87))
+- **evm:** Name the rule an address breaks ([#92](https://github.com/agntn/chains/pull/92))
+- **txid:** Every rejection carries its rule ([#93](https://github.com/agntn/chains/pull/93))
+- **address:** Tell a typo from a wrong chain ([#94](https://github.com/agntn/chains/pull/94))
+
+### 🔥 Performance
+
+- Import Bitcoin, ship only Bitcoin ([#85](https://github.com/agntn/chains/pull/85))
+
+### 🩹 Fixes
+
+- **cli:** No stack trace when piped into head ([#84](https://github.com/agntn/chains/pull/84))
+- **deps:** Drop typebox from dependencies ([#104](https://github.com/agntn/chains/pull/104))
+
+### ❤️ Contributors
+
+- Aeitwoen ([@aeitwoen](https://github.com/aeitwoen))
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.3.10
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.9...v0.3.10)

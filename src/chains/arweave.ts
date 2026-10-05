@@ -24,10 +24,10 @@ export class Arweave extends Chain {
   readonly name = "Arweave";
   readonly symbol = "AR";
   override readonly decimals = 12;
-  readonly bip44 = 472;
-  readonly caip2 = "arweave:7wIU";
+  override readonly bip44 = 472;
+  override readonly caip2 = "arweave:7wIU";
   readonly explorer = "https://viewblock.io/arweave";
-  readonly rpcDefault = "https://arweave.net";
+  override readonly rpcDefault = "https://arweave.net";
 
   /**
    * Checks the canonical encoding, not whether the hash belongs to a wallet.

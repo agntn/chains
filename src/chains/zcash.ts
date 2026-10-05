@@ -1,5 +1,8 @@
+import { fromWordsUnsafe } from "@agntn/encodings/bech32";
+import { toHex } from "../core/address.ts";
+import type { DecodedAddress } from "../core/address.ts";
 import { decodeBase58Check } from "../core/base58check.ts";
-import { BECH32, BECH32M, bech32Digits, bytesFromDigits, polymod } from "../core/bech32.ts";
+import { bech32Digits, checkedWords } from "../core/bech32.ts";
 import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
 import { F4JUMBLE_MAX, f4jumbleInverse } from "../core/f4jumble.ts";
@@ -99,9 +102,11 @@ function validItem({ typecode, length }: Item, previous: number): boolean {
  */
 function unwrapUnified(address: string): Uint8Array | undefined {
   // Most digits a Unified Address can carry: F4Jumble's longest input, then the checksum.
-  const data = bech32Digits(address, "u", Math.ceil((F4JUMBLE_MAX * 8) / 5) + 6);
-  if (data === undefined || polymod("u", data) !== BECH32M) return undefined;
-  const jumbled = bytesFromDigits(data.slice(0, -6));
+  if (bech32Digits(address, "u", Math.ceil((F4JUMBLE_MAX * 8) / 5) + 6) === undefined) {
+    return undefined;
+  }
+  const words = checkedWords(address, "bech32m");
+  const jumbled = words && fromWordsUnsafe(words);
   if (!jumbled || jumbled.length < REVISION_0_MIN) return undefined;
   const padded = f4jumbleInverse(jumbled);
   if (!padded) return undefined;
@@ -136,14 +141,53 @@ function validUnifiedAddress(address: string): boolean {
  * Reads a Bech32 or Bech32m address under a fixed prefix whose payload has a fixed length.
  * @param {string} address - Candidate address.
  * @param {string} hrp - Human-readable part.
- * @param {number} residue - `BECH32` or `BECH32M`.
+ * @param {"bech32" | "bech32m"} variant - Checksum the address has to carry.
  * @param {number} length - Payload bytes.
- * @returns {boolean} Whether the checksum holds and the payload has that length.
+ * @returns {Uint8Array | undefined} The payload, or undefined unless the checksum holds and the length fits.
  */
-function validFixedBech32(address: string, hrp: string, residue: number, length: number): boolean {
-  const data = bech32Digits(address, hrp, Math.ceil((length * 8) / 5) + 6);
-  if (data === undefined || polymod(hrp, data) !== residue) return false;
-  return bytesFromDigits(data.slice(0, -6))?.length === length;
+function fixedBech32(
+  address: string,
+  hrp: string,
+  variant: "bech32" | "bech32m",
+  length: number,
+): Uint8Array | undefined {
+  if (bech32Digits(address, hrp, Math.ceil((length * 8) / 5) + 6) === undefined) return undefined;
+  const words = checkedWords(address, variant);
+  const bytes = words && fromWordsUnsafe(words);
+  return bytes?.length === length ? bytes : undefined;
+}
+
+/** The second version byte of a transparent address, after 0x1c. */
+const TRANSPARENT: Readonly<Partial<Record<number, "p2pkh" | "p2sh">>> = {
+  0xb8: "p2pkh",
+  0xbd: "p2sh",
+};
+
+/**
+ * A transparent address: Base58Check under 0x1cb8 for a key hash or 0x1cbd for a script hash.
+ * @param {string} address - Candidate address.
+ * @returns {DecodedAddress | undefined} Kind and HASH160, or undefined when it is not transparent.
+ */
+function transparentAddress(address: string): DecodedAddress | undefined {
+  const decoded = decodeBase58Check(address, 35);
+  if (decoded?.length !== 26 || decoded[0] !== 0x1c) return undefined;
+  const kind = TRANSPARENT[decoded[1] ?? 0];
+  return kind && { kind, payload: toHex(decoded.subarray(2, 22)), hash: "hash160" };
+}
+
+/**
+ * Names whichever of the four forms holds; a Unified Address bundles receivers, so no single payload.
+ * @param {string} address - Candidate address.
+ * @returns {DecodedAddress | undefined} The kind and payload, or undefined when no form holds.
+ */
+function zcashAddress(address: string): DecodedAddress | undefined {
+  const sapling = fixedBech32(address, "zs", "bech32", 43);
+  if (sapling) return { kind: "sapling", payload: toHex(sapling) };
+  const tex = fixedBech32(address, "tex", "bech32m", 20);
+  if (tex) return { kind: "tex", payload: toHex(tex), hash: "hash160" };
+  return (
+    transparentAddress(address) ?? (validUnifiedAddress(address) ? { kind: "unified" } : undefined)
+  );
 }
 
 /** Zcash mainnet, read the way `zcash_address` parses a string. */
@@ -153,8 +197,8 @@ export class Zcash extends UTXO {
   readonly symbol = "ZEC";
   override readonly decimals = 8;
   readonly explorer = "https://blockchair.com/zcash";
-  readonly bip44 = 133;
-  readonly caip2 = "bip122:00040fe8ec8471911baa1db1266ea15d";
+  override readonly bip44 = 133;
+  override readonly caip2 = "bip122:00040fe8ec8471911baa1db1266ea15d";
   override readonly magic = "24e92764";
   override readonly pow = "equihash-200-9";
 
@@ -169,17 +213,19 @@ export class Zcash extends UTXO {
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    const decoded = decodeBase58Check(address, 35);
-    const transparent =
-      decoded?.length === 26 && decoded[0] === 0x1c && (decoded[1] === 0xb8 || decoded[1] === 0xbd);
-    if (
-      !transparent &&
-      !validFixedBech32(address, "zs", BECH32, 43) &&
-      !validFixedBech32(address, "tex", BECH32M, 20) &&
-      !validUnifiedAddress(address)
-    ) {
-      throw new InvalidAddressError(this.key, address);
-    }
+    this.decodeAddress(address);
     return address;
+  }
+
+  /**
+   * A HASH160 for `t1`, `t3` and `tex1`, the 43-byte receiver for `zs1`, no payload for `u1`.
+   *
+   * @param {string} address - Candidate Zcash address.
+   * @returns {DecodedAddress} Kind and payload.
+   */
+  override decodeAddress(address: string): DecodedAddress {
+    const decoded = zcashAddress(address);
+    if (decoded === undefined) throw new InvalidAddressError(this.key, address);
+    return decoded;
   }
 }

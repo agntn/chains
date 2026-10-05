@@ -160,7 +160,10 @@ describe("chains MCP server", () => {
     });
     expect(valid.isError).not.toBe(true);
     expect(valid.content).toEqual([
-      { type: "text", text: `Valid Decred (decred) address: "${address}"` },
+      {
+        type: "text",
+        text: `Valid Decred (decred) address: "${address}" - p2pkh (ecdsa-secp256k1), ripemd160-blake256 2789d58cfa0957d206f025c2af056fc8a77cebb0`,
+      },
     ]);
     const invalid = await client.callTool({
       name: "chains_validate_address",

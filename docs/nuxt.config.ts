@@ -5,6 +5,20 @@ import { chainsTheme } from "./shiki-theme";
 const repoRoot = fileURLToPath(new URL("../", import.meta.url));
 const librarySource = fileURLToPath(new URL("../src/index.ts", import.meta.url));
 
+/** Runtime deps under src/index.ts, installed here so they resolve from docs/node_modules. */
+const libraryDependencies = ["@agntn/encodings", "@agntn/hashes"];
+
+/** Every subpath src/ imports, so dev bundles them up front, not on demand. */
+const libraryEntries = [
+  "@agntn/encodings/base32",
+  "@agntn/encodings/base58",
+  "@agntn/encodings/base64",
+  "@agntn/encodings/bech32",
+  "@agntn/hashes/blake256",
+  "@agntn/hashes/blake2b",
+  "@agntn/hashes/keccak",
+];
+
 export default defineNuxtConfig({
   extends: ["docus"],
   /** The repo root is its own pnpm workspace; Nuxt must not treat it as this site's. */
@@ -12,8 +26,15 @@ export default defineNuxtConfig({
   alias: {
     "@agntn/chains": librarySource,
   },
-  /** The dev server serves files under workspaceDir only; the library and its package.json sit one level up. */
   vite: {
+    resolve: {
+      /** Bare imports in ../src resolve upwards from the importer and skip docs/node_modules. */
+      dedupe: libraryDependencies,
+    },
+    optimizeDeps: {
+      include: libraryEntries,
+    },
+    /** Dev serves workspaceDir only, and the library with its package.json sits one level up. */
     server: {
       fs: {
         allow: [repoRoot],

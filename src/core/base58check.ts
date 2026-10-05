@@ -1,7 +1,8 @@
-import { BITCOIN_ALPHABET, decodeBase58 } from "./base58.ts";
-import { sha256 } from "./sha256.ts";
+import { base58, createBase58check, type Base58Alphabet } from "@agntn/encodings/base58";
+import { BASE58_DIGIT, decodeBase58 } from "./base58.ts";
 
-type Digest = (message: ArrayLike<number>) => Uint8Array;
+/** An alphabet with SHA-256 behind the checksum, or the hash Decred puts there instead. */
+export type Base58CheckScheme = Base58Alphabet | Parameters<typeof createBase58check>[0];
 
 /** What reading Base58Check makes of a string: the bytes when it decodes, and every rule it breaks. */
 export interface Base58CheckRead {
@@ -32,10 +33,9 @@ function hexByte(byte: number): string {
  * placed, so a model sees where to look without a list as long as the input.
  * @param {string} input - Text that failed to decode.
  * @param {number} maxLength - Maximum accepted character count.
- * @param {string} alphabet - Ordered 58-character alphabet.
  * @returns {string[]} The faults, empty for the length alone.
  */
-function textFaults(input: string, maxLength: number, alphabet: string): string[] {
+function textFaults(input: string, maxLength: number): string[] {
   const faults: string[] = [];
   if (input.length === 0) return ["empty"];
   if (input.length > maxLength) {
@@ -47,7 +47,7 @@ function textFaults(input: string, maxLength: number, alphabet: string): string[
   let index = 0;
   for (const character of input) {
     index++;
-    if (alphabet.includes(character)) continue;
+    if (BASE58_DIGIT.test(character)) continue;
     count++;
     if (first === undefined) {
       first = character;
@@ -74,48 +74,57 @@ function textFaults(input: string, maxLength: number, alphabet: string): string[
  *
  * @param {string} input - Base58Check text to read.
  * @param {number} maxLength - Maximum accepted character count.
- * @param {string} [alphabet] - Ordered 58-character alphabet, Bitcoin's by default.
- * @param {Digest} [digest] - Hash behind the checksum, SHA-256 by default.
+ * @param {Base58CheckScheme} [scheme] - Alphabet or hash, Bitcoin's and SHA-256 by default.
  * @returns {Base58CheckRead} The bytes when they decode, and the faults found.
  */
 export function readBase58Check(
   input: string,
   maxLength: number,
-  alphabet: string = BITCOIN_ALPHABET,
-  digest: Digest = sha256,
+  scheme: Base58CheckScheme = "bitcoin",
 ): Base58CheckRead {
+  const alphabet = typeof scheme === "string" ? scheme : "bitcoin";
   const bytes = decodeBase58(input, maxLength, alphabet);
-  if (bytes === undefined) return { faults: textFaults(input, maxLength, alphabet) };
+  if (bytes === undefined) return { faults: textFaults(input, maxLength) };
   if (bytes.length < 4) return { bytes, faults: ["too short to carry a checksum"] };
-  const checksum = digest(digest(bytes.subarray(0, -4)));
-  for (let index = 0; index < 4; index++) {
-    if (bytes[bytes.length - 4 + index] !== checksum[index]) {
-      return { bytes, faults: ["the Base58Check checksum does not hold, so a character is wrong"] };
-    }
+  if (checksumHolds(input, scheme)) return { bytes, faults: [] };
+  return { bytes, faults: ["the Base58Check checksum does not hold, so a character is wrong"] };
+}
+
+/**
+ * Whether the checksum holds. Past a plain decode, it's all the checked decoder refuses.
+ * @param {string} input - Base58 text that decodes.
+ * @param {Base58CheckScheme} scheme - Alphabet or checksum hash.
+ * @returns {boolean} Whether the last four bytes match the double hash of the rest.
+ */
+function checksumHolds(input: string, scheme: Base58CheckScheme): boolean {
+  try {
+    if (typeof scheme === "string") base58.decode(input, { alphabet: scheme, check: true });
+    else createBase58check(scheme).decode(input);
+    return true;
+  } catch {
+    return false;
   }
-  return { bytes, faults: [] };
 }
 
 /**
  * Decodes Base58Check, or undefined when the input is not base58 or its checksum does not hold.
  *
  * The bytes come back whole, checksum included, so callers keep counting in the widths the
- * formats are described in: 25 for a legacy Bitcoin address, 35 for an X-address. The digest
- * is an argument because Decred took Bitcoin's encoding with BLAKE-256 in place of SHA-256.
+ * formats are described in: 25 for a legacy Bitcoin address, 35 for an X-address. The scheme
+ * is an argument because the XRP Ledger reorders the alphabet and Decred took Bitcoin's
+ * encoding with BLAKE-256 in place of SHA-256.
  *
  * @param {string} input - Base58Check text to decode.
  * @param {number} maxLength - Maximum accepted character count.
- * @param {string} [alphabet] - Ordered 58-character alphabet, Bitcoin's by default.
- * @param {Digest} [digest] - Hash behind the checksum, SHA-256 by default.
+ * @param {Base58CheckScheme} [scheme] - Alphabet or hash, Bitcoin's and SHA-256 by default.
  * @returns {Uint8Array | undefined} Decoded bytes, or undefined for invalid input.
  */
 export function decodeBase58Check(
   input: string,
   maxLength: number,
-  alphabet?: string,
-  digest?: Digest,
+  scheme?: Base58CheckScheme,
 ): Uint8Array | undefined {
-  const read = readBase58Check(input, maxLength, alphabet, digest);
+  const read = readBase58Check(input, maxLength, scheme);
   return read.faults.length === 0 ? read.bytes : undefined;
 }
 

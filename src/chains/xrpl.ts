@@ -3,9 +3,6 @@ import { Chain } from "../core/chain.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 import { hexTxidFault } from "../core/txid.ts";
 
-/** The ledger's base58 digits: Bitcoin's 58 characters reordered, so `r` is zero. */
-export const XRP_ALPHABET = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";
-
 function containsOnlyZeroes(bytes: ArrayLike<number>, start: number, end: number): boolean {
   for (let index = start; index < end; index++) {
     if (bytes[index] !== 0) return false;
@@ -35,8 +32,8 @@ export class Xrpl extends Chain {
   readonly symbol = "XRP";
   override readonly decimals = 6;
   readonly explorer = "https://livenet.xrpl.org";
-  readonly bip44 = 144;
-  readonly caip2 = "xrpl:0";
+  override readonly bip44 = 144;
+  override readonly caip2 = "xrpl:0";
 
   /**
    * A classic address is Base58Check under version 0x00, 25 bytes, read under the
@@ -47,7 +44,7 @@ export class Xrpl extends Chain {
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    const decoded = decodeBase58Check(address, 48, XRP_ALPHABET);
+    const decoded = decodeBase58Check(address, 48, "ripple");
     if (decoded === undefined) throw new InvalidAddressError(this.key, address);
     const classic = decoded.length === 25 && decoded[0] === 0x00;
     if (!classic && !isXAddress(decoded)) {

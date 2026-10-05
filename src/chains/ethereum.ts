@@ -6,8 +6,8 @@ export class Ethereum extends EVM {
   readonly symbol = "ETH";
   override readonly decimals = 18;
   readonly explorer = "https://etherscan.io";
-  readonly bip44 = 60;
-  readonly chainId = "0x1";
-  readonly caip2 = "eip155:1";
-  readonly rpcDefault = "https://ethereum-rpc.publicnode.com";
+  override readonly bip44 = 60;
+  override readonly chainId = "0x1";
+  override readonly caip2 = "eip155:1";
+  override readonly rpcDefault = "https://ethereum-rpc.publicnode.com";
 }

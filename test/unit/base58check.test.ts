@@ -1,13 +1,10 @@
 import { createHash, randomBytes } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { XRP_ALPHABET } from "../../src/chains/xrpl.ts";
-import { sha256 } from "../../src/core/sha256.ts";
 import { create, identify, InvalidAddressError, type ChainKey } from "../../src/index.ts";
 
 const BITCOIN_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+const XRP_ALPHABET = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";
 
-const hex = (bytes: ArrayLike<number>) =>
-  Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 const nodeSha256 = (bytes: ArrayLike<number>) =>
   new Uint8Array(createHash("sha256").update(Uint8Array.from(bytes)).digest());
 const random = (length: number) => new Uint8Array(randomBytes(length));
@@ -46,33 +43,6 @@ function mistype(address: string, index: number, alphabet = BITCOIN_ALPHABET): s
   const digit = alphabet.indexOf(address.charAt(index));
   return address.slice(0, index) + alphabet.charAt((digit + 1) % 58) + address.slice(index + 1);
 }
-
-/** FIPS 180-4 examples plus the empty message, a one-block and a two-block digest. */
-const fipsVectors = [
-  ["", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],
-  ["abc", "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"],
-  [
-    "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
-    "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
-  ],
-  [
-    "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
-    "cf5b16a778af8380036ce59e7b0492370b249b11e8f07a51afac45037afee9d1",
-  ],
-] as const;
-
-describe("SHA-256", () => {
-  it.each(fipsVectors)("hashes %j to the FIPS 180-4 digest", (message, digest) => {
-    expect(hex(sha256(new TextEncoder().encode(message)))).toBe(digest);
-  });
-
-  it("agrees with node:crypto on every length across the padding boundaries", () => {
-    for (let length = 0; length <= 130; length++) {
-      const message = random(length);
-      expect(hex(sha256(message)), `length ${length}`).toBe(hex(nodeSha256(message)));
-    }
-  });
-});
 
 /** Every Base58Check chain with the version bytes it accepts and the alphabet it reads. */
 const chains: readonly {

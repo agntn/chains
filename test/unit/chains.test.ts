@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { decodeBase58 } from "../../src/core/base58.ts";
-import { XRP_ALPHABET } from "../../src/chains/xrpl.ts";
 import {
   AddressValidationUnsupportedError,
   Arbitrum,
@@ -1499,9 +1498,9 @@ describe("base58 decoding", () => {
   it("reads a string against the alphabet it was given", () => {
     const genesis = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh";
 
-    expect(decodeBase58(genesis, 48, XRP_ALPHABET)?.[0]).toBe(0x00);
+    expect(decodeBase58(genesis, 48, "ripple")?.[0]).toBe(0x00);
     expect(decodeBase58(genesis, 48)?.[0]).toBe(0x7a);
-    expect(decodeBase58("rrrrrrrrrrrrrrrrrrrrrhoLvTp", 48, XRP_ALPHABET)?.slice(0, 21)).toEqual(
+    expect(decodeBase58("rrrrrrrrrrrrrrrrrrrrrhoLvTp", 48, "ripple")?.slice(0, 21)).toEqual(
       new Uint8Array(21),
     );
     expect(decodeBase58("rrrrrrrrrrrrrrrrrrrrrhoLvTp", 48)?.[0]).not.toBe(0x00);

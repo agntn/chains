@@ -1,8 +1,17 @@
+import { fromWordsUnsafe } from "@agntn/encodings/bech32";
+import { legacyAddress, legacyLayout, settle, toHex } from "../core/address.ts";
+import type { DecodedAddress, LegacyVersions } from "../core/address.ts";
 import { base58CheckFault } from "../core/base58check.ts";
-import { BECH32, bytesFromDigits, polymod, readBech32Digits } from "../core/bech32.ts";
+import { checkedWords, readBech32Digits } from "../core/bech32.ts";
 import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
-import { segwitFault, segwitShaped } from "../core/segwit.ts";
+import { segwitAddress, segwitFault, segwitShaped } from "../core/segwit.ts";
+
+/** Version bytes of the legacy addresses, in the order the reason names them. */
+const VERSIONS: LegacyVersions = [
+  [0x30, "p2pkh"],
+  [0x32, "p2sh"],
+];
 
 /** Scan and spend public keys, 33 bytes each: 106 digits, the version before them, the checksum after. */
 const MWEB_DIGITS = 113;
@@ -18,16 +27,27 @@ function mwebFault(address: string): string | undefined {
   const { digits, faults } = readBech32Digits(address, "ltcmweb", MWEB_DIGITS);
   if (digits !== undefined) {
     if (digits[0] !== 0) faults.push(`version digit ${digits[0]}, where Litecoin Core writes 0`);
-    const bytes = bytesFromDigits(digits.slice(1, -6));
+    const bytes = fromWordsUnsafe(digits.slice(1, -6));
     if (bytes === undefined)
       faults.push("digits that do not pack into whole bytes with zero padding");
     else if (bytes.length !== 66)
       faults.push(`${bytes.length} bytes, not the 66 of two public keys`);
-    if (polymod("ltcmweb", digits) !== BECH32) {
+    if (checkedWords(address) === undefined) {
       faults.push("the Bech32 checksum does not hold, so a character is wrong");
     }
   }
   return faults.length === 0 ? undefined : faults.join("; ");
+}
+
+/**
+ * The scan and spend keys of a stealth address `mwebFault` already passed.
+ * @param {string} address - Candidate address.
+ * @returns {DecodedAddress | undefined} Both keys as one payload, or undefined when it is not MWEB.
+ */
+function mwebAddress(address: string): DecodedAddress | undefined {
+  const { digits } = readBech32Digits(address, "ltcmweb", MWEB_DIGITS);
+  const keys = digits && fromWordsUnsafe(digits.slice(1, -6));
+  return keys && { kind: "mweb", payload: toHex(keys) };
 }
 
 export class Litecoin extends UTXO {
@@ -36,8 +56,8 @@ export class Litecoin extends UTXO {
   readonly symbol = "LTC";
   override readonly decimals = 8;
   readonly explorer = "https://litecoinspace.org";
-  readonly bip44 = 2;
-  readonly caip2 = "bip122:12a765e31ffd4059bada1e25190f6e98";
+  override readonly bip44 = 2;
+  override readonly caip2 = "bip122:12a765e31ffd4059bada1e25190f6e98";
   override readonly magic = "fbc0b6db";
   override readonly pow = "scrypt";
 
@@ -50,10 +70,22 @@ export class Litecoin extends UTXO {
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    let fault = base58CheckFault(address, 35, { width: 25, versions: [0x30, 0x32] });
+    let fault = base58CheckFault(address, 35, legacyLayout(VERSIONS));
     if (fault && /^ltcmweb1/i.test(address)) fault = mwebFault(address);
     else if (fault && segwitShaped(address, "ltc")) fault = segwitFault(address, "ltc");
     if (fault) throw new InvalidAddressError(this.key, address, fault);
     return address;
+  }
+
+  /**
+   * The kind behind the version byte, the witness program, or the two keys of a stealth address.
+   *
+   * @param {string} address - Candidate Litecoin address.
+   * @returns {DecodedAddress} Kind and payload.
+   */
+  override decodeAddress(address: string): DecodedAddress {
+    this.assertAddress(address);
+    const read = /^ltcmweb1/i.test(address) ? mwebAddress(address) : segwitAddress(address, "ltc");
+    return settle(this.key, address, legacyAddress(address, 35, VERSIONS) ?? read);
   }
 }

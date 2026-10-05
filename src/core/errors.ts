@@ -72,6 +72,17 @@ export class AddressValidationUnsupportedError extends ChainsError {
   }
 }
 
+/** The address holds, but the chain can't say what it pays to. */
+export class AddressDecodingUnsupportedError extends ChainsError {
+  readonly chain: ChainKey;
+
+  constructor(chain: ChainKey) {
+    super(`Address decoding is not supported for ${chain}`);
+    this.name = "AddressDecodingUnsupportedError";
+    this.chain = chain;
+  }
+}
+
 /** A transaction id failed its chain's format check. */
 export class InvalidTxidError extends ChainsError {
   readonly chain: ChainKey;

@@ -6,8 +6,8 @@ export class Bsc extends EVM {
   readonly symbol = "BNB";
   override readonly decimals = 18;
   readonly explorer = "https://bscscan.com";
-  readonly bip44 = 60;
-  readonly chainId = "0x38";
-  readonly caip2 = "eip155:56";
-  readonly rpcDefault = "https://bsc-rpc.publicnode.com";
+  override readonly bip44 = 60;
+  override readonly chainId = "0x38";
+  override readonly caip2 = "eip155:56";
+  override readonly rpcDefault = "https://bsc-rpc.publicnode.com";
 }

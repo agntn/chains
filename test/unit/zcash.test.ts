@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
+import { bech32, bech32m } from "@agntn/encodings/bech32";
 import { describe, expect, it } from "vitest";
-import { BECH32M, polymod } from "../../src/core/bech32.ts";
-import { blake2b } from "../../src/core/blake2b.ts";
+import { blake2b } from "@agntn/hashes/blake2b";
 import { f4jumbleInverse } from "../../src/core/f4jumble.ts";
 import { identify, InvalidAddressError, Zcash } from "../../src/index.ts";
 
@@ -60,10 +60,10 @@ const unified = [
 describe("BLAKE2b", () => {
   /** RFC 7693 appendix A, and the digest of nothing every implementation agrees on. */
   it("hashes the RFC 7693 vectors", () => {
-    expect(hex(blake2b(new TextEncoder().encode("abc")))).toBe(
+    expect(hex(blake2b(new TextEncoder().encode("abc"), 64))).toBe(
       "ba80a53f981c4d0d6a2797b69f12f6e94c212f14685ac4b74b12bb6fdbffa2d17d87c5392aab792dc252d5de4533cc9518d38aa8dbf1925ab92386edd4009923",
     );
-    expect(hex(blake2b(new Uint8Array()))).toBe(
+    expect(hex(blake2b(new Uint8Array(), 64))).toBe(
       "786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419d25e1031afee585313896444934eb04b903a685b1448b755d56f701afe9be2ce",
     );
   });
@@ -71,7 +71,7 @@ describe("BLAKE2b", () => {
   it("agrees with node:crypto on every length across three block boundaries", () => {
     for (let length = 0; length <= 400; length++) {
       const message = Uint8Array.from({ length }, (_, index) => (index * 7 + length) & 0xff);
-      expect(hex(blake2b(message)), `length ${length}`).toBe(
+      expect(hex(blake2b(message, 64)), `length ${length}`).toBe(
         createHash("blake2b512").update(message).digest("hex"),
       );
     }
@@ -112,10 +112,10 @@ describe("F4Jumble", () => {
  * @param {string} tag - `UA_F4Jumble_H` or `UA_F4Jumble_G`.
  * @param {number} round - i.
  * @param {number} [block] - G's block counter, little-endian.
- * @returns {number[]} The personalization bytes.
+ * @returns {Uint8Array} The personalization bytes.
  */
-function personal(tag: string, round: number, block = 0): number[] {
-  return [...new TextEncoder().encode(tag), round, block & 0xff, block >>> 8];
+function personal(tag: string, round: number, block = 0): Uint8Array {
+  return Uint8Array.from([...new TextEncoder().encode(tag), round, block & 0xff, block >>> 8]);
 }
 
 /**
@@ -137,7 +137,7 @@ function xor(bytes: ArrayLike<number>, mask: ArrayLike<number>): Uint8Array {
  */
 function expand(round: number, input: ArrayLike<number>, length: number): Uint8Array {
   const blocks = Array.from({ length: Math.ceil(length / 64) }, (_, block) => [
-    ...blake2b(input, 64, personal("UA_F4Jumble_G", round, block)),
+    ...blake2b(Uint8Array.from(input), 64, personal("UA_F4Jumble_G", round, block)),
   ]);
   return Uint8Array.from(blocks.flat().slice(0, length));
 }
@@ -169,22 +169,7 @@ function encodeUnified(items: readonly (readonly number[])[], hrp = "u", padded 
   const padding = [...new TextEncoder().encode(padded)];
   while (padding.length < 16) padding.push(0);
   const jumbled = f4jumble([...items.flat(), ...padding]);
-  const digits: number[] = [];
-  let accumulator = 0;
-  let bits = 0;
-  for (const byte of jumbled) {
-    accumulator = (accumulator << 8) | byte;
-    bits += 8;
-    while (bits >= 5) {
-      bits -= 5;
-      digits.push((accumulator >> bits) & 31);
-    }
-    accumulator &= (1 << bits) - 1;
-  }
-  if (bits > 0) digits.push((accumulator << (5 - bits)) & 31);
-  const residue = polymod(hrp, [...digits, 0, 0, 0, 0, 0, 0]) ^ BECH32M;
-  for (let index = 0; index < 6; index++) digits.push((residue >> (5 * (5 - index))) & 31);
-  return `${hrp}1${digits.map((digit) => BECH32_ALPHABET[digit]).join("")}`;
+  return bech32m.encode(hrp, Uint8Array.from(jumbled), Number.MAX_SAFE_INTEGER);
 }
 
 const item = (typecode: number, length: number, fill = 1) => [
@@ -350,9 +335,9 @@ describe("Zcash address validation", () => {
   it("keeps each encoding to its own checksum", () => {
     const tex = "tex1s2rt77ggv6q989lr49rkgzmh5slsksa9khdgte";
     const data = Array.from(tex.slice(4), (character) => BECH32_ALPHABET.indexOf(character));
-    const residue = polymod("tex", [...data.slice(0, -6), 0, 0, 0, 0, 0, 0]) ^ 1;
-    const bech32 = `tex1${[...data.slice(0, -6), ...[0, 1, 2, 3, 4, 5].map((index) => (residue >> (5 * (5 - index))) & 31)].map((digit) => BECH32_ALPHABET[digit]).join("")}`;
-    expect(() => zcash.assertAddress(bech32)).toThrow(InvalidAddressError);
+    expect(() => zcash.assertAddress(bech32.encodeWords("tex", data.slice(0, -6)))).toThrow(
+      InvalidAddressError,
+    );
   });
 });
 

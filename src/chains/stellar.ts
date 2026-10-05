@@ -1,9 +1,9 @@
+import { base32 } from "@agntn/encodings/base32";
 import { Chain } from "../core/chain.ts";
 import { crc16Xmodem } from "../core/crc16.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 import { hexTxidFault } from "../core/txid.ts";
 
-const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 const STRKEY_TYPES: Readonly<
   Partial<Record<string, { readonly bytes: number; readonly version: number }>>
 > = {
@@ -13,34 +13,21 @@ const STRKEY_TYPES: Readonly<
 };
 
 /**
- * Decodes canonical RFC 4648 base32 without padding or ignored trailing bits.
+ * Canonical unpadded base32 only, so a muxed address has one spelling, not two.
  *
  * @param {string} input - Base32 text to decode.
  * @param {number} expectedBytes - Exact decoded byte count.
  * @returns {Uint8Array | undefined} Decoded bytes, or undefined for invalid input.
  */
 function decodeBase32(input: string, expectedBytes: number): Uint8Array | undefined {
-  const decoded = new Uint8Array(expectedBytes);
-  let accumulator = 0;
-  let bits = 0;
-  let offset = 0;
-
-  for (const character of input) {
-    const digit = BASE32_ALPHABET.indexOf(character);
-    if (digit < 0) return undefined;
-    accumulator = (accumulator << 5) | digit;
-    bits += 5;
-
-    if (bits >= 8) {
-      bits -= 8;
-      if (offset >= expectedBytes) return undefined;
-      decoded[offset++] = (accumulator >> bits) & 0xff;
-      accumulator &= (1 << bits) - 1;
-    }
+  let decoded: Uint8Array;
+  try {
+    decoded = base32.decode(input);
+  } catch {
+    return undefined;
   }
-
-  if (offset !== expectedBytes || accumulator !== 0) return undefined;
-  return decoded;
+  const canonical = base32.encode(decoded, { padding: false }) === input;
+  return canonical && decoded.length === expectedBytes ? decoded : undefined;
 }
 
 function isAddressStrkey(address: string): boolean {
@@ -66,9 +53,9 @@ export class Stellar extends Chain {
   readonly symbol = "XLM";
   override readonly decimals = 7;
   readonly explorer = "https://stellar.expert/explorer/public";
-  readonly bip44 = 148;
-  readonly caip2 = "stellar:pubnet";
-  readonly rpcDefault = "https://soroban-rpc.mainnet.stellar.gateway.fm";
+  override readonly bip44 = 148;
+  override readonly caip2 = "stellar:pubnet";
+  override readonly rpcDefault = "https://soroban-rpc.mainnet.stellar.gateway.fm";
 
   override assertAddress(address: string): string {
     if (!isAddressStrkey(address)) throw new InvalidAddressError(this.key, address);

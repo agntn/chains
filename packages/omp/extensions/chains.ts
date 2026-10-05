@@ -84,6 +84,7 @@ export default function chainsExtension(pi: ExtensionAPI): void {
       "Use chains_validate_address before sending funds or storing an address, to confirm it matches the target chain's format.",
     promptGuidelines: [
       "A format check with the checksum verified where the format carries one, so a typo fails there; an EVM address in one case carries none. Not an on-chain existence check.",
+      "A valid UTXO address comes back with its kind (p2pkh, p2wpkh, p2tr...) and the hash or witness program it pays to, in hex.",
       "A chain without a registered validator fails the call, because nothing was checked.",
       "When the owning chain is unknown, chains_identify_address checks every validator at once.",
     ],

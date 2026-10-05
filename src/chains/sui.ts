@@ -11,8 +11,8 @@ export class Sui extends Move {
   readonly symbol = "SUI";
   override readonly decimals = 9;
   readonly explorer = "https://suiscan.xyz";
-  readonly bip44 = 784;
-  readonly caip2 = "sui:mainnet";
+  override readonly bip44 = 784;
+  override readonly caip2 = "sui:mainnet";
 
   /**
    * A digest is 32 bytes in base58, read the way `TransactionDigest::from_str` reads

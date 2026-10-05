@@ -1,5 +1,9 @@
-/** Bitcoin's ordering of the 58 digits, the default alphabet. */
-export const BITCOIN_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+import { base58, type Base58Alphabet } from "@agntn/encodings/base58";
+
+/** One base58 digit. Bitcoin's alphabet and the XRP Ledger's order the same 58 characters. */
+export const BASE58_DIGIT = /^[1-9A-HJ-NP-Za-km-z]$/;
+
+const BASE58_TEXT = /^[1-9A-HJ-NP-Za-km-z]+$/;
 
 /**
  * Decodes a base58 string to its bytes, or undefined when the input is not
@@ -12,45 +16,28 @@ export const BITCOIN_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmno
  *
  * The alphabet is a parameter because base58 is an ordering, not one encoding: read
  * an XRP Ledger address off Bitcoin's ordering and the bytes come back wrong rather
- * than rejected. The zero digit moves with the alphabet, so leading zeros follow it.
+ * than rejected.
  *
  * The bound is required because decoding is quadratic: every character grows the
- * BigInt the next multiply has to walk, and a 100k-character string ties the
+ * number the next multiply has to walk, and a 100k-character string ties the
  * process up for seconds. An address format knows its maximum length, so the
- * caller states it and oversized input is rejected before any work.
+ * caller states it and oversized input is rejected before any work. So is a character
+ * outside the 58 digits, which then costs no exception.
  *
  * @param {string} input - Base58 text to decode.
  * @param {number} maxLength - Maximum accepted character count.
- * @param {string} alphabet - Ordered 58-character alphabet.
+ * @param {Base58Alphabet} alphabet - `bitcoin`, or `ripple` for the XRP Ledger.
  * @returns {Uint8Array | undefined} Decoded bytes, or undefined for invalid input.
  */
 export function decodeBase58(
   input: string,
   maxLength: number,
-  alphabet: string = BITCOIN_ALPHABET,
+  alphabet: Base58Alphabet = "bitcoin",
 ): Uint8Array | undefined {
-  if (input.length === 0 || input.length > maxLength) return undefined;
-
-  let value = 0n;
-  for (const character of input) {
-    const digit = alphabet.indexOf(character);
-    if (digit < 0) return undefined;
-    value = value * 58n + BigInt(digit);
+  if (input.length > maxLength || !BASE58_TEXT.test(input)) return undefined;
+  try {
+    return base58.decode(input, { alphabet });
+  } catch {
+    return undefined;
   }
-
-  const digits: number[] = [];
-  while (value > 0n) {
-    digits.unshift(Number(value % 256n));
-    value /= 256n;
-  }
-
-  let leadingZeros = 0;
-  for (const character of input) {
-    if (character !== alphabet[0]) break;
-    leadingZeros++;
-  }
-
-  const bytes = new Uint8Array(leadingZeros + digits.length);
-  bytes.set(digits, leadingZeros);
-  return bytes;
 }

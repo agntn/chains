@@ -1,4 +1,6 @@
-import { decodeCashAddr } from "../core/cashaddr.ts";
+import { settle } from "../core/address.ts";
+import type { DecodedAddress } from "../core/address.ts";
+import { cashAddrKind, decodeCashAddr } from "../core/cashaddr.ts";
 import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
 
@@ -8,7 +10,7 @@ export class Ecash extends UTXO {
   readonly symbol = "XEC";
   override readonly decimals = 2;
   readonly explorer = "https://explorer.e.cash";
-  readonly bip44 = 899;
+  override readonly bip44 = 899;
   override readonly magic = "e3e1f3e8";
   override readonly pow = "sha256d";
 
@@ -26,5 +28,17 @@ export class Ecash extends UTXO {
       throw new InvalidAddressError(this.key, address);
     }
     return address;
+  }
+
+  /**
+   * The CashAddr type and hash, 32-byte script hashes read as the double SHA-256 they are.
+   *
+   * @param {string} address - Candidate eCash address.
+   * @returns {DecodedAddress} Kind and payload.
+   */
+  override decodeAddress(address: string): DecodedAddress {
+    this.assertAddress(address);
+    const content = decodeCashAddr(address, "ecash");
+    return settle(this.key, address, content && cashAddrKind(content.type, content.hash));
   }
 }

@@ -1,6 +1,14 @@
+import { legacyAddress, legacyLayout, settle } from "../core/address.ts";
+import type { DecodedAddress, LegacyVersions } from "../core/address.ts";
 import { base58CheckFault } from "../core/base58check.ts";
 import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
+
+/** Version bytes of the legacy addresses, in the order the reason names them. */
+const VERSIONS: LegacyVersions = [
+  [0x38, "p2pkh"],
+  [0x16, "p2sh"],
+];
 
 export class Pepecoin extends UTXO {
   static readonly key = "pepecoin" as const;
@@ -8,8 +16,8 @@ export class Pepecoin extends UTXO {
   readonly symbol = "PEP";
   override readonly decimals = 8;
   readonly explorer = "https://peppool.space";
-  readonly bip44 = 3434;
-  readonly caip2 = "bip122:37981c0c48b8d48965376c8a42ece9a0";
+  override readonly bip44 = 3434;
+  override readonly caip2 = "bip122:37981c0c48b8d48965376c8a42ece9a0";
   override readonly magic = "c0a0f0e0";
   override readonly pow = "scrypt";
 
@@ -22,8 +30,19 @@ export class Pepecoin extends UTXO {
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    const fault = base58CheckFault(address, 34, { width: 25, versions: [0x38, 0x16] });
+    const fault = base58CheckFault(address, 34, legacyLayout(VERSIONS));
     if (fault) throw new InvalidAddressError(this.key, address, fault);
     return address;
+  }
+
+  /**
+   * The kind behind the version byte, with the hash it pays to.
+   *
+   * @param {string} address - Candidate Pepecoin address.
+   * @returns {DecodedAddress} Kind and payload.
+   */
+  override decodeAddress(address: string): DecodedAddress {
+    this.assertAddress(address);
+    return settle(this.key, address, legacyAddress(address, 34, VERSIONS));
   }
 }
