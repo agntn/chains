@@ -50,11 +50,28 @@ function checksumFault(hrp: string, data: readonly number[], version: number): s
     : `a Bech32 checksum under witness version ${version}, where BIP-350 wants Bech32m`;
 }
 
+/** BIP-173's prefix: 1 to 83 printable ASCII characters. */
+const BECH32_PREFIX = /^[\x21-\x7E]{1,83}$/;
+
+/** Searched for rather than matched, so a few million digits can't run V8 out of stack. */
+const NOT_BECH32_DIGIT = /[^qpzry9x8gf2tvdw0s3jn54khce6mua7l]/i;
+
 /**
- * BIP-173's grammar for any prefix: 1 to 83 printable ASCII characters, the last `1`, then the
- * checksum's six digits or more. The digits hold no `1`, so the separator is the last one.
+ * BIP-173's grammar for any prefix: the prefix, the last `1`, then the checksum's six digits or
+ * more. The digits hold no `1`, so the separator is the last one.
+ * @param {string} address - Candidate address.
+ * @returns {boolean} Whether the address has Bech32's shape, checksum aside.
  */
-const BECH32_SHAPE = /^[\x21-\x7E]{1,83}1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{6,}$/i;
+function bech32Shaped(address: string): boolean {
+  const separator = address.lastIndexOf("1");
+  const digits = address.slice(separator + 1);
+  return (
+    separator > 0 &&
+    digits.length >= 6 &&
+    BECH32_PREFIX.test(address.slice(0, separator)) &&
+    !NOT_BECH32_DIGIT.test(digits)
+  );
+}
 
 /**
  * Whether the SegWit reader should explain a rejection rather than the Base58Check one: the
@@ -69,7 +86,7 @@ export function segwitShaped(address: string, hrp: string): boolean {
   if (address.slice(0, hrp.length + 1).toLowerCase() === `${hrp}1`) return true;
   // One case throughout, as Bech32 writes it, which keeps out Base58 and its mixed case.
   const mixed = /[a-z]/.test(address) && /[A-Z]/.test(address);
-  return !mixed && BECH32_SHAPE.test(address);
+  return !mixed && bech32Shaped(address);
 }
 
 /**
