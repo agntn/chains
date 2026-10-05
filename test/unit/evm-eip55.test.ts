@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { keccak256 } from "../../src/core/keccak256.ts";
+import { keccak256 } from "@agntn/hashes/keccak";
 import {
   chains,
   create,

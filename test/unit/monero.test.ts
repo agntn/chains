@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { keccak256 } from "../../src/core/keccak256.ts";
+import { keccak256 } from "@agntn/hashes/keccak";
 import { Chain, InvalidAddressError, getChain, identify } from "../../src/index.ts";
 import {
   identifyAddress,
@@ -24,7 +24,7 @@ const subaddress =
  * @returns {string} The address those bytes spell.
  */
 function encode(body: readonly number[]): string {
-  const bytes = [...body, ...keccak256(body).subarray(0, 4)];
+  const bytes = [...body, ...keccak256(Uint8Array.from(body)).subarray(0, 4)];
   const widths = [0, 2, 3, 5, 6, 7, 9, 10, 11];
   const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
   let address = "";

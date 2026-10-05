@@ -2,7 +2,7 @@ import { base58, createBase58check, type Base58Alphabet } from "@agntn/encodings
 import { BASE58_DIGIT, decodeBase58 } from "./base58.ts";
 
 /** An alphabet with SHA-256 behind the checksum, or the hash Decred puts there instead. */
-export type Base58CheckScheme = Base58Alphabet | ((message: ArrayLike<number>) => Uint8Array);
+export type Base58CheckScheme = Base58Alphabet | Parameters<typeof createBase58check>[0];
 
 /** What reading Base58Check makes of a string: the bytes when it decodes, and every rule it breaks. */
 export interface Base58CheckRead {

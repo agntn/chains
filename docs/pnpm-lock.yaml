@@ -11,6 +11,9 @@ importers:
       '@agntn/encodings':
         specifier: 0.1.1
         version: 0.1.1(ai@7.0.99(zod@4.6.4))
+      '@agntn/hashes':
+        specifier: 0.6.1
+        version: 0.6.1(ai@7.0.99(zod@4.6.4))
       better-sqlite3:
         specifier: 12.11.1
         version: 12.11.1

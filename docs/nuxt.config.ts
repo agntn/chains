@@ -6,7 +6,7 @@ const repoRoot = fileURLToPath(new URL("../", import.meta.url));
 const librarySource = fileURLToPath(new URL("../src/index.ts", import.meta.url));
 
 /** Runtime deps under src/index.ts, installed here so they resolve from docs/node_modules. */
-const libraryDependencies = ["@agntn/encodings"];
+const libraryDependencies = ["@agntn/encodings", "@agntn/hashes"];
 
 /** Every subpath src/ imports, so dev bundles them up front, not on demand. */
 const libraryEntries = [
@@ -14,6 +14,9 @@ const libraryEntries = [
   "@agntn/encodings/base58",
   "@agntn/encodings/base64",
   "@agntn/encodings/bech32",
+  "@agntn/hashes/blake256",
+  "@agntn/hashes/blake2b",
+  "@agntn/hashes/keccak",
 ];
 
 export default defineNuxtConfig({

@@ -1,7 +1,7 @@
+import { blake256 } from "@agntn/hashes/blake256";
 import { settle, toHex } from "../core/address.ts";
 import type { AddressSignature, DecodedAddress } from "../core/address.ts";
 import { decodeBase58Check, readBase58Check } from "../core/base58check.ts";
-import { blake256 } from "../core/blake256.ts";
 import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
 

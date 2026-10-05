@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { blake256 } from "../../src/core/blake256.ts";
+import { blake256 } from "@agntn/hashes/blake256";
 import { Chain, InvalidAddressError, getChain, identify } from "../../src/index.ts";
 import {
   identifyAddress,
