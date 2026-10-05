@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.4.0
+
+[compare changes](https://github.com/agntn/chains/compare/v0.3.12...v0.4.0)
+
+### 💅 Refactors
+
+- ⚠️ Let encodings do the codec math ([#114](https://github.com/agntn/chains/pull/114))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️ Let encodings do the codec math ([#114](https://github.com/agntn/chains/pull/114))
+
+### ❤️ Contributors
+
+- Aeitwoen ([@aeitwoen](https://github.com/aeitwoen))
+
 ## v0.3.12
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.11...v0.3.12)
