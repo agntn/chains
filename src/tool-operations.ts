@@ -8,8 +8,9 @@
  * Imports go through the package entrypoint, so executors see the public surface.
  */
 
+import { decodeOrCheck, describeAddress } from "./core/address.ts";
 import { quoted, stripControlCharacters } from "./core/text.ts";
-import type { Chain, PowAlgorithm } from "./index.ts";
+import type { Chain, DecodedAddress, PowAlgorithm } from "./index.ts";
 import {
   AddressValidationUnsupportedError,
   chains,
@@ -80,6 +81,8 @@ export interface AddressCheck {
   address: string;
   valid: boolean;
   reason?: string;
+  /** What a valid address pays to, absent on a custom UTXO chain that never said. */
+  decoded?: DecodedAddress;
 }
 
 /** Outcome of checking one transaction id against one chain's format rules. */
@@ -320,12 +323,16 @@ export function validateChainAddress(input: string, rawAddress: string): ToolRes
   }
 
   try {
-    chain.assertAddress(address);
+    const decoded = decodeOrCheck(chain, address);
+    const summary = describeAddress(decoded);
     return {
       content: [
-        { type: "text", text: `Valid ${chain.name} (${chain.key}) address: ${quoted(address)}` },
+        {
+          type: "text",
+          text: `Valid ${chain.name} (${chain.key}) address: ${quoted(address)}${summary ? ` - ${summary}` : ""}`,
+        },
       ],
-      details: { chain: chain.key, address, valid: true },
+      details: { chain: chain.key, address, valid: true, ...(decoded && { decoded }) },
     };
   } catch (error) {
     if (error instanceof InvalidAddressError) {

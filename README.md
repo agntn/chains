@@ -18,6 +18,7 @@ Docs, one page per chain and a playground are at [chains.agntn.dev](https://chai
 - 🧬 **Thirty-six chains, one abstract `Chain`.** Each chain is its own class with its own facts. `EVM` and `Move` hold what a family shares.
 - 🏷️ **Aliases people actually type.** `matic`, `btc`, `arb`, `ripple`. Display names work too, so `BNB Chain` comes back as `bsc`.
 - 🔍 **Validators that decode.** Base58Check, Bech32, CashAddr, CIP-19, whatever the chain uses. Checksums get checked.
+- 🧩 **Addresses read back.** The validator decodes anyway, so `decodeAddress` hands you what it found: `p2wpkh` and the 20-byte hash, not just a yes.
 - 🕵️ **Identify an address of unknown origin.** Every validator gets a go and you learn the family.
 - 🔗 **Transaction ids, same idea.** `0x` and 64 hex on the EVM chains and Aptos, 64 hex on the UTXO chains, Monero, TRON and the XRP Ledger, lowercase only on Stellar and Octra because their nodes read nothing else, base58 decoded to 64 bytes on Solana and 32 on Sui, hex or padded base64 on TON, 43 base64url characters on Arweave. A txid pasted wrong fails here, not three calls later inside an RPC.
 - 🧾 **Metadata checked, not remembered.** Every `decimals` value was looked up at the source. XEC really has two.
@@ -138,6 +139,8 @@ polygon.caip2; // "eip155:137"
 
 getChain("btc").assertAddress("bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a"); // returns it
 getChain("eth").assertTxid("0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060"); // the first mainnet transaction, returned too
+getChain("btc").decodeAddress("1GSMG1JC9wtdSwfwApgj2xcmJPAwx7prBe");
+// { kind: "p2pkh", payload: "a9553269572a317e39f0f518cb87c1a0ee1dbae4", hash: "hash160" }
 
 try {
   getChain("btc").assertAddress("1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN3");
@@ -150,7 +153,7 @@ identify("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984").matches.length; // 13
 create("bitcoin").decimals; // 8
 ```
 
-Most of the API is right there. `create(key)` wants the canonical key. `getChain(whatever)` takes any spelling and defaults to Ethereum. `chains()` lists the keys, `register(Yours)` adds one. `assertAddress` is a format check and nothing more. It doesn't know if the address exists. `assertTxid` is the same thing for a transaction id, on every chain that ships. A custom chain that skips it throws `TxidValidationUnsupportedError`, and `validatesTxid` tells you before you ask. Errors are one family under `ChainsError`, six of them. More: [Registry](https://chains.agntn.dev/guide/registry), [Address validation](https://chains.agntn.dev/guide/validation), [Identify](https://chains.agntn.dev/guide/identify), [Metadata](https://chains.agntn.dev/guide/metadata).
+Most of the API is right there. `create(key)` wants the canonical key. `getChain(whatever)` takes any spelling and defaults to Ethereum. `chains()` lists the keys, `register(Yours)` adds one. `assertAddress` is a format check and nothing more. It doesn't know if the address exists. `decodeAddress` runs the same check, then tells you what the address pays to. The HASH160 you'd dig out with a second library is already in there. On an EVM chain it's plain `account`, nothing more inside. `assertTxid` is the same thing for a transaction id, on every chain that ships. A custom chain that skips it throws `TxidValidationUnsupportedError`, and `validatesTxid` tells you before you ask. Errors are one family under `ChainsError`, seven of them. More: [Registry](https://chains.agntn.dev/guide/registry), [Address validation](https://chains.agntn.dev/guide/validation), [Identify](https://chains.agntn.dev/guide/identify), [Metadata](https://chains.agntn.dev/guide/metadata).
 
 ## 🗺️ Chains
 

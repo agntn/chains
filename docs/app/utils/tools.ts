@@ -1,4 +1,4 @@
-import { chains, create, identify, type Chain } from "@agntn/chains";
+import { chains, create, identify, type Chain, type DecodedAddress } from "@agntn/chains";
 
 /**
  * The text the five tools hand a model, rebuilt here because `src/tool-operations.ts` is
@@ -38,14 +38,25 @@ export function lookupText(chain: Chain): string {
     .join("\n");
 }
 
-/** Mirrors the `chains_validate_address` text for a checked address, reason included. */
+/** Mirrors `describeAddress` in `src/core/address.ts`: what a valid address pays to, nothing for an account. */
+export function describeAddress(decoded: DecodedAddress): string | undefined {
+  if (decoded.kind === "account") return undefined;
+  const kind = decoded.version === undefined ? decoded.kind : `${decoded.kind} v${decoded.version}`;
+  const qualifiers = [decoded.signature, decoded.tokens ? "CashTokens" : undefined].filter(Boolean);
+  const head = qualifiers.length === 0 ? kind : `${kind} (${qualifiers.join(", ")})`;
+  return decoded.payload === undefined
+    ? head
+    : `${head}, ${decoded.hash ?? "payload"} ${decoded.payload}`;
+}
+
+/** Mirrors the `chains_validate_address` text for a checked address: the reason after a rejection, what it pays to after a pass. */
 export function validateText(
   chain: Chain,
   address: string,
   valid: boolean,
-  reason?: string,
+  detail?: string,
 ): string {
-  return `${valid ? "Valid" : "Invalid"} ${chain.name} (${chain.key}) address: ${quoted(address)}${reason ? ` - ${stripControlCharacters(reason)}` : ""}`;
+  return `${valid ? "Valid" : "Invalid"} ${chain.name} (${chain.key}) address: ${quoted(address)}${detail ? ` - ${stripControlCharacters(detail)}` : ""}`;
 }
 
 /** Mirrors the `chains_validate_txid` text for a checked transaction id, reason included. */

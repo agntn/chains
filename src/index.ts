@@ -6,9 +6,11 @@ export {
   UnsupportedChainError,
   InvalidAddressError,
   AddressValidationUnsupportedError,
+  AddressDecodingUnsupportedError,
   InvalidTxidError,
   TxidValidationUnsupportedError,
 } from "./core/errors.ts";
+export type { AddressHash, AddressKind, AddressSignature, DecodedAddress } from "./core/address.ts";
 export type { ChainInfo, ChainKey, ChainType, PowAlgorithm } from "./core/types.ts";
 export { register, create, chains, has } from "./core/registry.ts";
 export { getChain } from "./core/resolve.ts";

@@ -1,7 +1,12 @@
-import { BECH32, BECH32M, polymod, readBech32Digits } from "./bech32.ts";
+import { toHex } from "./address.ts";
+import type { DecodedAddress } from "./address.ts";
+import { BECH32, BECH32M, bytesFromDigits, polymod, readBech32Digits } from "./bech32.ts";
 
 /** A 40-byte program is 64 digits, with the version before it and the checksum after. */
 const MAX_DIGITS = 71;
+
+/** Pay-to-anchor, the one two-byte v1 program Bitcoin Core gives a name. */
+const ANCHOR = "4e73";
 
 /**
  * Names what breaks BIP-173/350's program rules, without allocating the program.
@@ -84,4 +89,33 @@ export function segwitFault(address: string, hrp: string): string | undefined {
     if (checksum) faults.push(checksum);
   }
   return faults.length === 0 ? undefined : faults.join("; ");
+}
+
+/**
+ * Names the output a witness program pays to, the way Bitcoin Core's `Solver` does.
+ * @param {number} version - Witness version.
+ * @param {string} payload - The program in hex.
+ * @returns {DecodedAddress} The kind, and the version when no BIP names the program.
+ */
+function witnessKind(version: number, payload: string): DecodedAddress {
+  if (version === 0 && payload.length === 40) return { kind: "p2wpkh", payload, hash: "hash160" };
+  if (version === 0) return { kind: "p2wsh", payload, hash: "sha256" };
+  if (version === 1 && payload.length === 64) return { kind: "p2tr", payload };
+  if (version === 1 && payload === ANCHOR) return { kind: "p2a", payload };
+  return { kind: "witness", payload, version };
+}
+
+/**
+ * Reads a SegWit address `segwitFault` already passed into its kind and witness program.
+ * @param {string} address - Address that holds under the prefix.
+ * @param {string} hrp - Lowercase human-readable part.
+ * @returns {DecodedAddress | undefined} The kind and program, or undefined when it is not SegWit.
+ */
+export function segwitAddress(address: string, hrp: string): DecodedAddress | undefined {
+  const { digits } = readBech32Digits(address, hrp, MAX_DIGITS);
+  const program = digits && bytesFromDigits(digits.slice(1, -6));
+  const version = digits?.[0];
+  return version === undefined || program === undefined
+    ? undefined
+    : witnessKind(version, toHex(program));
 }
