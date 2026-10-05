@@ -6,8 +6,8 @@ export class Arbitrum extends EVM {
   readonly symbol = "ETH";
   override readonly decimals = 18;
   readonly explorer = "https://arbiscan.io";
-  readonly bip44 = 60;
-  readonly chainId = "0xa4b1";
-  readonly caip2 = "eip155:42161";
-  readonly rpcDefault = "https://arbitrum-one-rpc.publicnode.com";
+  override readonly bip44 = 60;
+  override readonly chainId = "0xa4b1";
+  override readonly caip2 = "eip155:42161";
+  override readonly rpcDefault = "https://arbitrum-one-rpc.publicnode.com";
 }

@@ -78,7 +78,7 @@ export class Decred extends UTXO {
   readonly symbol = "DCR";
   override readonly decimals = 8;
   readonly explorer = "https://dcrdata.decred.org";
-  readonly bip44 = 42;
+  override readonly bip44 = 42;
   override readonly magic = "f900b4d9";
   override readonly pow = "blake3";
 

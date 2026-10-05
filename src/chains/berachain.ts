@@ -6,8 +6,8 @@ export class Berachain extends EVM {
   readonly symbol = "BERA";
   override readonly decimals = 18;
   readonly explorer = "https://berascan.com";
-  readonly bip44 = 60;
-  readonly chainId = "0x138de";
-  readonly caip2 = "eip155:80094";
-  readonly rpcDefault = "https://rpc.berachain.com";
+  override readonly bip44 = 60;
+  override readonly chainId = "0x138de";
+  override readonly caip2 = "eip155:80094";
+  override readonly rpcDefault = "https://rpc.berachain.com";
 }

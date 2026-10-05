@@ -10,8 +10,8 @@ export class Tron extends Chain {
   readonly symbol = "TRX";
   override readonly decimals = 6;
   readonly explorer = "https://tronscan.org";
-  readonly bip44 = 195;
-  readonly caip2 = "tron:0x2b6653dc";
+  override readonly bip44 = 195;
+  override readonly caip2 = "tron:0x2b6653dc";
 
   /**
    * A TRON address is Base58Check under version byte 0x41: the version, a

@@ -12,7 +12,7 @@ export class Octra extends Chain {
   readonly symbol = "OCT";
   override readonly decimals = 6;
   readonly explorer = "https://octrascan.io";
-  readonly rpcDefault = "https://octra.network/rpc";
+  override readonly rpcDefault = "https://octra.network/rpc";
 
   /**
    * The width is the whole format. A contract address is cut out of base58

@@ -194,8 +194,8 @@ export class Zcash extends UTXO {
   readonly symbol = "ZEC";
   override readonly decimals = 8;
   readonly explorer = "https://blockchair.com/zcash";
-  readonly bip44 = 133;
-  readonly caip2 = "bip122:00040fe8ec8471911baa1db1266ea15d";
+  override readonly bip44 = 133;
+  override readonly caip2 = "bip122:00040fe8ec8471911baa1db1266ea15d";
   override readonly magic = "24e92764";
   override readonly pow = "equihash-200-9";
 

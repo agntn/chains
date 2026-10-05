@@ -66,9 +66,9 @@ export class Stellar extends Chain {
   readonly symbol = "XLM";
   override readonly decimals = 7;
   readonly explorer = "https://stellar.expert/explorer/public";
-  readonly bip44 = 148;
-  readonly caip2 = "stellar:pubnet";
-  readonly rpcDefault = "https://soroban-rpc.mainnet.stellar.gateway.fm";
+  override readonly bip44 = 148;
+  override readonly caip2 = "stellar:pubnet";
+  override readonly rpcDefault = "https://soroban-rpc.mainnet.stellar.gateway.fm";
 
   override assertAddress(address: string): string {
     if (!isAddressStrkey(address)) throw new InvalidAddressError(this.key, address);

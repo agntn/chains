@@ -10,7 +10,7 @@ export class Ecash extends UTXO {
   readonly symbol = "XEC";
   override readonly decimals = 2;
   readonly explorer = "https://explorer.e.cash";
-  readonly bip44 = 899;
+  override readonly bip44 = 899;
   override readonly magic = "e3e1f3e8";
   override readonly pow = "sha256d";
 

@@ -9,9 +9,9 @@ export class Solana extends Chain {
   readonly symbol = "SOL";
   override readonly decimals = 9;
   readonly explorer = "https://solscan.io";
-  readonly bip44 = 501;
-  readonly caip2 = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
-  readonly rpcDefault = "https://api.mainnet-beta.solana.com";
+  override readonly bip44 = 501;
+  override readonly caip2 = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
+  override readonly rpcDefault = "https://api.mainnet-beta.solana.com";
 
   override assertAddress(address: string): string {
     // An account is a 32-byte Ed25519 public key. A character-length window cannot

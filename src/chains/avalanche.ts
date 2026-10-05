@@ -6,8 +6,8 @@ export class Avalanche extends EVM {
   readonly symbol = "AVAX";
   override readonly decimals = 18;
   readonly explorer = "https://snowtrace.io";
-  readonly bip44 = 60;
-  readonly chainId = "0xa86a";
-  readonly caip2 = "eip155:43114";
-  readonly rpcDefault = "https://avalanche-c-chain-rpc.publicnode.com";
+  override readonly bip44 = 60;
+  override readonly chainId = "0xa86a";
+  override readonly caip2 = "eip155:43114";
+  override readonly rpcDefault = "https://avalanche-c-chain-rpc.publicnode.com";
 }

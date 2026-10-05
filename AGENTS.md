@@ -57,6 +57,7 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 - Lint and format with `oxlint` plus `oxfmt` (`pnpm run fmt`)
 - Test with vitest (`pnpm run test`)
 - `verbatimModuleSyntax: true`, so type imports use `import type`
+- `noImplicitOverride: true`, the same as the docs app's Nuxt tsconfig, which typechecks `src/` through its alias. A field that shadows an optional one on `Chain`, such as `bip44` or `caip2`, writes `override` like `decimals` does, and `tsc` asks for it when it's missing
 - `src/` runs under plain Node type stripping: relative imports end in `.ts`, never `.js`, and `erasableSyntaxOnly` keeps out `enum`, `namespace` and parameter properties
 - Inside a checkout, `dist/cli.mjs mcp` loads the server from `src/`, so a local MCP server needs a restart after a change, not `pnpm build`. The npm package and a copy under `node_modules` keep the bundle, and `CHAINS_DIST=1` forces it. A change to `src/cli.ts` itself still needs `pnpm build`
 - Canonical chain key is a lowercase `ChainKey` that names the chain rather than its ticker: `ethereum`, not `eth`. A short name is still a name, so `bsc`, `zksync` and `arbitrum` stay; ticker spellings belong in the alias table

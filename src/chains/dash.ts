@@ -16,8 +16,8 @@ export class Dash extends UTXO {
   readonly symbol = "DASH";
   override readonly decimals = 8;
   readonly explorer = "https://insight.dash.org/insight";
-  readonly bip44 = 5;
-  readonly caip2 = "bip122:00000ffd590b1485b3caadc19b22e637";
+  override readonly bip44 = 5;
+  override readonly caip2 = "bip122:00000ffd590b1485b3caadc19b22e637";
   override readonly magic = "bf0c6bbd";
   override readonly pow = "x11";
 
