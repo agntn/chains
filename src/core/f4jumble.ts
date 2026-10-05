@@ -1,4 +1,4 @@
-import { blake2b } from "./blake2b.ts";
+import { blake2b } from "@agntn/hashes/blake2b";
 
 /**
  * The inverse of ZIP-316's F4Jumble, the four-round Feistel permutation a Unified Address is
@@ -20,10 +20,13 @@ const G_TAG = "UA_F4Jumble_G";
  * The sixteen personalization bytes: the ASCII tag, then three more.
  * @param {string} tag - `UA_F4Jumble_H` or `UA_F4Jumble_G`.
  * @param {number[]} tail - i, then two zero bytes or the block counter.
- * @returns {number[]} The personalization field.
+ * @returns {Uint8Array} The personalization field.
  */
-function personalization(tag: string, ...tail: readonly number[]): number[] {
-  return [...Array.from(tag, (character) => character.codePointAt(0) ?? 0), ...tail];
+function personalization(tag: string, ...tail: readonly number[]): Uint8Array {
+  return Uint8Array.from([
+    ...Array.from(tag, (character) => character.codePointAt(0) ?? 0),
+    ...tail,
+  ]);
 }
 
 /**
@@ -34,7 +37,7 @@ function personalization(tag: string, ...tail: readonly number[]): number[] {
  * @returns {Uint8Array} The mask for the left half.
  */
 function hashRound(round: number, input: ArrayLike<number>, length: number): Uint8Array {
-  return blake2b(input, length, personalization(H_TAG, round, 0, 0));
+  return blake2b(Uint8Array.from(input), length, personalization(H_TAG, round, 0, 0));
 }
 
 /**
@@ -47,9 +50,10 @@ function hashRound(round: number, input: ArrayLike<number>, length: number): Uin
  */
 function expandRound(round: number, input: ArrayLike<number>, length: number): Uint8Array {
   const output = new Uint8Array(Math.ceil(length / HASH_LENGTH) * HASH_LENGTH);
+  const left = Uint8Array.from(input);
   for (let block = 0; block * HASH_LENGTH < length; block++) {
     const personal = personalization(G_TAG, round, block & 0xff, block >>> 8);
-    output.set(blake2b(input, HASH_LENGTH, personal), block * HASH_LENGTH);
+    output.set(blake2b(left, HASH_LENGTH, personal), block * HASH_LENGTH);
   }
   return output.subarray(0, length);
 }

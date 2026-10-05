@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { keccak256 } from "../../src/core/keccak256.ts";
+import { keccak256 } from "@agntn/hashes/keccak";
 import { create, identify, InvalidAddressError } from "../../src/index.ts";
 import { identifyAddress, validateChainAddress } from "../../src/tool-operations.ts";
 
@@ -76,7 +76,7 @@ describe("Monero address checksum", () => {
     const bytes = bytesOf(live[0]);
     expect(bytes).toHaveLength(69);
     expect(bytes.slice(65)).toEqual([0x88, 0xca, 0xf2, 0xd0]);
-    expect(Array.from(keccak256(bytes.slice(0, 65)).subarray(0, 4))).toEqual([
+    expect(Array.from(keccak256(Uint8Array.from(bytes.slice(0, 65))).subarray(0, 4))).toEqual([
       0x88, 0xca, 0xf2, 0xd0,
     ]);
   });

@@ -1,3 +1,4 @@
+import { keccak256 } from "@agntn/hashes/keccak";
 import type { DecodedAddress } from "./address.ts";
 import {
   AddressDecodingUnsupportedError,
@@ -6,7 +7,6 @@ import {
   InvalidTxidError,
   TxidValidationUnsupportedError,
 } from "./errors.ts";
-import { keccak256 } from "./keccak256.ts";
 import { hexTxidFault } from "./txid.ts";
 import type { ChainInfo, ChainKey, ChainType, PowAlgorithm } from "./types.ts";
 

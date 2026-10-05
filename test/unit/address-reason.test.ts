@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { blake256 } from "../../src/core/blake256.ts";
+import { blake256 } from "@agntn/hashes/blake256";
 import { create, InvalidAddressError, type ChainKey } from "../../src/index.ts";
 import { identifyAddress, validateChainAddress } from "../../src/tool-operations.ts";
 

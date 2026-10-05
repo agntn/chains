@@ -1,6 +1,6 @@
+import { keccak256 } from "@agntn/hashes/keccak";
 import { Chain } from "../core/chain.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
-import { keccak256 } from "../core/keccak256.ts";
 import { hexTxidFault } from "../core/txid.ts";
 
 const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -58,7 +58,7 @@ function isMainnet(bytes: readonly number[]): boolean {
  * @returns {boolean} Whether the checksum holds.
  */
 function holdsChecksum(bytes: readonly number[]): boolean {
-  const digest = keccak256(bytes.slice(0, -4));
+  const digest = keccak256(Uint8Array.from(bytes.slice(0, -4)));
   return bytes.slice(-4).every((byte, index) => byte === digest[index]);
 }
 
