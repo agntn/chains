@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
+import { bech32, bech32m } from "@agntn/encodings/bech32";
 import { describe, expect, it } from "vitest";
-import { BECH32M, polymod } from "../../src/core/bech32.ts";
 import { blake2b } from "../../src/core/blake2b.ts";
 import { f4jumbleInverse } from "../../src/core/f4jumble.ts";
 import { identify, InvalidAddressError, Zcash } from "../../src/index.ts";
@@ -169,22 +169,7 @@ function encodeUnified(items: readonly (readonly number[])[], hrp = "u", padded 
   const padding = [...new TextEncoder().encode(padded)];
   while (padding.length < 16) padding.push(0);
   const jumbled = f4jumble([...items.flat(), ...padding]);
-  const digits: number[] = [];
-  let accumulator = 0;
-  let bits = 0;
-  for (const byte of jumbled) {
-    accumulator = (accumulator << 8) | byte;
-    bits += 8;
-    while (bits >= 5) {
-      bits -= 5;
-      digits.push((accumulator >> bits) & 31);
-    }
-    accumulator &= (1 << bits) - 1;
-  }
-  if (bits > 0) digits.push((accumulator << (5 - bits)) & 31);
-  const residue = polymod(hrp, [...digits, 0, 0, 0, 0, 0, 0]) ^ BECH32M;
-  for (let index = 0; index < 6; index++) digits.push((residue >> (5 * (5 - index))) & 31);
-  return `${hrp}1${digits.map((digit) => BECH32_ALPHABET[digit]).join("")}`;
+  return bech32m.encode(hrp, Uint8Array.from(jumbled), Number.MAX_SAFE_INTEGER);
 }
 
 const item = (typecode: number, length: number, fill = 1) => [
@@ -350,9 +335,9 @@ describe("Zcash address validation", () => {
   it("keeps each encoding to its own checksum", () => {
     const tex = "tex1s2rt77ggv6q989lr49rkgzmh5slsksa9khdgte";
     const data = Array.from(tex.slice(4), (character) => BECH32_ALPHABET.indexOf(character));
-    const residue = polymod("tex", [...data.slice(0, -6), 0, 0, 0, 0, 0, 0]) ^ 1;
-    const bech32 = `tex1${[...data.slice(0, -6), ...[0, 1, 2, 3, 4, 5].map((index) => (residue >> (5 * (5 - index))) & 31)].map((digit) => BECH32_ALPHABET[digit]).join("")}`;
-    expect(() => zcash.assertAddress(bech32)).toThrow(InvalidAddressError);
+    expect(() => zcash.assertAddress(bech32.encodeWords("tex", data.slice(0, -6)))).toThrow(
+      InvalidAddressError,
+    );
   });
 });
 

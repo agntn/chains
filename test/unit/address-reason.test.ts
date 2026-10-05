@@ -1,9 +1,34 @@
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { BITCOIN_ALPHABET, decodeBase58 } from "../../src/core/base58.ts";
 import { blake256 } from "../../src/core/blake256.ts";
-import { sha256 } from "../../src/core/sha256.ts";
 import { create, InvalidAddressError, type ChainKey } from "../../src/index.ts";
 import { identifyAddress, validateChainAddress } from "../../src/tool-operations.ts";
+
+const BITCOIN_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+const sha256 = (message: ArrayLike<number>) =>
+  new Uint8Array(createHash("sha256").update(Uint8Array.from(message)).digest());
+
+/* The BigInt base58 reader the package had before it took base58 from encodings. */
+function decodeBase58(input: string, maxLength: number): Uint8Array | undefined {
+  if (input.length === 0 || input.length > maxLength) return undefined;
+  let value = 0n;
+  for (const character of input) {
+    const digit = BITCOIN_ALPHABET.indexOf(character);
+    if (digit < 0) return undefined;
+    value = value * 58n + BigInt(digit);
+  }
+  const digits: number[] = [];
+  while (value > 0n) {
+    digits.unshift(Number(value % 256n));
+    value /= 256n;
+  }
+  let leadingZeros = 0;
+  while (input[leadingZeros] === "1") leadingZeros++;
+  const bytes = new Uint8Array(leadingZeros + digits.length);
+  bytes.set(digits, leadingZeros);
+  return bytes;
+}
 
 /**
  * The validators as they stood before they named a reason, frozen here so a reworded fault
@@ -18,7 +43,7 @@ function oldBase58Check(
   maxLength: number,
   digest: (message: ArrayLike<number>) => Uint8Array = sha256,
 ): Uint8Array | undefined {
-  const bytes = decodeBase58(input, maxLength, BITCOIN_ALPHABET);
+  const bytes = decodeBase58(input, maxLength);
   if (bytes === undefined || bytes.length < 4) return undefined;
   const checksum = digest(digest(bytes.subarray(0, -4)));
   for (let index = 0; index < 4; index++) {

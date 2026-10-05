@@ -1,7 +1,8 @@
+import { fromWordsUnsafe } from "@agntn/encodings/bech32";
 import { toHex } from "../core/address.ts";
 import type { AddressKind, DecodedAddress } from "../core/address.ts";
 import { decodeBase58 } from "../core/base58.ts";
-import { BECH32, bech32Digits, bytesFromDigits, polymod } from "../core/bech32.ts";
+import { bech32Digits, checkedWords } from "../core/bech32.ts";
 import { UTXO } from "../core/chain.ts";
 import { crc32 } from "../core/crc32.ts";
 import { InvalidAddressError } from "../core/errors.ts";
@@ -215,9 +216,9 @@ function validPointer(bytes: ArrayLike<number>): boolean {
  * @returns {Uint8Array | undefined} Header and payload, or invalid input.
  */
 function shelleyBytes(address: string, hrp: Prefix): Uint8Array | undefined {
-  const digits = bech32Digits(address, hrp, MAX_DIGITS[hrp]);
-  if (digits === undefined || polymod(hrp, digits) !== BECH32) return undefined;
-  return bytesFromDigits(digits.slice(0, -6));
+  if (bech32Digits(address, hrp, MAX_DIGITS[hrp]) === undefined) return undefined;
+  const words = checkedWords(address);
+  return words && fromWordsUnsafe(words);
 }
 
 /**
