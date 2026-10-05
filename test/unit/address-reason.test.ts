@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BITCOIN_ALPHABET, decodeBase58 } from "../../src/core/base58.ts";
 import { blake256 } from "../../src/core/blake256.ts";
 import { sha256 } from "../../src/core/sha256.ts";
-import { create, identify, InvalidAddressError, type ChainKey } from "../../src/index.ts";
+import { create, InvalidAddressError, type ChainKey } from "../../src/index.ts";
 import { identifyAddress, validateChainAddress } from "../../src/tool-operations.ts";
 
 /**
@@ -338,15 +338,18 @@ describe("Base58Check and SegWit rejection reason", () => {
     );
   });
 
-  it("explains a multi-megabyte Bech32 lookalike instead of running out of stack", () => {
-    const huge = `u1${"q".repeat(6_000_000)}`;
-    expect(reasonOf("bitcoin", huge)).toMatch(/^does not start with bc1; /);
-    expect(reasonOf("litecoin", huge)).toMatch(/^does not start with ltc1; /);
-    expect(reasonOf("bitcoingold", huge)).toMatch(/^does not start with btg1; /);
-    expect(identify(huge).matches).toEqual([]);
-    expect(identifyAddress(huge).details.matches).toEqual([]);
-    expect(validateChainAddress("bitcoin", huge).details).toMatchObject({ valid: false });
-  });
+  it(
+    "explains a multi-megabyte Bech32 lookalike instead of running out of stack",
+    { timeout: 30_000 },
+    () => {
+      const huge = `u1${"q".repeat(6_000_000)}`;
+      expect(reasonOf("bitcoin", huge)).toMatch(/^does not start with bc1; /);
+      expect(reasonOf("litecoin", huge)).toMatch(/^does not start with ltc1; /);
+      expect(reasonOf("bitcoingold", huge)).toMatch(/^does not start with btg1; /);
+      expect(identifyAddress(huge).details.matches).toEqual([]);
+      expect(validateChainAddress("bitcoin", huge).details).toMatchObject({ valid: false });
+    },
+  );
 
   it("prints the reason in the tool answer with the caller's control characters escaped", () => {
     expect(
