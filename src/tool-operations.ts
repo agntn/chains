@@ -23,6 +23,9 @@ import {
   TxidValidationUnsupportedError,
 } from "./index.ts";
 
+/** Re-exported so an agent surface throws inside the hierarchy, not a raw `Error`. */
+export { ChainsError };
+
 /** Canonical metadata for a resolved chain. */
 export interface ChainLookup {
   key: string;
@@ -98,7 +101,7 @@ export interface TxidCheck {
 export interface ToolResult<Details> {
   content: Array<{ type: "text"; text: string }>;
   details: Details;
-  /** Set when the tool could not answer. MCP forwards it, the agent harnesses drop it. */
+  /** Set when the tool could not answer. MCP and OMP read it, the Pi extension throws instead. */
   isError?: boolean;
 }
 
