@@ -27,11 +27,14 @@ const CONTROL = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
 /**
  * Runs one subcommand and returns what it wrote through the given consola level.
  *
- * @param {"error" | "warn"} level - Consola method to capture.
+ * @param {"error" | "success" | "warn"} level - Consola method to capture.
  * @param {() => Promise<unknown>} execute - Bound command invocation.
  * @returns {Promise<string>} Text written through the selected level.
  */
-async function capture(level: "error" | "warn", execute: () => Promise<unknown>): Promise<string> {
+async function capture(
+  level: "error" | "success" | "warn",
+  execute: () => Promise<unknown>,
+): Promise<string> {
   const spy = vi.spyOn(consola, level).mockImplementation(() => {});
   await execute();
   return spy.mock.calls.map(([first]) => String(first)).join("\n");
@@ -82,6 +85,16 @@ describe("CLI output escaping", () => {
     );
 
     expect(written).toBe(`Invalid ethereum address: "${address}" - 39 hex digits after 0x, not 40`);
+  });
+
+  it("says what a valid address pays to", async () => {
+    const written = await capture("success", () =>
+      runCommand(validate, { rawArgs: ["bitcoin", "1GSMG1JC9wtdSwfwApgj2xcmJPAwx7prBe"] }),
+    );
+
+    expect(written).toBe(
+      "Valid Bitcoin address - p2pkh, hash160 a9553269572a317e39f0f518cb87c1a0ee1dbae4",
+    );
   });
 
   it("still exits 1 on a rejected address", async () => {

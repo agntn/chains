@@ -15,6 +15,7 @@ import { CHAINS, FAMILIES, chainEntry, familyLabel } from "../../utils/chains";
 import { hostPath, shellArg, shorten } from "../../utils/format";
 import { jsonTokens, shellTokens } from "../../utils/tokens";
 import {
+  describeAddress,
   identifyText,
   listText,
   lookupText,
@@ -171,8 +172,8 @@ const answer = computed<Answer>(() => {
     }
   }
   try {
-    chain.assertAddress(trimmed);
-    return { kind: "validate", chain, valid: true, text: validateText(chain, trimmed, true) };
+    const summary = describeAddress(chain.decodeAddress(trimmed));
+    return { kind: "validate", chain, valid: true, text: validateText(chain, trimmed, true, summary) };
   } catch (error) {
     if (error instanceof InvalidAddressError) {
       return {

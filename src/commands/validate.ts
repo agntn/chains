@@ -1,5 +1,6 @@
 import { defineCommand } from "citty";
 import consola from "consola";
+import { decodeOrCheck, describeAddress } from "../core/address.ts";
 import { quoted, stripControlCharacters } from "../core/text.ts";
 import { ChainsError, InvalidAddressError, InvalidTxidError } from "../index.ts";
 import { resolveOrFail } from "./shared.ts";
@@ -48,9 +49,10 @@ export default defineCommand({
     const subject = args.txid ? "txid" : "address";
 
     try {
+      let summary: string | undefined;
       if (args.txid) chain.assertTxid(args.value);
-      else chain.assertAddress(args.value);
-      consola.success(`Valid ${chain.name} ${subject}`);
+      else summary = describeAddress(decodeOrCheck(chain, args.value));
+      consola.success(`Valid ${chain.name} ${subject}${summary ? ` - ${summary}` : ""}`);
     } catch (error) {
       if (!(error instanceof ChainsError)) throw error;
       consola.error(failureLine(error, `Invalid ${chain.key} ${subject}: ${quoted(args.value)}`));

@@ -1,3 +1,5 @@
+import { toHex } from "./address.ts";
+import type { DecodedAddress } from "./address.ts";
 import { bytesFromDigits } from "./bech32.ts";
 
 const ALPHABET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
@@ -77,4 +79,19 @@ export function decodeCashAddr(address: string, prefix: string): CashAddrContent
   const bytes = bytesFromDigits(digits.slice(0, -8));
   const type = bytes === undefined ? undefined : versionType(bytes);
   return bytes === undefined || type === undefined ? undefined : { type, hash: bytes.subarray(1) };
+}
+
+/**
+ * What a CashAddr type pays to: odd types hash a script, 2 and 3 are the CashTokens-aware twins.
+ * @param {number} type - Type field a chain already accepted.
+ * @param {ArrayLike<number>} hash - The hash behind it.
+ * @returns {DecodedAddress} Kind, hash and the CashTokens flag.
+ */
+export function cashAddrKind(type: number, hash: ArrayLike<number>): DecodedAddress {
+  const decoded: DecodedAddress = {
+    kind: type % 2 === 0 ? "p2pkh" : "p2sh",
+    payload: toHex(hash),
+    hash: hash.length === 32 ? "hash256" : "hash160",
+  };
+  return type >= 2 ? { ...decoded, tokens: true } : decoded;
 }
