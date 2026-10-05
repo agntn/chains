@@ -33,7 +33,7 @@ Docs, one page per chain and a playground are at [chains.agntn.dev](https://chai
 pnpm add @agntn/chains
 ```
 
-Node.js 24 or newer.
+Node.js 26 or newer.
 
 ## 🚀 First call
 
