@@ -23,7 +23,7 @@ Docs, one page per chain and a playground are at [chains.agntn.dev](https://chai
 - 🔗 **Transaction ids, same idea.** `0x` and 64 hex on the EVM chains and Aptos, 64 hex on the UTXO chains, Monero, TRON and the XRP Ledger, lowercase only on Stellar and Octra because their nodes read nothing else, base58 decoded to 64 bytes on Solana and 32 on Sui, hex or padded base64 on TON, 43 base64url characters on Arweave. A txid pasted wrong fails here, not three calls later inside an RPC.
 - 🧾 **Metadata checked, not remembered.** Every `decimals` value was looked up at the source. XEC really has two.
 - 🫙 **Missing stays missing.** Octra has no coin type and no CAIP-2, so you get `undefined`. Nothing made up.
-- 🪶 **The core imports nothing at runtime.** Nothing registers itself on import either, so your bundler drops what you don't use.
+- 🪶 **The core has one dependency, and it's a sibling.** Base58 and Bech32 come from `@agntn/encodings`. Nothing registers itself on import, so your bundler drops the chains you don't use.
 - 🤖 **CLI, library and agent tools give the same answer.** Six commands, five tools, one set of executors.
 - 🧯 **Errors you catch by type.** `InvalidAddressError` carries `.chain` and `.address`. No message parsing.
 

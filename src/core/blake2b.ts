@@ -2,7 +2,7 @@ import { permutation } from "./blake256.ts";
 
 /**
  * BLAKE2b as RFC 7693 writes it, with the personalization field that Zcash's F4Jumble hashes
- * under. Written out because the core imports nothing at runtime.
+ * under. Written out next to BLAKE-256, whose message permutations it reuses.
  *
  * Each 64-bit word is two 32-bit halves, low half first. BigInt would read closer to the RFC
  * but runs several times slower, and a Unified Address may carry megabytes to hash.

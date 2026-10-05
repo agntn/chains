@@ -129,10 +129,10 @@ function compress(
 /**
  * Hashes a message with BLAKE-256.
  *
- * Written out for the same reason `sha256.ts` is: the core imports nothing at runtime and
- * `assertAddress` answers on the spot. Decred's Base58Check takes this digest where Bitcoin's
- * takes SHA-256. The padding is SHA-256's closed by a set bit before the length, and a block
- * holding padding alone is hashed under a zero counter.
+ * Written out and synchronous, so `assertAddress` answers on the spot without awaiting a
+ * digest. Decred's Base58Check takes this digest where Bitcoin's takes SHA-256. The padding
+ * is SHA-256's closed by a set bit before the length, and a block holding padding alone is
+ * hashed under a zero counter.
  *
  * @param {ArrayLike<number>} message - Bytes to hash.
  * @returns {Uint8Array} The 32-byte digest.

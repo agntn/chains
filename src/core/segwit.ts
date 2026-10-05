@@ -1,6 +1,7 @@
+import { segwit } from "@agntn/encodings/bech32";
 import { toHex } from "./address.ts";
 import type { DecodedAddress } from "./address.ts";
-import { BECH32, BECH32M, bytesFromDigits, polymod, readBech32Digits } from "./bech32.ts";
+import { checkedWords, readBech32Digits } from "./bech32.ts";
 
 /** A 40-byte program is 64 digits, with the version before it and the checksum after. */
 const MAX_DIGITS = 71;
@@ -31,20 +32,19 @@ function witnessProgramFaults(words: readonly number[], version: number): string
 }
 
 /**
- * The checksum rule alone. A residue that matches the other variant is a checksum written
- * for the wrong witness version, not a typo, so it gets its own words.
- * @param {string} hrp - Lowercase human-readable part.
- * @param {readonly number[]} data - Five-bit digits including the checksum.
+ * The checksum rule alone. A checksum that holds under the other variant is one written for
+ * the wrong witness version, not a typo, so it gets its own words.
+ * @param {string} address - Address whose digits read under the prefix.
  * @param {number} version - Witness version.
  * @returns {string | undefined} The fault, or undefined when the checksum holds.
  */
-function checksumFault(hrp: string, data: readonly number[], version: number): string | undefined {
-  const residue = polymod(hrp, data);
-  const expected = version === 0 ? BECH32 : BECH32M;
-  const other = version === 0 ? BECH32M : BECH32;
+function checksumFault(address: string, version: number): string | undefined {
+  const expected = version === 0 ? "bech32" : "bech32m";
+  if (checkedWords(address, expected) !== undefined) return undefined;
+  const other = checkedWords(address, version === 0 ? "bech32m" : "bech32") !== undefined;
   // Past version 16 the version is the fault, and either checksum spells the digits right.
-  if (residue === expected || (version > 16 && residue === other)) return undefined;
-  if (residue !== other) return "the Bech32 checksum does not hold, so a character is wrong";
+  if (version > 16 && other) return undefined;
+  if (!other) return "the Bech32 checksum does not hold, so a character is wrong";
   return version === 0
     ? "a Bech32m checksum under witness version 0, which BIP-350 leaves on Bech32"
     : `a Bech32 checksum under witness version ${version}, where BIP-350 wants Bech32m`;
@@ -102,7 +102,7 @@ export function segwitFault(address: string, hrp: string): string | undefined {
     const version = digits[0] ?? 0;
     if (version > 16) faults.push(`witness version ${version}, past the 16 BIP-173 defines`);
     faults.push(...witnessProgramFaults(digits.slice(1, -6), version));
-    const checksum = checksumFault(hrp, digits, version);
+    const checksum = checksumFault(address, version);
     if (checksum) faults.push(checksum);
   }
   return faults.length === 0 ? undefined : faults.join("; ");
@@ -129,10 +129,10 @@ function witnessKind(version: number, payload: string): DecodedAddress {
  * @returns {DecodedAddress | undefined} The kind and program, or undefined when it is not SegWit.
  */
 export function segwitAddress(address: string, hrp: string): DecodedAddress | undefined {
-  const { digits } = readBech32Digits(address, hrp, MAX_DIGITS);
-  const program = digits && bytesFromDigits(digits.slice(1, -6));
-  const version = digits?.[0];
-  return version === undefined || program === undefined
-    ? undefined
-    : witnessKind(version, toHex(program));
+  try {
+    const { prefix, version, program } = segwit.decode(address);
+    return prefix === hrp ? witnessKind(version, toHex(program)) : undefined;
+  } catch {
+    return undefined;
+  }
 }

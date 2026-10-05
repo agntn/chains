@@ -113,10 +113,10 @@ function permute(lanes: Lanes): bigint[] {
 /**
  * Hashes a message with Keccak-256.
  *
- * Written out for the same reason `sha256.ts` and `blake256.ts` are: the core imports nothing
- * at runtime and `assertAddress` answers on the spot. Web Crypto has no Keccak at all, and
- * its SHA3-256 is a different hash by one padding byte. EIP-55 reads the case of an EVM
- * address off this digest. The padding is Keccak's own, a set bit right after the message and
+ * Written out for the same reason `blake256.ts` is: `assertAddress` answers on the spot. Web
+ * Crypto has no Keccak at all, and its SHA3-256 is a different hash by one padding byte.
+ * EIP-55 reads the case of an EVM address off this digest. The padding is Keccak's own, a
+ * set bit right after the message and
  * another closing the block; a message ending one byte short of the block gets both in one.
  *
  * @param {ArrayLike<number>} message - Bytes to hash.

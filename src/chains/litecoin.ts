@@ -1,7 +1,8 @@
+import { fromWordsUnsafe } from "@agntn/encodings/bech32";
 import { legacyAddress, legacyLayout, settle, toHex } from "../core/address.ts";
 import type { DecodedAddress, LegacyVersions } from "../core/address.ts";
 import { base58CheckFault } from "../core/base58check.ts";
-import { BECH32, bytesFromDigits, polymod, readBech32Digits } from "../core/bech32.ts";
+import { checkedWords, readBech32Digits } from "../core/bech32.ts";
 import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
 import { segwitAddress, segwitFault, segwitShaped } from "../core/segwit.ts";
@@ -26,12 +27,12 @@ function mwebFault(address: string): string | undefined {
   const { digits, faults } = readBech32Digits(address, "ltcmweb", MWEB_DIGITS);
   if (digits !== undefined) {
     if (digits[0] !== 0) faults.push(`version digit ${digits[0]}, where Litecoin Core writes 0`);
-    const bytes = bytesFromDigits(digits.slice(1, -6));
+    const bytes = fromWordsUnsafe(digits.slice(1, -6));
     if (bytes === undefined)
       faults.push("digits that do not pack into whole bytes with zero padding");
     else if (bytes.length !== 66)
       faults.push(`${bytes.length} bytes, not the 66 of two public keys`);
-    if (polymod("ltcmweb", digits) !== BECH32) {
+    if (checkedWords(address) === undefined) {
       faults.push("the Bech32 checksum does not hold, so a character is wrong");
     }
   }
@@ -45,7 +46,7 @@ function mwebFault(address: string): string | undefined {
  */
 function mwebAddress(address: string): DecodedAddress | undefined {
   const { digits } = readBech32Digits(address, "ltcmweb", MWEB_DIGITS);
-  const keys = digits && bytesFromDigits(digits.slice(1, -6));
+  const keys = digits && fromWordsUnsafe(digits.slice(1, -6));
   return keys && { kind: "mweb", payload: toHex(keys) };
 }
 

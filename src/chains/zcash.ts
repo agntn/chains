@@ -1,7 +1,8 @@
+import { fromWordsUnsafe } from "@agntn/encodings/bech32";
 import { toHex } from "../core/address.ts";
 import type { DecodedAddress } from "../core/address.ts";
 import { decodeBase58Check } from "../core/base58check.ts";
-import { BECH32, BECH32M, bech32Digits, bytesFromDigits, polymod } from "../core/bech32.ts";
+import { bech32Digits, checkedWords } from "../core/bech32.ts";
 import { UTXO } from "../core/chain.ts";
 import { InvalidAddressError } from "../core/errors.ts";
 import { F4JUMBLE_MAX, f4jumbleInverse } from "../core/f4jumble.ts";
@@ -101,9 +102,11 @@ function validItem({ typecode, length }: Item, previous: number): boolean {
  */
 function unwrapUnified(address: string): Uint8Array | undefined {
   // Most digits a Unified Address can carry: F4Jumble's longest input, then the checksum.
-  const data = bech32Digits(address, "u", Math.ceil((F4JUMBLE_MAX * 8) / 5) + 6);
-  if (data === undefined || polymod("u", data) !== BECH32M) return undefined;
-  const jumbled = bytesFromDigits(data.slice(0, -6));
+  if (bech32Digits(address, "u", Math.ceil((F4JUMBLE_MAX * 8) / 5) + 6) === undefined) {
+    return undefined;
+  }
+  const words = checkedWords(address, "bech32m");
+  const jumbled = words && fromWordsUnsafe(words);
   if (!jumbled || jumbled.length < REVISION_0_MIN) return undefined;
   const padded = f4jumbleInverse(jumbled);
   if (!padded) return undefined;
@@ -138,19 +141,19 @@ function validUnifiedAddress(address: string): boolean {
  * Reads a Bech32 or Bech32m address under a fixed prefix whose payload has a fixed length.
  * @param {string} address - Candidate address.
  * @param {string} hrp - Human-readable part.
- * @param {number} residue - `BECH32` or `BECH32M`.
+ * @param {"bech32" | "bech32m"} variant - Checksum the address has to carry.
  * @param {number} length - Payload bytes.
  * @returns {Uint8Array | undefined} The payload, or undefined unless the checksum holds and the length fits.
  */
 function fixedBech32(
   address: string,
   hrp: string,
-  residue: number,
+  variant: "bech32" | "bech32m",
   length: number,
 ): Uint8Array | undefined {
-  const data = bech32Digits(address, hrp, Math.ceil((length * 8) / 5) + 6);
-  if (data === undefined || polymod(hrp, data) !== residue) return undefined;
-  const bytes = bytesFromDigits(data.slice(0, -6));
+  if (bech32Digits(address, hrp, Math.ceil((length * 8) / 5) + 6) === undefined) return undefined;
+  const words = checkedWords(address, variant);
+  const bytes = words && fromWordsUnsafe(words);
   return bytes?.length === length ? bytes : undefined;
 }
 
@@ -178,9 +181,9 @@ function transparentAddress(address: string): DecodedAddress | undefined {
  * @returns {DecodedAddress | undefined} The kind and payload, or undefined when no form holds.
  */
 function zcashAddress(address: string): DecodedAddress | undefined {
-  const sapling = fixedBech32(address, "zs", BECH32, 43);
+  const sapling = fixedBech32(address, "zs", "bech32", 43);
   if (sapling) return { kind: "sapling", payload: toHex(sapling) };
-  const tex = fixedBech32(address, "tex", BECH32M, 20);
+  const tex = fixedBech32(address, "tex", "bech32m", 20);
   if (tex) return { kind: "tex", payload: toHex(tex), hash: "hash160" };
   return (
     transparentAddress(address) ?? (validUnifiedAddress(address) ? { kind: "unified" } : undefined)

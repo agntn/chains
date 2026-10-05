@@ -1,6 +1,5 @@
 import { settle, toHex } from "../core/address.ts";
 import type { AddressSignature, DecodedAddress } from "../core/address.ts";
-import { BITCOIN_ALPHABET } from "../core/base58.ts";
 import { decodeBase58Check, readBase58Check } from "../core/base58check.ts";
 import { blake256 } from "../core/blake256.ts";
 import { UTXO } from "../core/chain.ts";
@@ -89,7 +88,7 @@ export class Decred extends UTXO {
    * @returns {string} The accepted address unchanged.
    */
   override assertAddress(address: string): string {
-    const { bytes, faults } = readBase58Check(address, 54, BITCOIN_ALPHABET, blake256);
+    const { bytes, faults } = readBase58Check(address, 54, blake256);
     const layout = bytes !== undefined && bytes.length >= 4 ? layoutFault(bytes) : undefined;
     if (layout) faults.unshift(layout);
     if (faults.length > 0) throw new InvalidAddressError(this.key, address, faults.join("; "));
@@ -104,7 +103,7 @@ export class Decred extends UTXO {
    */
   override decodeAddress(address: string): DecodedAddress {
     this.assertAddress(address);
-    const bytes = decodeBase58Check(address, 54, BITCOIN_ALPHABET, blake256);
+    const bytes = decodeBase58Check(address, 54, blake256);
     return settle(this.key, address, bytes && decodeLayout([...bytes]));
   }
 }
