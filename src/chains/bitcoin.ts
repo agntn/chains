@@ -17,8 +17,8 @@ export class Bitcoin extends UTXO {
   readonly symbol = "BTC";
   override readonly decimals = 8;
   readonly explorer = "https://blockstream.info";
-  readonly bip44 = 0;
-  readonly caip2 = "bip122:000000000019d6689c085ae165831e93";
+  override readonly bip44 = 0;
+  override readonly caip2 = "bip122:000000000019d6689c085ae165831e93";
   override readonly magic = "f9beb4d9";
   override readonly pow = "sha256d";
 

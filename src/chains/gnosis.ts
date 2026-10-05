@@ -6,8 +6,8 @@ export class Gnosis extends EVM {
   readonly symbol = "xDAI";
   override readonly decimals = 18;
   readonly explorer = "https://gnosisscan.io";
-  readonly bip44 = 60;
-  readonly chainId = "0x64";
-  readonly caip2 = "eip155:100";
-  readonly rpcDefault = "https://gnosis-rpc.publicnode.com";
+  override readonly bip44 = 60;
+  override readonly chainId = "0x64";
+  override readonly caip2 = "eip155:100";
+  override readonly rpcDefault = "https://gnosis-rpc.publicnode.com";
 }

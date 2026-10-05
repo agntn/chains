@@ -16,8 +16,8 @@ export class Dogecoin extends UTXO {
   readonly symbol = "DOGE";
   override readonly decimals = 8;
   readonly explorer = "https://blockchair.com/dogecoin";
-  readonly bip44 = 3;
-  readonly caip2 = "bip122:1a91e3dace36e2be3bf030a65679fe82";
+  override readonly bip44 = 3;
+  override readonly caip2 = "bip122:1a91e3dace36e2be3bf030a65679fe82";
   override readonly magic = "c0c0c0c0";
   override readonly pow = "scrypt";
 

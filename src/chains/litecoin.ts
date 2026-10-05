@@ -55,8 +55,8 @@ export class Litecoin extends UTXO {
   readonly symbol = "LTC";
   override readonly decimals = 8;
   readonly explorer = "https://litecoinspace.org";
-  readonly bip44 = 2;
-  readonly caip2 = "bip122:12a765e31ffd4059bada1e25190f6e98";
+  override readonly bip44 = 2;
+  override readonly caip2 = "bip122:12a765e31ffd4059bada1e25190f6e98";
   override readonly magic = "fbc0b6db";
   override readonly pow = "scrypt";
 

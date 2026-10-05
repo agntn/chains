@@ -17,7 +17,7 @@ export class BitcoinGold extends UTXO {
   readonly symbol = "BTG";
   override readonly decimals = 8;
   readonly explorer = "https://btgexplorer.com";
-  readonly bip44 = 156;
+  override readonly bip44 = 156;
   override readonly magic = "e1476d44";
   override readonly pow = "equihash-144-5";
 

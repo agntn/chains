@@ -58,9 +58,9 @@ export class Ton extends Chain {
   readonly symbol = "TON";
   override readonly decimals = 9;
   readonly explorer = "https://tonscan.org";
-  readonly bip44 = 607;
+  override readonly bip44 = 607;
   /** The mainnet global_id, the id TON Connect and WalletConnect carry; -1 is a workchain. */
-  readonly caip2 = "ton:-239";
+  override readonly caip2 = "ton:-239";
 
   /**
    * The 36 bytes are a tag, a workchain id, the 32-byte account id and a CRC16.

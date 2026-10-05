@@ -13,8 +13,8 @@ export class BitcoinCash extends UTXO {
   readonly symbol = "BCH";
   override readonly decimals = 8;
   readonly explorer = "https://blockchair.com/bitcoin-cash";
-  readonly bip44 = 145;
-  readonly caip2 = "bip122:000000000000000000651ef99cb9fcbe";
+  override readonly bip44 = 145;
+  override readonly caip2 = "bip122:000000000000000000651ef99cb9fcbe";
   override readonly magic = "e3e1f3e8";
   override readonly pow = "sha256d";
 

@@ -35,8 +35,8 @@ export class Xrpl extends Chain {
   readonly symbol = "XRP";
   override readonly decimals = 6;
   readonly explorer = "https://livenet.xrpl.org";
-  readonly bip44 = 144;
-  readonly caip2 = "xrpl:0";
+  override readonly bip44 = 144;
+  override readonly caip2 = "xrpl:0";
 
   /**
    * A classic address is Base58Check under version 0x00, 25 bytes, read under the

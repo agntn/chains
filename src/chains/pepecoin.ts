@@ -16,8 +16,8 @@ export class Pepecoin extends UTXO {
   readonly symbol = "PEP";
   override readonly decimals = 8;
   readonly explorer = "https://peppool.space";
-  readonly bip44 = 3434;
-  readonly caip2 = "bip122:37981c0c48b8d48965376c8a42ece9a0";
+  override readonly bip44 = 3434;
+  override readonly caip2 = "bip122:37981c0c48b8d48965376c8a42ece9a0";
   override readonly magic = "c0a0f0e0";
   override readonly pow = "scrypt";
 

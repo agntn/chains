@@ -7,8 +7,8 @@ export class Arc extends EVM {
   /** Native USDC counts 18 decimals; the ERC-20 view of the same balance shows 6. */
   override readonly decimals = 18;
   readonly explorer = "https://explorer.arc.io";
-  readonly bip44 = 60;
-  readonly chainId = "0x13b2";
-  readonly caip2 = "eip155:5042";
-  readonly rpcDefault = "https://rpc.mainnet.arc.io";
+  override readonly bip44 = 60;
+  override readonly chainId = "0x13b2";
+  override readonly caip2 = "eip155:5042";
+  override readonly rpcDefault = "https://rpc.mainnet.arc.io";
 }

@@ -8,8 +8,8 @@ export class Aptos extends Move {
   readonly symbol = "APT";
   override readonly decimals = 8;
   readonly explorer = "https://explorer.aptoslabs.com";
-  readonly bip44 = 637;
-  readonly caip2 = "aptos:1";
+  override readonly bip44 = 637;
+  override readonly caip2 = "aptos:1";
 
   /**
    * `0x` and 32 bytes of hex as the node writes a hash; `HashValue::from_str` reads either case.

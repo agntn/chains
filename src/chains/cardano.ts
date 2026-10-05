@@ -286,8 +286,8 @@ export class Cardano extends UTXO {
   readonly symbol = "ADA";
   override readonly decimals = 6;
   readonly explorer = "https://cardanoscan.io";
-  readonly bip44 = 1815;
-  readonly caip2 = "cip34:1-764824073";
+  override readonly bip44 = 1815;
+  override readonly caip2 = "cip34:1-764824073";
 
   /**
    * Shelley and stake addresses decode: the Bech32 checksum under `addr` or `stake`, then
