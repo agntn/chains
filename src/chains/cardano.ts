@@ -1,3 +1,4 @@
+import { toHex } from "../core/address.ts";
 import type { AddressKind, DecodedAddress } from "../core/address.ts";
 import { decodeBase58 } from "../core/base58.ts";
 import { BECH32, bech32Digits, bytesFromDigits, polymod } from "../core/bech32.ts";
@@ -233,32 +234,50 @@ function fitsLayout(payload: readonly number[], expected: number | "pointer"): b
 }
 
 /**
+ * The credential an address pays to: the first 28 bytes after the header, a key hash or, on odd types, a script hash.
+ *
+ * @param {AddressKind} kind - CIP-19 kind of the header.
+ * @param {number} type - Header type, its low bit the script flag.
+ * @param {readonly number[]} payload - Bytes after the header.
+ * @returns {DecodedAddress} Kind and credential.
+ */
+function credential(kind: AddressKind, type: number, payload: readonly number[]): DecodedAddress {
+  return {
+    kind,
+    payload: toHex(payload.slice(0, HASH_LENGTH)),
+    hash: "blake2b-224",
+    credential: type & 1 ? "script" : "key",
+  };
+}
+
+/**
  * Header and payload as CIP-19 lays them out: the network tag has to be mainnet's, the type
  * has to be one written under the prefix, and the payload has to be what the type carries.
  *
  * @param {string} address - Candidate Shelley or stake address.
- * @returns {AddressKind | undefined} The CIP-19 kind, or undefined unless the bytes fit the header.
+ * @returns {DecodedAddress | undefined} Kind and credential, or undefined unless the bytes fit the header.
  */
-function shelleyKind(address: string): AddressKind | undefined {
+function shelleyAddress(address: string): DecodedAddress | undefined {
   const hrp = /^stake1/i.test(address) ? "stake" : "addr";
   const bytes = shelleyBytes(address, hrp);
   const header = bytes?.[0];
   if (bytes === undefined || header === undefined || (header & 0x0f) !== MAINNET) return undefined;
   const layout = SHELLEY_TYPES[header >> 4];
   if (layout === undefined || layout.hrp !== hrp) return undefined;
-  return fitsLayout([...bytes.subarray(1)], layout.payload) ? layout.kind : undefined;
+  const payload = [...bytes.subarray(1)];
+  return fitsLayout(payload, layout.payload)
+    ? credential(layout.kind, header >> 4, payload)
+    : undefined;
 }
 
 /**
- * Names the era and, past Byron, the CIP-19 type; credentials stay unread, a base address has two.
+ * Names the era; a Byron root hashes the spending data with its attributes, so only Shelley has a credential to hand back.
  *
  * @param {string} address - Candidate address.
- * @returns {DecodedAddress | undefined} The kind, or undefined when neither era reads it.
+ * @returns {DecodedAddress | undefined} The kind and credential, or undefined when neither era reads it.
  */
 function cardanoAddress(address: string): DecodedAddress | undefined {
-  if (validByronAddress(address)) return { kind: "byron" };
-  const kind = shelleyKind(address);
-  return kind && { kind };
+  return validByronAddress(address) ? { kind: "byron" } : shelleyAddress(address);
 }
 
 export class Cardano extends UTXO {
@@ -286,10 +305,10 @@ export class Cardano extends UTXO {
   }
 
   /**
-   * Byron, or the CIP-19 kind of a Shelley address: base, pointer, enterprise or reward.
+   * Byron, or the CIP-19 kind of a Shelley address with the payment credential, the stake one for `reward`.
    *
    * @param {string} address - Candidate Cardano address.
-   * @returns {DecodedAddress} The kind, without a payload.
+   * @returns {DecodedAddress} The kind, and the credential past Byron.
    */
   override decodeAddress(address: string): DecodedAddress {
     const decoded = cardanoAddress(address);

@@ -42,7 +42,11 @@ export function lookupText(chain: Chain): string {
 export function describeAddress(decoded: DecodedAddress): string | undefined {
   if (decoded.kind === "account") return undefined;
   const kind = decoded.version === undefined ? decoded.kind : `${decoded.kind} v${decoded.version}`;
-  const qualifiers = [decoded.signature, decoded.tokens ? "CashTokens" : undefined].filter(Boolean);
+  const qualifiers = [
+    decoded.signature,
+    decoded.credential,
+    decoded.tokens ? "CashTokens" : undefined,
+  ].filter(Boolean);
   const head = qualifiers.length === 0 ? kind : `${kind} (${qualifiers.join(", ")})`;
   return decoded.payload === undefined
     ? head

@@ -27,7 +27,7 @@ export type AddressKind =
   | "account";
 
 /** The digest a payload came out of, so Decred's RIPEMD-160 of BLAKE-256 never passes for a HASH160. */
-export type AddressHash = "hash160" | "hash256" | "sha256" | "ripemd160-blake256";
+export type AddressHash = "hash160" | "hash256" | "sha256" | "ripemd160-blake256" | "blake2b-224";
 
 /** The signature scheme a Decred address commits to, read off its type bytes. */
 export type AddressSignature = "ecdsa-secp256k1" | "ed25519" | "schnorr-secp256k1";
@@ -42,6 +42,8 @@ export interface DecodedAddress {
   /** Witness version of a `witness` program no BIP names yet. */
   readonly version?: number;
   readonly signature?: AddressSignature;
+  /** Whether a Cardano credential hashes a key or a script, read off the header's low bit. */
+  readonly credential?: "key" | "script";
   /** Set on the CashTokens-aware CashAddr types, which pay to the same hash as their plain twins. */
   readonly tokens?: true;
 }
@@ -112,7 +114,11 @@ export function settle(
 export function describeAddress(decoded: Readonly<DecodedAddress> | undefined): string | undefined {
   if (decoded === undefined || decoded.kind === "account") return undefined;
   const kind = decoded.version === undefined ? decoded.kind : `${decoded.kind} v${decoded.version}`;
-  const qualifiers = [decoded.signature, decoded.tokens ? "CashTokens" : undefined].filter(Boolean);
+  const qualifiers = [
+    decoded.signature,
+    decoded.credential,
+    decoded.tokens ? "CashTokens" : undefined,
+  ].filter(Boolean);
   const head = qualifiers.length === 0 ? kind : `${kind} (${qualifiers.join(", ")})`;
   const line =
     decoded.payload === undefined

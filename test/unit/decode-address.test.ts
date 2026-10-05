@@ -20,7 +20,14 @@ const KEY_ONE = "751e76e8199196d454941c45d1b3a323f1433bd6";
 /** HASH160 of `0014` and that hash, the P2SH-P2WPKH script of private key 1. */
 const NESTED_ONE = "bcfeb728b584253d5f3f70bcb780e9ef218a68f4";
 
-/** Addresses with their payload from a source outside this package: the BIPs, dcrd's tests, the CashTokens CHIP, or private key 1 encoded by `@agntn/keys`. */
+/** BLAKE2b-224 of CIP-19's test vector payment key, then its stake key, then the script hash it prints. */
+const CIP19 = {
+  payment: "9493315cd92eb5d8c4304e67b7e16ae36d61d34502694657811a2c8e",
+  stake: "337b62cfff6403a06a3acbc34f8c46003c69fe79a3628cefa9c47251",
+  script: "c37b1b5dc0669f1d3c61a6fddb2e8fde96be87b881c60bce8e8d542f",
+};
+
+/** Addresses with their payload from a source outside this package: the BIPs, dcrd's tests, the CashTokens CHIP, CIP-19, or private key 1 encoded by `@agntn/keys`. */
 const vectors: readonly (readonly [string, string, DecodedAddress])[] = [
   [
     "bitcoin",
@@ -178,6 +185,50 @@ const vectors: readonly (readonly [string, string, DecodedAddress])[] = [
       signature: "schnorr-secp256k1",
     },
   ],
+  ...(
+    [
+      [
+        "addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgse35a3x",
+        "base",
+        CIP19.payment,
+        "key",
+      ],
+      [
+        "addr1z8phkx6acpnf78fuvxn0mkew3l0fd058hzquvz7w36x4gten0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgs9yc0hh",
+        "base",
+        CIP19.script,
+        "script",
+      ],
+      [
+        "addr1gx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer5pnz75xxcrzqf96k",
+        "pointer",
+        CIP19.payment,
+        "key",
+      ],
+      [
+        "addr1vx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzers66hrl8",
+        "enterprise",
+        CIP19.payment,
+        "key",
+      ],
+      [
+        "addr1w8phkx6acpnf78fuvxn0mkew3l0fd058hzquvz7w36x4gtcyjy7wx",
+        "enterprise",
+        CIP19.script,
+        "script",
+      ],
+      ["stake1uyehkck0lajq8gr28t9uxnuvgcqrc6070x3k9r8048z8y5gh6ffgw", "reward", CIP19.stake, "key"],
+      [
+        "stake178phkx6acpnf78fuvxn0mkew3l0fd058hzquvz7w36x4gtcccycj5",
+        "reward",
+        CIP19.script,
+        "script",
+      ],
+    ] as const
+  ).map(
+    ([address, kind, payload, credential]) =>
+      ["cardano", address, { kind, payload, hash: "blake2b-224", credential }] as const,
+  ),
 ];
 
 /** Forms with no single payload to hand back, or whose payload no outside source spells out. */
@@ -193,8 +244,6 @@ const kinds: readonly (readonly [string, string, string])[] = [
     "ltcmweb1qqt9rwznnxzkghv4s5wgtwxs0m0ry6n3atp95f47slppapxljde3xyqmdlnrc8ag7y2k354jzdc4pc4ks0kr43jehr77lngdecgh6689nn5mgv5yn",
     "mweb",
   ],
-  ["cardano", "addr1vx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzers66hrl8", "enterprise"],
-  ["cardano", "stake1uyehkck0lajq8gr28t9uxnuvgcqrc6070x3k9r8048z8y5gh6ffgw", "reward"],
   ["cardano", "Ae2tdPwUPEZ7fj1UjVfwKDea937VSzSHurLScLjaeKxApUswydS6DTtK5qt", "byron"],
   ["ethereum", "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984", "account"],
 ];
