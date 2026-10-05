@@ -3,7 +3,7 @@ import { BITCOIN_ALPHABET, decodeBase58 } from "../../src/core/base58.ts";
 import { blake256 } from "../../src/core/blake256.ts";
 import { sha256 } from "../../src/core/sha256.ts";
 import { create, InvalidAddressError, type ChainKey } from "../../src/index.ts";
-import { validateChainAddress } from "../../src/tool-operations.ts";
+import { identifyAddress, validateChainAddress } from "../../src/tool-operations.ts";
 
 /**
  * The validators as they stood before they named a reason, frozen here so a reworded fault
@@ -337,6 +337,19 @@ describe("Base58Check and SegWit rejection reason", () => {
       "decodes to 24 bytes, not 25; version byte 0x00, where this chain writes 0x1e or 0x16; the Base58Check checksum does not hold, so a character is wrong",
     );
   });
+
+  it(
+    "explains a multi-megabyte Bech32 lookalike instead of running out of stack",
+    { timeout: 30_000 },
+    () => {
+      const huge = `u1${"q".repeat(6_000_000)}`;
+      expect(reasonOf("bitcoin", huge)).toMatch(/^does not start with bc1; /);
+      expect(reasonOf("litecoin", huge)).toMatch(/^does not start with ltc1; /);
+      expect(reasonOf("bitcoingold", huge)).toMatch(/^does not start with btg1; /);
+      expect(identifyAddress(huge).details.matches).toEqual([]);
+      expect(validateChainAddress("bitcoin", huge).details).toMatchObject({ valid: false });
+    },
+  );
 
   it("prints the reason in the tool answer with the caller's control characters escaped", () => {
     expect(
