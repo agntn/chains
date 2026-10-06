@@ -28,10 +28,25 @@ function toolsOf(extension: (pi: never) => void): Map<string, RegisteredTool> {
 /** Calls that name something the registry doesn't hold, so nothing gets checked. */
 const failures: Array<[tool: string, params: Record<string, unknown>, message: string]> = [
   ["chains_lookup", { chain: "nochain" }, "nochain"],
-  ["chains_validate_address", { chain: "nochain", address: "0x0" }, "nochain"],
-  ["chains_validate_txid", { chain: "nochain", txid: "0x0" }, "nochain"],
+  ["chains_address_validate", { chain: "nochain", address: "0x0" }, "nochain"],
+  ["chains_txid_validate", { chain: "nochain", txid: "0x0" }, "nochain"],
   ["chains_list", { family: "nofamily" }, 'Unknown chain family: "nofamily"'],
 ];
+
+describe("tool names", () => {
+  it.each([
+    ["Pi", piExtension],
+    ["OMP", ompExtension],
+  ])("%s registers the MCP names, object before verb", (_, extension) => {
+    expect([...toolsOf(extension).keys()]).toEqual([
+      "chains_lookup",
+      "chains_address_validate",
+      "chains_txid_validate",
+      "chains_address_identify",
+      "chains_list",
+    ]);
+  });
+});
 
 describe("Pi extension", () => {
   const tools = toolsOf(piExtension);
@@ -45,7 +60,7 @@ describe("Pi extension", () => {
 
   it("answers a rejected address instead of throwing", async () => {
     const result = await tools
-      .get("chains_validate_address")!
+      .get("chains_address_validate")!
       .execute("call", { chain: "bitcoin", address: "nope" });
     expect(result.content[0]!.text).toMatch(/^Invalid Bitcoin \(bitcoin\) address/);
   });
@@ -63,7 +78,7 @@ describe("OMP extension", () => {
 
   it("leaves isError unset on a rejected address", async () => {
     const result = await tools
-      .get("chains_validate_address")!
+      .get("chains_address_validate")!
       .execute("call", { chain: "bitcoin", address: "nope" });
     expect(result.isError).toBeUndefined();
   });

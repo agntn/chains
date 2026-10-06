@@ -53,7 +53,7 @@ export function describeAddress(decoded: DecodedAddress): string | undefined {
     : `${head}, ${decoded.hash ?? "payload"} ${decoded.payload}`;
 }
 
-/** Mirrors the `chains_validate_address` text for a checked address: the reason after a rejection, what it pays to after a pass. */
+/** Mirrors the `chains_address_validate` text for a checked address: the reason after a rejection, what it pays to after a pass. */
 export function validateText(
   chain: Chain,
   address: string,
@@ -63,7 +63,7 @@ export function validateText(
   return `${valid ? "Valid" : "Invalid"} ${chain.name} (${chain.key}) address: ${quoted(address)}${detail ? ` - ${stripControlCharacters(detail)}` : ""}`;
 }
 
-/** Mirrors the `chains_validate_txid` text for a checked transaction id, reason included. */
+/** Mirrors the `chains_txid_validate` text for a checked transaction id, reason included. */
 export function validateTxidText(
   chain: Chain,
   txid: string,
@@ -73,7 +73,7 @@ export function validateTxidText(
   return `${valid ? "Valid" : "Invalid"} ${chain.name} (${chain.key}) txid: ${quoted(txid)}${reason ? ` - ${stripControlCharacters(reason)}` : ""}`;
 }
 
-/** Mirrors the `chains_identify_address` text: the partition grouped by family. */
+/** Mirrors the `chains_address_identify` text: the partition grouped by family. */
 export function identifyText(address: string): string {
   const { matches, unchecked } = identify(address);
   const checked = chains().length - unchecked.length;

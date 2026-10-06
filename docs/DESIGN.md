@@ -10,7 +10,7 @@ The instruments chains owns:
 | [LandingRegistry.vue](app/components/content/LandingRegistry.vue) | under the hero | one sample address against every chain in the registry |
 | [LandingRotatingCode.vue](app/components/content/LandingRotatingCode.vue) | "matic, btc, arb. Same class every time" | `getChain(alias)` and the fields on the class, as a file |
 | [LandingValidate.vue](app/components/content/LandingValidate.vue) | "Decode the bytes, not count the characters" | verdict console: own chain, foreign chain, one character off |
-| [LandingIdentify.vue](app/components/content/LandingIdentify.vue) | "One address, every validator at once" | `chains_identify_address` as a census of families, full text in the dialog |
+| [LandingIdentify.vue](app/components/content/LandingIdentify.vue) | "One address, every validator at once" | `chains_address_identify` as a census of families, full text in the dialog |
 | [ChainRoster.vue](app/components/content/ChainRoster.vue) | landing and `/chains` | roster of the registry on `UTable`, sortable |
 | [LandingToolCall.vue](app/components/content/LandingToolCall.vue) | "5 tools, three hosts" | one `chains_lookup` call, full text in the dialog |
 | [LandingCustom.vue](app/components/content/LandingCustom.vue) | "Extend Chain, call register" | `nano.ts`, a custom chain as a file |

@@ -40,19 +40,19 @@ const OPERATIONS: ReadonlyArray<{
   {
     key: "validate",
     label: "Validate",
-    tool: "chains_validate_address",
+    tool: "chains_address_validate",
     about: "getChain(input).assertAddress(address): decoded, checksum verified where the format has one.",
   },
   {
     key: "txid",
     label: "Txid",
-    tool: "chains_validate_txid",
+    tool: "chains_txid_validate",
     about: "getChain(input).assertTxid(txid): the shape the chain's own node writes, nothing more.",
   },
   {
     key: "identify",
     label: "Identify",
-    tool: "chains_identify_address",
+    tool: "chains_address_identify",
     about: "identify(address): every validator in the registry at once, grouped by family.",
   },
   {

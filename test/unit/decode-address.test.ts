@@ -313,7 +313,7 @@ describe("decodeAddress", () => {
   });
 });
 
-describe("chains_validate_address", () => {
+describe("chains_address_validate", () => {
   it("names what a valid address pays to in the text and the details", () => {
     const address = "BC1QW508D6QEJXTDG4Y5R3ZARVARY0C5XW7KV8F3T4";
     const result = validateChainAddress("btc", address);

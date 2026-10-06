@@ -75,7 +75,7 @@ describe("tool reporting for a chain without a validator", () => {
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
     try {
       const result = await client.callTool({
-        name: "chains_validate_txid",
+        name: "chains_txid_validate",
         arguments: { chain: "unvalidated", txid: "anything" },
       });
       expect(result.isError).toBe(true);
