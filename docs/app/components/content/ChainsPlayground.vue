@@ -279,8 +279,17 @@ const identifyCells = computed(() => {
   });
 });
 
+/** Reka won't take `""` as a menu value, so "every family" goes on the menu as `*`. */
+const EVERY_FAMILY = "*";
+/** The menu's side of `family`: `*` and anything unknown read back as `""`, no filter. */
+const familyModel = computed({
+  get: () => family.value || EVERY_FAMILY,
+  set: (value: string) => {
+    family.value = FAMILIES.some((row) => row.key === value) ? value : "";
+  },
+});
 const familyItems = [
-  { label: "every family", value: "" },
+  { label: "every family", value: EVERY_FAMILY },
   ...FAMILIES.map((row) => ({ label: `${row.label} · ${row.key}`, value: row.key })),
 ];
 
@@ -473,7 +482,7 @@ const shareLink = computed(() => {
                 <dd>
                   <USelectMenu
                     id="playground-family"
-                    v-model="family"
+                    v-model="familyModel"
                     :items="familyItems"
                     value-key="value"
                     variant="none"

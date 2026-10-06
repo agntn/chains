@@ -51,7 +51,7 @@ Two resolution traps, both because the repo root is its own pnpm workspace:
 - The samples are public test vectors and well known contracts, every one checked against `dist/` before it went into `PRESENTATION`. Check a new one the same way. Don't derive one by hand.
 - The samples are deterministic, so SSR and the client agree and hydration doesn't flicker. Keep it that way. No `Math.random`, no clock inside a computed.
 - `app/utils/tools.ts` repeats the text the five tools return, because `src/tool-operations.ts` isn't a package export. It mirrors `lookupChain`, `validateChainAddress`, `validateChainTxid`, `identifyAddress` and `listChains` line for line. A change to the wording in the library is a change here, and there's no test that catches the drift, so read both when touching either.
-- `ChainsPlayground.vue` reads the deep link through a `watch(route.query)` registered in `onMounted` that fires once. A prerendered page hydrates with an empty query and Nuxt restores the address only afterwards, so reading `route.query` in setup gives you nothing. It writes state back with `router.replace` on every change.
+- `ChainsPlayground.vue` reads the deep link through a `watch(route.query)` registered in `onMounted` that fires once. A prerendered page hydrates with an empty query and Nuxt restores the address only afterwards, so reading `route.query` in setup gives you nothing. It writes state back with `router.replace` on every change. Reka refuses `""` as a menu value, so the family menu keys "every family" as `*` through `familyModel`, while the call still reads `""`.
 - The playground catches `ChainsError` and shows the class name and the message. Anything else is a bug in the library and belongs there, not in a try/catch here.
 
 ## SEO
