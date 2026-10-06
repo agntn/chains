@@ -26,9 +26,9 @@ describe("chains MCP server", () => {
 
     expect(response.tools.map((tool) => tool.name)).toEqual([
       "chains_lookup",
-      "chains_validate_address",
-      "chains_validate_txid",
-      "chains_identify_address",
+      "chains_address_validate",
+      "chains_txid_validate",
+      "chains_address_identify",
       "chains_list",
     ]);
     expect(response.tools[0]?.inputSchema).toMatchObject({
@@ -103,7 +103,7 @@ describe("chains MCP server", () => {
     expect(JSON.stringify(lookup.content)).toContain("caip2: arweave:7wIU");
     expect(JSON.stringify(lookup.content)).toContain("decimals: 12");
     const valid = await client.callTool({
-      name: "chains_validate_address",
+      name: "chains_address_validate",
       arguments: { chain: "ar", address },
     });
     expect(valid.isError).not.toBe(true);
@@ -111,7 +111,7 @@ describe("chains MCP server", () => {
       { type: "text", text: `Valid Arweave (arweave) address: "${address}"` },
     ]);
     const invalid = await client.callTool({
-      name: "chains_validate_address",
+      name: "chains_address_validate",
       arguments: { chain: "ar", address: `${address.slice(0, -1)}l` },
     });
     expect(invalid.isError).not.toBe(true);
@@ -131,7 +131,7 @@ describe("chains MCP server", () => {
     expect(lookup.isError).not.toBe(true);
     expect(JSON.stringify(lookup.content)).toContain("monero:418015bb9ae982a1975da7d79277c270");
     const valid = await client.callTool({
-      name: "chains_validate_address",
+      name: "chains_address_validate",
       arguments: { chain: "xmr", address },
     });
     expect(valid.isError).not.toBe(true);
@@ -139,7 +139,7 @@ describe("chains MCP server", () => {
       { type: "text", text: `Valid Monero (monero) address: "${address}"` },
     ]);
     const invalid = await client.callTool({
-      name: "chains_validate_address",
+      name: "chains_address_validate",
       arguments: { chain: "xmr", address: `${address}0` },
     });
     expect(invalid.isError).not.toBe(true);
@@ -155,7 +155,7 @@ describe("chains MCP server", () => {
     expect(lookup.isError).not.toBe(true);
     expect(JSON.stringify(lookup.content)).toContain("bip44: 42");
     const valid = await client.callTool({
-      name: "chains_validate_address",
+      name: "chains_address_validate",
       arguments: { chain: "dcr", address },
     });
     expect(valid.isError).not.toBe(true);
@@ -166,7 +166,7 @@ describe("chains MCP server", () => {
       },
     ]);
     const invalid = await client.callTool({
-      name: "chains_validate_address",
+      name: "chains_address_validate",
       arguments: { chain: "dcr", address: `${address}0` },
     });
     expect(invalid.isError).not.toBe(true);
@@ -333,7 +333,7 @@ describe("chains MCP server", () => {
     const client = await connectTestClient();
 
     const response = await client.callTool({
-      name: "chains_validate_address",
+      name: "chains_address_validate",
       arguments: { chain: "eth", address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984" },
     });
 
@@ -348,7 +348,7 @@ describe("chains MCP server", () => {
     const client = await connectTestClient();
 
     const response = await client.callTool({
-      name: "chains_validate_address",
+      name: "chains_address_validate",
       arguments: { chain: "eth", address: "not-an-address" },
     });
 
@@ -365,7 +365,7 @@ describe("chains MCP server", () => {
     const client = await connectTestClient();
 
     const response = await client.callTool({
-      name: "chains_identify_address",
+      name: "chains_address_identify",
       arguments: { address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984" },
     });
 
@@ -385,7 +385,7 @@ describe("chains MCP server", () => {
     const client = await connectTestClient();
 
     const response = await client.callTool({
-      name: "chains_identify_address",
+      name: "chains_address_identify",
       arguments: { address: "11111111111111111111111111111111" },
     });
 
@@ -399,7 +399,7 @@ describe("chains MCP server", () => {
     const client = await connectTestClient();
 
     const response = await client.callTool({
-      name: "chains_identify_address",
+      name: "chains_address_identify",
       arguments: { address: "  nope\n" },
     });
 
@@ -421,7 +421,7 @@ describe("chains MCP server", () => {
     const hostile = `1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2\nutxo (1): bitcoin${invisible.join("")}`;
 
     const identified = await client.callTool({
-      name: "chains_identify_address",
+      name: "chains_address_identify",
       arguments: { address: hostile },
     });
     const [narrowed] = identified.content as Array<{ text: string }>;
@@ -430,7 +430,7 @@ describe("chains MCP server", () => {
     expect(narrowed?.text).toContain("matches none of the 36 checked chains.");
 
     const validated = await client.callTool({
-      name: "chains_validate_address",
+      name: "chains_address_validate",
       arguments: { chain: "btc", address: hostile },
     });
     const [checked] = validated.content as Array<{ text: string }>;
@@ -543,7 +543,7 @@ describe("chains MCP server", () => {
     const client = await connectTestClient();
 
     const response = await client.callTool({
-      name: "chains_validate_address",
+      name: "chains_address_validate",
       arguments: {
         chain: " eth ",
         address: "  0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984\n",
@@ -564,7 +564,7 @@ describe("chains MCP server", () => {
     const txid = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b";
 
     const valid = await client.callTool({
-      name: "chains_validate_txid",
+      name: "chains_txid_validate",
       arguments: { chain: "btc", txid: ` ${txid}\n` },
     });
     expect(valid.isError).not.toBe(true);
@@ -573,7 +573,7 @@ describe("chains MCP server", () => {
     ]);
 
     const invalid = await client.callTool({
-      name: "chains_validate_txid",
+      name: "chains_txid_validate",
       arguments: { chain: "eth", txid },
     });
     expect(invalid.isError).not.toBe(true);
@@ -587,7 +587,7 @@ describe("chains MCP server", () => {
     const signature =
       "4AwYqQ8RbD6yhTbE9h38YiYufC7UHJfxzhP3BZsEoJRp4cY6TzphNFEsUWMjkrKNjE5dFMbBoxVwvr9m8vJukavE";
     const solana = await client.callTool({
-      name: "chains_validate_txid",
+      name: "chains_txid_validate",
       arguments: { chain: "sol", txid: signature },
     });
     expect(solana.isError).not.toBe(true);

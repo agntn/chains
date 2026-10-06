@@ -151,8 +151,8 @@ export function familyLabel(family: ChainType | string): string {
 /** The five agent tools. Same names over MCP, Pi and OMP. */
 export const TOOLS = [
   "chains_lookup",
-  "chains_validate_address",
-  "chains_validate_txid",
-  "chains_identify_address",
+  "chains_address_validate",
+  "chains_txid_validate",
+  "chains_address_identify",
   "chains_list",
 ] as const;

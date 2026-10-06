@@ -18,7 +18,7 @@ const census = computed(() =>
 
 const checked = computed(() => CHAINS.length - props.sample.unchecked.length);
 const text = computed(() => identifyText(props.sample.address));
-const title = computed(() => `chains_identify_address("${props.sample.address}")`);
+const title = computed(() => `chains_address_identify("${props.sample.address}")`);
 </script>
 
 <template>
@@ -34,7 +34,7 @@ const title = computed(() => `chains_identify_address("${props.sample.address}")
     <span class="console-cross console-cross-br" aria-hidden="true">+</span>
     <header class="console-bar">
       <span class="console-title"
-        ><span class="console-tag">Call</span>chains_identify_address(<UTooltip
+        ><span class="console-tag">Call</span>chains_address_identify(<UTooltip
           :text="sample.address"
           ><span class="tok-str" tabindex="0">"{{ shorten(sample.address, 5, 4) }}"</span></UTooltip
         >)</span

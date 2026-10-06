@@ -77,16 +77,16 @@ export default function chainsExtension(pi: ExtensionAPI): void {
   });
 
   pi.registerTool({
-    name: "chains_validate_address",
+    name: "chains_address_validate",
     label: "Validate Chain Address",
     description: "Check an address against the format rules of a specific blockchain",
     promptSnippet:
-      "Use chains_validate_address before sending funds or storing an address, to confirm it matches the target chain's format.",
+      "Use chains_address_validate before sending funds or storing an address, to confirm it matches the target chain's format.",
     promptGuidelines: [
       "A format check with the checksum verified where the format carries one, so a typo fails there; an EVM address in one case carries none. Not an on-chain existence check.",
       "A valid UTXO address comes back with its kind (p2pkh, p2wpkh, p2tr...) and the hash or witness program it pays to, in hex.",
       "A chain without a registered validator fails the call, because nothing was checked.",
-      "When the owning chain is unknown, chains_identify_address checks every validator at once.",
+      "When the owning chain is unknown, chains_address_identify checks every validator at once.",
     ],
     parameters: Type.Object({
       chain: chainArgument,
@@ -103,11 +103,11 @@ export default function chainsExtension(pi: ExtensionAPI): void {
   });
 
   pi.registerTool({
-    name: "chains_validate_txid",
+    name: "chains_txid_validate",
     label: "Validate Chain Txid",
     description: "Check a transaction id against the format rules of a specific blockchain",
     promptSnippet:
-      "Use chains_validate_txid before looking a transaction up or storing its id, to confirm it fits the target chain's format.",
+      "Use chains_txid_validate before looking a transaction up or storing its id, to confirm it fits the target chain's format.",
     promptGuidelines: [
       "A format check only: it says nothing about whether the transaction exists or was mined.",
       "EVM chains and Aptos take 0x and 64 hex digits, UTXO chains, Monero, TRON and the XRP Ledger 64 hex digits, Stellar and Octra lowercase hex only, Solana a base58 signature of 64 bytes, Sui a base58 digest of 32, TON hex or padded base64, Arweave 43 base64url characters. A txid that fails reports valid: false with a reason.",
@@ -127,11 +127,11 @@ export default function chainsExtension(pi: ExtensionAPI): void {
   });
 
   pi.registerTool({
-    name: "chains_identify_address",
+    name: "chains_address_identify",
     label: "Identify Address",
     description: "Report which registered blockchains accept an address's format",
     promptSnippet:
-      "Use chains_identify_address when an address's origin is unknown, to narrow it down to the chains whose format rules accept it.",
+      "Use chains_address_identify when an address's origin is unknown, to narrow it down to the chains whose format rules accept it.",
     promptGuidelines: [
       "A format match narrows the family; every EVM chain shares one address format.",
       "Chains without a validator are reported as unchecked, not as non-matches.",
