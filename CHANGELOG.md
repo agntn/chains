@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.5.0
+
+[compare changes](https://github.com/agntn/chains/compare/v0.4.0...v0.5.0)
+
+### 🩹 Fixes
+
+- **extensions:** Fail calls that checked nothing ([#100](https://github.com/agntn/chains/pull/100))
+- **docs:** Drop the MCP links that only 404 ([#122](https://github.com/agntn/chains/pull/122))
+- **docs:** Restore "every family" in the menu ([#126](https://github.com/agntn/chains/pull/126))
+
+### 💅 Refactors
+
+- Stop keeping three hashes of our own ([#120](https://github.com/agntn/chains/pull/120))
+- ⚠️  Name the object before the verb ([#124](https://github.com/agntn/chains/pull/124))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️  Name the object before the verb ([#124](https://github.com/agntn/chains/pull/124))
+
+### ❤️ Contributors
+
+- Ori ([@oritwoen](https://github.com/oritwoen))
+
 ## v0.4.0
 
 [compare changes](https://github.com/agntn/chains/compare/v0.3.12...v0.4.0)
