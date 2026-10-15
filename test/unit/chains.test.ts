@@ -551,14 +551,8 @@ describe("txid validation", () => {
 
 describe("agent extensions", () => {
   it("shares tool definitions with the Pi extension", () => {
-    const pi = readFileSync(
-      new URL("../../packages/pi/extensions/chains.ts", import.meta.url),
-      "utf8",
-    );
-    const omp = readFileSync(
-      new URL("../../packages/omp/extensions/chains.ts", import.meta.url),
-      "utf8",
-    );
+    const pi = readFileSync(new URL("../../extensions/pi/chains.ts", import.meta.url), "utf8");
+    const omp = readFileSync(new URL("../../extensions/omp/chains.ts", import.meta.url), "utf8");
     expect(omp.slice(omp.indexOf("export default"))).toBe(pi.slice(pi.indexOf("export default")));
   });
 
@@ -579,7 +573,7 @@ describe("agent extensions", () => {
     const read = (path: string): string => readFileSync(new URL(path, import.meta.url), "utf8");
 
     expect(
-      familiesNamedIn(read("../../packages/pi/extensions/chains.ts"), /"Families are ([^".]+)\."/),
+      familiesNamedIn(read("../../extensions/pi/chains.ts"), /"Families are ([^".]+)\."/),
     ).toEqual(families);
     expect(familiesNamedIn(read("../../src/commands/list.ts"), /this family \(([^)]+)\)/)).toEqual(
       families,
