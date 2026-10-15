@@ -26,7 +26,7 @@ Scope: canonical blockchain classes, aliases, address validation and txid valida
 - `src/cli.ts` plus `src/commands/*.ts` is the citty CLI: `info`, `resolve`, `validate`, `identify`, `list`, `mcp`
 - `src/tool-operations.ts` holds the tool executors shared by MCP, Pi and OMP. No surface reimplements an operation
 - `src/mcp.ts` exports `createMcpServer()`, `src/commands/mcp.ts` runs it over stdio
-- `packages/{pi,omp}/extensions/chains.ts` are the agent tools. The OMP file is a full copy, never a re-export
+- `extensions/{pi,omp}/chains.ts` are the agent tools. The OMP file is a full copy, never a re-export
 - `src/version.ts` is the version string
 - `test/unit/chains.test.ts` covers hierarchy, registry, metadata, and validation
 - `test/unit/mcp.test.ts` drives the MCP server over an in-memory transport

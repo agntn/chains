@@ -4,10 +4,10 @@ import { fileURLToPath } from "node:url";
 import type { AgentToolResult, ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 
-import type * as ChainsTools from "../../../dist/tool-operations.d.mts";
+import type * as ChainsTools from "../../dist/tool-operations.d.mts";
 
-const distributionModuleUrl = new URL("../../../dist/tool-operations.mjs", import.meta.url);
-const sourceModuleUrl = new URL("../../../src/tool-operations.ts", import.meta.url);
+const distributionModuleUrl = new URL("../../dist/tool-operations.mjs", import.meta.url);
+const sourceModuleUrl = new URL("../../src/tool-operations.ts", import.meta.url);
 let toolOperationsPromise: Promise<typeof ChainsTools> | undefined;
 
 /**

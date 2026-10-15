@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ChainsError } from "../../dist/tool-operations.mjs";
-import ompExtension from "../../packages/omp/extensions/chains.ts";
-import piExtension from "../../packages/pi/extensions/chains.ts";
+import ompExtension from "../../extensions/omp/chains.ts";
+import piExtension from "../../extensions/pi/chains.ts";
 
 interface RegisteredTool {
   name: string;
