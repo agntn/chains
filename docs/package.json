@@ -13,7 +13,7 @@
     "@agntn/encodings": "0.1.2",
     "@agntn/hashes": "0.6.7",
     "better-sqlite3": "12.11.1",
-    "docus": "5.13.0",
+    "docus": "5.15.0",
     "nuxt": "4.5.2"
   },
   "devDependencies": {
@@ -21,7 +21,7 @@
     "@iconify-json/simple-icons": "1.2.100",
     "@iconify-json/token": "1.2.42",
     "@iconify-json/vscode-icons": "1.2.89",
-    "wrangler": "4.128.0"
+    "wrangler": "4.154.0"
   },
   "packageManager": "pnpm@11.3.0"
 }
