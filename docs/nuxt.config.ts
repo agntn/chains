@@ -60,7 +60,7 @@ export default defineNuxtConfig({
     domain: "https://chains.agntn.dev",
     title: "@agntn/chains",
     description:
-      "Canonical blockchain classes, aliases and address validation for 36 chains, as a library, a CLI, an MCP server, Pi and OMP extensions and AI SDK tools.",
+      "Canonical blockchain classes, aliases and address validation, as a library, a CLI, an MCP server, Pi and OMP extensions and AI SDK tools.",
     sections: [
       {
         title: "Playground",
