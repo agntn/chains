@@ -95,9 +95,9 @@ const utxo = CHAINS.filter((entry) => entry.chain.type === "utxo").length;
     </section>
 
     <LandingFeature
-      :title="`${TOOLS.length} tools, three hosts`"
+      :title="`${TOOLS.length} tools, four hosts`"
       to="/guide/agents"
-      link="MCP, Pi and OMP"
+      link="MCP, Pi, OMP and AI SDK"
       :checks="[
         TOOLS.join(', '),
         'The text carries the whole answer, and a miss names the keys that exist, so the next call has somewhere to go',
@@ -106,8 +106,9 @@ const utxo = CHAINS.filter((entry) => entry.chain.type === "utxo").length;
       reverse
     >
       <code class="chains-code">chains mcp</code> serves the tools over stdio, the Pi and OMP
-      extensions render them in the terminal. All three call the same executors, so they answer
-      identically and a fix lands once. Absent fields say so out loud,
+      extensions render them in the terminal, and <code class="chains-code">@agntn/chains/ai</code>
+      hands them to the AI SDK. All four call the same executors, so they answer identically and a
+      fix lands once. Absent fields say so out loud,
       <code class="chains-code">bip44: none</code>, because a missing coin type reads as not shown
       and invites a model to supply one from memory.
       <template #visual>

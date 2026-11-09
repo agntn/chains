@@ -380,8 +380,8 @@ const shareLink = computed(() => {
             >{{ String(position).padStart(2, "0") }} / {{ OPERATIONS.length }}</span
           ></span
         >
-        <span class="console-meta" aria-label="Supported hosts: MCP, Pi and OMP"
-          >MCP · Pi · OMP</span
+        <span class="console-meta" aria-label="Supported hosts: MCP, Pi, OMP and AI SDK"
+          >MCP · Pi · OMP · AI SDK</span
         >
         <span class="console-mark" aria-hidden="true" />
       </header>

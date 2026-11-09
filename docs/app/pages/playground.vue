@@ -60,7 +60,7 @@ defineOgImage(
           <div>
             <dt>Tools</dt>
             <dd>{{ TOOLS.length }}</dd>
-            <dd class="hero-metric-sub">same as MCP, Pi and OMP</dd>
+            <dd class="hero-metric-sub">same on every host</dd>
           </div>
           <div>
             <dt>Chains</dt>
