@@ -11,9 +11,9 @@ const entry = resolve(import.meta.dirname, "../../dist/index.mjs");
  * decided statement by statement, not by `sideEffects`.
  *
  * @param {string} name - Export to import.
- * @returns {Promise<string[]>} The chain keys the bundle carries.
+ * @returns {Promise<{ code: string; modules: string[] }>} The bundle and the files it was built from.
  */
-async function bundledKeys(name: string): Promise<string[]> {
+async function bundled(name: string): Promise<{ code: string; modules: string[] }> {
   const bundle = await rolldown({
     input: "app",
     logLevel: "silent",
@@ -30,12 +30,40 @@ async function bundledKeys(name: string): Promise<string[]> {
   });
   const { output } = await bundle.generate({ format: "esm" });
   await bundle.close();
-  return Array.from(output[0].code.matchAll(/static key = "([^"]+)"/gu), (match) => match[1] ?? "");
+  return { code: output[0].code, modules: Object.keys(output[0].modules) };
+}
+
+/**
+ * Lists the chain classes a bundle carries, by the `static key` each one declares.
+ *
+ * @param {string} name - Export to import.
+ * @returns {Promise<string[]>} The chain keys the bundle carries.
+ */
+async function bundledKeys(name: string): Promise<string[]> {
+  const { code } = await bundled(name);
+  return Array.from(code.matchAll(/static key = "([^"]+)"/gu), (match) => match[1] ?? "");
+}
+
+/**
+ * Lists the npm packages a bundle pulled in, which is where the hashes live.
+ *
+ * @param {string} name - Export to import.
+ * @returns {Promise<string[]>} Every bundled file that sits under `node_modules`.
+ */
+async function bundledPackages(name: string): Promise<string[]> {
+  const { modules } = await bundled(name);
+  return modules.filter((id) => id.includes("/node_modules/"));
 }
 
 describe("tree-shaking the built package", () => {
   it("leaves every chain out of an app that imports an error class", async () => {
     await expect(bundledKeys("InvalidAddressError")).resolves.toEqual([]);
+  });
+
+  it("reads metadata with no chain class and no hash behind it", async () => {
+    await expect(bundledKeys("metadata")).resolves.toEqual([]);
+    await expect(bundledPackages("metadata")).resolves.toEqual([]);
+    await expect(bundledPackages("Decred")).resolves.not.toEqual([]);
   });
 
   it.each(builtins.map((chainClass) => [chainClass.name, chainClass.key] as const))(

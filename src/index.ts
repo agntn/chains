@@ -14,6 +14,8 @@ export type { AddressHash, AddressKind, AddressSignature, DecodedAddress } from 
 export type { ChainInfo, ChainKey, ChainType, PowAlgorithm } from "./core/types.ts";
 export { register, create, chains, has } from "./core/registry.ts";
 export { getChain } from "./core/resolve.ts";
+export { metadata } from "./core/metadata.ts";
+export type { ChainMetadata } from "./core/metadata.ts";
 export { identify } from "./core/identify.ts";
 export type { AddressMatches } from "./core/identify.ts";
 export { Ethereum } from "./chains/ethereum.ts";

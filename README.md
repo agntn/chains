@@ -120,7 +120,7 @@ Every command but `resolve` prints the exact text the agent tool hands a model, 
 ## 🧠 Library
 
 ```ts
-import { create, getChain, identify, InvalidAddressError } from "@agntn/chains";
+import { create, getChain, identify, InvalidAddressError, metadata } from "@agntn/chains";
 
 const polygon = getChain("matic");
 polygon.key; // "polygon"
@@ -141,9 +141,12 @@ try {
 
 identify("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984").matches.length; // 13
 create("bitcoin").decimals; // 8
+metadata("decred").symbol; // "DCR", read from a table, no Decred class behind it
 ```
 
 Most of the API is right there. `create(key)` wants the canonical key. `getChain(whatever)` takes any spelling and defaults to Ethereum. `chains()` lists the keys, `register(Yours)` adds one. `assertAddress` is a format check and nothing more. It doesn't know if the address exists. `decodeAddress` runs the same check, then tells you what the address pays to. The HASH160 you'd dig out with a second library is already in there. On an EVM chain it's plain `account`, nothing more inside. `assertTxid` is the same thing for a transaction id, on every chain that ships. A custom chain that skips it throws `TxidValidationUnsupportedError`, and `validatesTxid` tells you before you ask. Errors are one family under `ChainsError`, seven of them. More: [Registry](https://chains.agntn.dev/guide/registry), [Address validation](https://chains.agntn.dev/guide/validation), [Identify](https://chains.agntn.dev/guide/identify), [Metadata](https://chains.agntn.dev/guide/metadata).
+
+Need a name or symbol for a label? Reach for `metadata` when you don't need a chain instance. It's a good way to keep the bundle small. `create` can return any chain, so every class comes along for the ride.
 
 ## 🗺️ Chains
 
