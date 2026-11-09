@@ -1,10 +1,10 @@
 import { fromWordsUnsafe } from "@agntn/encodings/bech32";
+import { crc32 } from "@agntn/hashes/crc";
 import { toHex } from "../core/address.ts";
 import type { AddressKind, DecodedAddress } from "../core/address.ts";
 import { decodeBase58 } from "../core/base58.ts";
 import { bech32Digits, checkedWords } from "../core/bech32.ts";
 import { UTXO } from "../core/chain.ts";
-import { crc32 } from "../core/crc32.ts";
 import { InvalidAddressError } from "../core/errors.ts";
 
 type Prefix = "addr" | "stake";
@@ -123,7 +123,9 @@ function byronPayload(address: string): Uint8Array | undefined {
   const checksum = headOf(decoded, end, UNSIGNED);
   if (checksum === undefined || end + checksum.length !== decoded.length) return undefined;
   const payload = decoded.subarray(start, end);
-  return checksum.value === crc32(payload) ? payload : undefined;
+  const digest = crc32(payload);
+  const expected = new DataView(digest.buffer, digest.byteOffset, digest.byteLength).getUint32(0);
+  return checksum.value === expected ? payload : undefined;
 }
 
 /**
