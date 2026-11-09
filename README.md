@@ -62,7 +62,7 @@ chains identify 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984
 ```
 
 ```
-"0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984" matches 14 of 37 checked chains.
+"0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984" matches 14 of 38 checked chains.
 evm (14): ethereum, base, arbitrum, optimism, polygon, bsc, avalanche, fantom, gnosis, linea, zksync, scroll, berachain, arc
 A format match narrows the family; it does not prove the address is used on any of these chains.
 ```
@@ -74,7 +74,7 @@ chains identify bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a
 ```
 
 ```
-"bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a" matches 1 of 37 checked chains.
+"bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a" matches 1 of 38 checked chains.
 utxo (1): bitcoin
 A format match narrows the family; it does not prove the address is used on any of these chains.
 ```
@@ -161,6 +161,7 @@ Most of the API is right there. `create(key)` wants the canonical key. `getChain
 | `arweave` | arweave                                                                                                            | 43 characters of base64url, a 32-byte hash                                                                                                                                                                                                            |
 | `monero`  | monero                                                                                                             | Block base58, the network byte, the 69 or 77 byte envelope and the Keccak checksum                                                                                                                                                                    |
 | `near`    | near                                                                                                               | NEAR's account ID grammar, `alice.near` or an implicit hex key. No checksum exists, so there's none to verify                                                                                                                                         |
+| `waves`   | waves                                                                                                              | Base58, the 26-byte address envelope, mainnet byte and checksum                                                                                                                                                                                       |
 
 Transaction ids get the same care: hex, base58 or base64, whatever the chain's node writes, and the [validation guide](https://chains.agntn.dev/guide/validation#transaction-ids) has the table. Testnet addresses are refused wherever the format can tell. Each chain's page says which checksum is verified and which is left alone: [Chains](https://chains.agntn.dev/chains).
 

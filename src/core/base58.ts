@@ -1,7 +1,7 @@
 import { base58, type Base58Alphabet } from "@agntn/encodings/base58";
 
 /** One base58 digit. Bitcoin's alphabet and the XRP Ledger's order the same 58 characters. */
-export const BASE58_DIGIT = /^[1-9A-HJ-NP-Za-km-z]$/;
+const BASE58_DIGIT = /^[1-9A-HJ-NP-Za-km-z]$/;
 
 const BASE58_TEXT = /^[1-9A-HJ-NP-Za-km-z]+$/;
 
@@ -40,4 +40,40 @@ export function decodeBase58(
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Names the characters that stop the text from decoding at all, counted and the first one
+ * placed, so a model sees where to look without a list as long as the input.
+ * @param {string} input - Text that failed to decode.
+ * @param {number} maxLength - Maximum accepted character count.
+ * @returns {string[]} The faults, empty for the length alone.
+ */
+export function base58TextFaults(input: string, maxLength: number): string[] {
+  const faults: string[] = [];
+  if (input.length === 0) return ["empty"];
+  if (input.length > maxLength) {
+    faults.push(`${input.length} characters, more than the ${maxLength} this chain writes`);
+  }
+  let count = 0;
+  let first: string | undefined;
+  let position = 0;
+  let index = 0;
+  for (const character of input) {
+    index++;
+    if (BASE58_DIGIT.test(character)) continue;
+    count++;
+    if (first === undefined) {
+      first = character;
+      position = index;
+    }
+  }
+  if (first !== undefined) {
+    const noun =
+      count === 1
+        ? "character that is not a base58 digit"
+        : "characters that are not base58 digits";
+    faults.push(`${count} ${noun}, the first ${JSON.stringify(first)} at position ${position}`);
+  }
+  return faults;
 }

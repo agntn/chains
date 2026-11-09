@@ -35,7 +35,8 @@ export type ChainKey =
   | "bitcoingold"
   | "dash"
   | "zcash"
-  | "near";
+  | "near"
+  | "waves";
 export type ChainType =
   | "evm"
   | "utxo"
@@ -48,7 +49,8 @@ export type ChainType =
   | "octra"
   | "arweave"
   | "monero"
-  | "near";
+  | "near"
+  | "waves";
 /**
  * The work a miner grinds to seal a block. Equihash carries its (n, k), because Zcash
  * and Bitcoin Gold both run it with different parameters.

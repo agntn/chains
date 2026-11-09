@@ -32,6 +32,7 @@ import {
   TxidValidationUnsupportedError,
   UnsupportedChainError,
   UTXO,
+  Waves,
   Xrpl,
   Zcash,
   chains,
@@ -94,6 +95,7 @@ describe("chain registry", () => {
       "dash",
       "zcash",
       "near",
+      "waves",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -137,6 +139,7 @@ describe("chain registry", () => {
     expect(create("dash")).toBeInstanceOf(Dash);
     expect(create("zcash")).toBeInstanceOf(Zcash);
     expect(create("near")).toBeInstanceOf(Near);
+    expect(create("waves")).toBeInstanceOf(Waves);
   });
 });
 
@@ -339,6 +342,21 @@ describe("chain metadata", () => {
       caip2: "near:mainnet",
       explorer: "https://nearblocks.io",
       rpcDefault: "https://rpc.mainnet.near.org",
+    });
+  });
+
+  /** SLIP-44 5741564, CAIP-2 from the ChainAgnostic waves namespace, three digits wide. */
+  it("carries Waves mainnet metadata", () => {
+    expect(create("waves")).toMatchObject({
+      key: "waves",
+      name: "Waves",
+      symbol: "WAVES",
+      decimals: 8,
+      type: "waves",
+      bip44: 5741564,
+      caip2: "waves:087",
+      explorer: "https://wavesexplorer.com",
+      rpcDefault: "https://nodes.wavesnodes.com",
     });
   });
 
@@ -664,6 +682,14 @@ describe("metadata cross-checks", () => {
       .map((chain) => `${chain.key}: ${chain.chainId} vs ${chain.caip2}`);
 
     expect(mismatches).toEqual([]);
+  });
+
+  /** The CAIP-2 reference is the chain byte, so it has to match what mainnet addresses carry. */
+  it("agrees between the Waves CAIP-2 reference and the chain byte its validator accepts", () => {
+    const waves = create("waves");
+    const address = "3PPbMwqLtwBGcJrTA5whqJfY95GqnNnFMDX";
+    expect(waves.assertAddress(address)).toBe(address);
+    expect(decodeBase58(address, 36)?.[1]).toBe(Number(waves.caip2?.slice("waves:".length)));
   });
 
   it("declares an https explorer and RPC for every chain that has one", () => {

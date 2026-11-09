@@ -33,6 +33,7 @@ import { Stellar } from "./stellar.ts";
 import { Sui } from "./sui.ts";
 import { Ton } from "./ton.ts";
 import { Tron } from "./tron.ts";
+import { Waves } from "./waves.ts";
 import { Xrpl } from "./xrpl.ts";
 import { Zcash } from "./zcash.ts";
 import { ZkSync } from "./zksync.ts";
@@ -76,4 +77,5 @@ export const builtins: readonly ChainConstructor[] = [
   Dash,
   Zcash,
   Near,
+  Waves,
 ];
