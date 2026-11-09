@@ -13,6 +13,7 @@ export const FAMILIES: ReadonlyArray<{ key: ChainType; label: string }> = [
   { key: "octra", label: "Octra" },
   { key: "arweave", label: "Arweave" },
   { key: "monero", label: "Monero" },
+  { key: "near", label: "NEAR" },
 ];
 
 /** The address every EVM chain accepts: the UNI token contract, 40 hex digits behind 0x. */
@@ -119,6 +120,7 @@ const PRESENTATION: Record<ChainKey, { icon: string; alias: string; sample: stri
       "4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx3skxNgYeYTRj5UzqtReoS44qo9mtmXCqY45DJ852K5Jv2684Rge",
   },
   decred: { icon: "i-token-dcr", alias: "dcr", sample: "DsUZxxoHJSty8DCfwfartwTYbuhmVct7tJu" },
+  near: { icon: "i-token-near", alias: "NEAR Protocol", sample: "wrap.near" },
 };
 
 export interface ChainEntry {

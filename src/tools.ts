@@ -92,12 +92,12 @@ export const txidValidateTool = defineTool({
   name: "chains_txid_validate",
   title: "Validate Chain Txid",
   description:
-    "Check a transaction id against the format rules of a specific blockchain: 0x and 64 hex digits on EVM chains and Aptos, 64 hex digits on UTXO chains, Monero, TRON and the XRP Ledger, lowercase only on Stellar and Octra, base58 of 64 bytes on Solana and 32 on Sui, hex or padded base64 on TON, 43 base64url characters on Arweave. A format check only, not proof that the transaction exists. Every registered chain carries the check; a custom chain without one answers with isError.",
+    "Check a transaction id against the format rules of a specific blockchain: 0x and 64 hex digits on EVM chains and Aptos, 64 hex digits on UTXO chains, Monero, TRON and the XRP Ledger, lowercase only on Stellar and Octra, base58 of 64 bytes on Solana and 32 on Sui and NEAR, hex or padded base64 on TON, 43 base64url characters on Arweave. A format check only, not proof that the transaction exists. Every registered chain carries the check; a custom chain without one answers with isError.",
   snippet:
     "Use chains_txid_validate before looking a transaction up or storing its id, to confirm it fits the target chain's format.",
   guidelines: [
     "A format check only: it says nothing about whether the transaction exists or was mined.",
-    "EVM chains and Aptos take 0x and 64 hex digits, UTXO chains, Monero, TRON and the XRP Ledger 64 hex digits, Stellar and Octra lowercase hex only, Solana a base58 signature of 64 bytes, Sui a base58 digest of 32, TON hex or padded base64, Arweave 43 base64url characters. A txid that fails reports valid: false with a reason.",
+    "EVM chains and Aptos take 0x and 64 hex digits, UTXO chains, Monero, TRON and the XRP Ledger 64 hex digits, Stellar and Octra lowercase hex only, Solana a base58 signature of 64 bytes, Sui and NEAR a base58 hash of 32, TON hex or padded base64, Arweave 43 base64url characters. A txid that fails reports valid: false with a reason.",
   ],
   effect: "read",
   input: Type.Object(
@@ -122,6 +122,7 @@ export const addressIdentifyTool = defineTool({
   guidelines: [
     "A format match narrows the family; every EVM chain shares one address format.",
     "Chains without a validator are reported as unchecked, not as non-matches.",
+    "NEAR is named only for implicit accounts and names with a dot, since its grammar also takes bare words and every bc1 address. Check a bare name like aurora with chains_address_validate.",
   ],
   effect: "read",
   input: Type.Object({ address: valueArgument("Address of unknown origin") }, closed),
@@ -141,7 +142,7 @@ export const listTool = defineTool({
   snippet:
     "Use chains_list to see which blockchains are available, instead of guessing a chain name.",
   guidelines: [
-    "Families are evm, utxo, solana, stellar, xrpl, move, ton, tron, octra, arweave and monero.",
+    "Families are evm, utxo, solana, stellar, xrpl, move, ton, tron, octra, arweave, monero and near.",
     "Every key and name it prints resolves in chains_lookup.",
   ],
   effect: "read",

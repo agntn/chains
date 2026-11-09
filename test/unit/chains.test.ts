@@ -24,6 +24,7 @@ import {
   InvalidTxidError,
   Litecoin,
   Monero,
+  Near,
   Octra,
   Pepecoin,
   Solana,
@@ -92,6 +93,7 @@ describe("chain registry", () => {
       "bitcoingold",
       "dash",
       "zcash",
+      "near",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -134,6 +136,7 @@ describe("chain registry", () => {
     expect(create("bitcoingold")).toBeInstanceOf(BitcoinGold);
     expect(create("dash")).toBeInstanceOf(Dash);
     expect(create("zcash")).toBeInstanceOf(Zcash);
+    expect(create("near")).toBeInstanceOf(Near);
   });
 });
 
@@ -321,6 +324,21 @@ describe("chain metadata", () => {
       bip44: 133,
       caip2: "bip122:00040fe8ec8471911baa1db1266ea15d",
       explorer: "https://blockchair.com/zcash",
+    });
+  });
+
+  /** SLIP-44 coin type 397; no ChainAgnostic namespace, so CAIP-2 as WalletConnect writes it. */
+  it("carries NEAR mainnet metadata", () => {
+    expect(create("near")).toMatchObject({
+      key: "near",
+      name: "NEAR Protocol",
+      symbol: "NEAR",
+      decimals: 24,
+      type: "near",
+      bip44: 397,
+      caip2: "near:mainnet",
+      explorer: "https://nearblocks.io",
+      rpcDefault: "https://rpc.mainnet.near.org",
     });
   });
 

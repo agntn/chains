@@ -52,4 +52,5 @@ export { BitcoinSv } from "./chains/bitcoinsv.ts";
 export { BitcoinGold } from "./chains/bitcoingold.ts";
 export { Dash } from "./chains/dash.ts";
 export { Zcash } from "./chains/zcash.ts";
+export { Near } from "./chains/near.ts";
 export { version } from "./version.ts";

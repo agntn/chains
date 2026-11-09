@@ -6,7 +6,7 @@ export default defineAppConfig({
   seo: {
     title: "@agntn/chains",
     description:
-      "Canonical blockchain classes for 36 chains: chain IDs, CAIP-2, coin types, explorers and address validation that decodes. Library, CLI, MCP server, Pi, OMP and AI SDK.",
+      "Canonical blockchain classes: chain IDs, CAIP-2, coin types, explorers and address validation that decodes. Library, CLI, MCP server, Pi, OMP and AI SDK.",
     schema: {
       type: "SoftwareApplication",
       applicationCategory: "DeveloperApplication",
