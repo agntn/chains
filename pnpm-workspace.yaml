@@ -3,6 +3,7 @@ gitChecks: false
 allowBuilds:
   "@google/genai": false
   esbuild: true
+  onnxruntime-node: false
   protobufjs: false
 minimumReleaseAgeExclude:
   - typebox@1.3.15

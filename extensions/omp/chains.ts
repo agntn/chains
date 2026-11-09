@@ -1,179 +1,30 @@
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { registerOmpTools } from "@agntn/tools/omp";
+import type { ExtensionAPI } from "@oh-my-pi/pi-coding-agent";
+import type * as ChainTools from "../../dist/tools.d.mts";
 
-import type { AgentToolResult, ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { Type } from "typebox";
-
-import type * as ChainsTools from "../../dist/tool-operations.d.mts";
-
-const distributionModulePath = fileURLToPath(
-  new URL("../../dist/tool-operations.mjs", import.meta.url),
-);
-let toolOperationsPromise: Promise<typeof ChainsTools> | undefined;
+const sourceModulePath = fileURLToPath(new URL("../../src/tools.ts", import.meta.url));
 
 /**
- * Loads the built tool executors, falling back to source only when dist is absent.
+ * Both specifiers stay literal: compiled OMP resolves bare imports only where it sees them.
  *
- * Both specifiers stay literal on purpose: OMP's compiled loader rewrites bare
- * dependencies only for imports it can see statically, so an `import(url.href)`
- * built from a runtime value loses resolution inside the imported graph.
- * The source imports its modules with `.ts` specifiers, so a working tree with
- * no build runs it as it is.
- *
- * @returns {Promise<typeof ChainsTools>} The cached shared executor module.
+ * @returns {Promise<typeof ChainTools>} The tool definitions.
  */
-function loadToolOperations(): Promise<typeof ChainsTools> {
-  toolOperationsPromise ??= (
-    existsSync(distributionModulePath)
-      ? import("../../dist/tool-operations.mjs")
-      : import("../../src/tool-operations.ts")
-  ) as Promise<typeof ChainsTools>;
-
-  return toolOperationsPromise;
+function loadTools(): Promise<typeof ChainTools> {
+  return (
+    existsSync(sourceModulePath) ? import("../../src/tools.ts") : import("../../dist/tools.mjs")
+  ) as Promise<typeof ChainTools>;
 }
-
-/** One chain argument for every tool, so all three surfaces describe it the same way. */
-const chainArgument = Type.String({
-  description: "Chain key, name, symbol, or alias (for example: ethereum, matic, btc)",
-  minLength: 1,
-  maxLength: 64,
-});
 
 /**
- * Hands a shared result to OMP as it is.
+ * Registers the chain tools with OMP, which reads `isError` off the result.
  *
- * OMP reads `isError` off the returned object, so the flag has to reach it. A result
- * rebuilt as `{ content, details }` records a call that checked nothing as a success.
- *
- * @param {ChainsTools.ToolResult<Details>} result - Result of a shared executor.
- * @returns {AgentToolResult<Details>} The same result, `isError` included.
+ * @param pi - OMP extension API.
+ * @returns {Promise<void>} Resolves once every tool is registered.
  */
-function settle<Details>(result: ChainsTools.ToolResult<Details>): AgentToolResult<Details> {
-  return result;
-}
-
-export default function chainsExtension(pi: ExtensionAPI): void {
-  pi.registerTool({
-    name: "chains_lookup",
-    label: "Chain Lookup",
-    description:
-      "Resolve a blockchain by key, name, symbol, or alias and return its canonical metadata",
-    promptSnippet:
-      "Use chains_lookup to resolve a blockchain's canonical key, chain ID, CAIP-2 identifier, or explorer.",
-    promptGuidelines: [
-      "Accepts aliases such as matic, arb, avax, btc, or a full name such as Ethereum.",
-      "Prefer this over hardcoding chain IDs, BIP-44 coin types, or explorer URLs.",
-    ],
-    parameters: Type.Object({
-      chain: chainArgument,
-    }),
-    async execute(
-      _toolCallId,
-      params,
-    ): Promise<AgentToolResult<ChainsTools.ChainLookup | ChainsTools.LookupFailure>> {
-      const { lookupChain } = await loadToolOperations();
-      return settle(lookupChain(params.chain));
-    },
-  });
-
-  pi.registerTool({
-    name: "chains_address_validate",
-    label: "Validate Chain Address",
-    description: "Check an address against the format rules of a specific blockchain",
-    promptSnippet:
-      "Use chains_address_validate before sending funds or storing an address, to confirm it matches the target chain's format.",
-    promptGuidelines: [
-      "A format check with the checksum verified where the format carries one, so a typo fails there; an EVM address in one case carries none. Not an on-chain existence check.",
-      "A valid UTXO address comes back with its kind (p2pkh, p2wpkh, p2tr...) and the hash or witness program it pays to, in hex.",
-      "A chain without a registered validator fails the call, because nothing was checked.",
-      "When the owning chain is unknown, chains_address_identify checks every validator at once.",
-    ],
-    parameters: Type.Object({
-      chain: chainArgument,
-      address: Type.String({
-        description: "Address to validate",
-        minLength: 1,
-        maxLength: 256,
-      }),
-    }),
-    async execute(_toolCallId, params): Promise<AgentToolResult<ChainsTools.AddressCheck>> {
-      const { validateChainAddress } = await loadToolOperations();
-      return settle(validateChainAddress(params.chain, params.address));
-    },
-  });
-
-  pi.registerTool({
-    name: "chains_txid_validate",
-    label: "Validate Chain Txid",
-    description: "Check a transaction id against the format rules of a specific blockchain",
-    promptSnippet:
-      "Use chains_txid_validate before looking a transaction up or storing its id, to confirm it fits the target chain's format.",
-    promptGuidelines: [
-      "A format check only: it says nothing about whether the transaction exists or was mined.",
-      "EVM chains and Aptos take 0x and 64 hex digits, UTXO chains, Monero, TRON and the XRP Ledger 64 hex digits, Stellar and Octra lowercase hex only, Solana a base58 signature of 64 bytes, Sui a base58 digest of 32, TON hex or padded base64, Arweave 43 base64url characters. A txid that fails reports valid: false with a reason.",
-    ],
-    parameters: Type.Object({
-      chain: chainArgument,
-      txid: Type.String({
-        description: "Transaction id to validate",
-        minLength: 1,
-        maxLength: 256,
-      }),
-    }),
-    async execute(_toolCallId, params): Promise<AgentToolResult<ChainsTools.TxidCheck>> {
-      const { validateChainTxid } = await loadToolOperations();
-      return settle(validateChainTxid(params.chain, params.txid));
-    },
-  });
-
-  pi.registerTool({
-    name: "chains_address_identify",
-    label: "Identify Address",
-    description: "Report which registered blockchains accept an address's format",
-    promptSnippet:
-      "Use chains_address_identify when an address's origin is unknown, to narrow it down to the chains whose format rules accept it.",
-    promptGuidelines: [
-      "A format match narrows the family; every EVM chain shares one address format.",
-      "Chains without a validator are reported as unchecked, not as non-matches.",
-    ],
-    parameters: Type.Object({
-      address: Type.String({
-        description: "Address of unknown origin",
-        minLength: 1,
-        maxLength: 256,
-      }),
-    }),
-    async execute(
-      _toolCallId,
-      params,
-    ): Promise<AgentToolResult<ChainsTools.AddressIdentification>> {
-      const { identifyAddress } = await loadToolOperations();
-      return settle(identifyAddress(params.address));
-    },
-  });
-
-  pi.registerTool({
-    name: "chains_list",
-    label: "List Chains",
-    description: "List every registered blockchain, optionally narrowed to one family",
-    promptSnippet:
-      "Use chains_list to see which blockchains are available, instead of guessing a chain name.",
-    promptGuidelines: [
-      "Families are evm, utxo, solana, stellar, xrpl, move, ton, tron, octra, arweave and monero.",
-      "Every key and name it prints resolves in chains_lookup.",
-    ],
-    parameters: Type.Object({
-      family: Type.Optional(
-        Type.String({
-          description: "Chain family to filter by (for example: evm, utxo, solana, stellar)",
-          minLength: 1,
-          maxLength: 32,
-        }),
-      ),
-    }),
-    async execute(_toolCallId, params): Promise<AgentToolResult<ChainsTools.ChainListing>> {
-      const { listChains } = await loadToolOperations();
-      return settle(listChains(params.family));
-    },
-  });
+export default async function chainsOmpExtension(pi: ExtensionAPI): Promise<void> {
+  const { Text } = pi.pi;
+  const { chainTools } = await loadTools();
+  registerOmpTools(pi, chainTools, { Text });
 }

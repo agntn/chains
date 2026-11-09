@@ -23,10 +23,10 @@ Scope: canonical blockchain classes, aliases, address validation and txid valida
 - `src/chains/*.ts` is one concrete blockchain class per file
 - `src/chains/index.ts` holds `builtins`, the ordered list the registry is seeded from. A chain file that is not in it is not in the registry
 - `src/index.ts` is the public API
-- `src/cli.ts` plus `src/commands/*.ts` is the citty CLI: `info`, `resolve`, `validate`, `identify`, `list`, `mcp`
-- `src/tool-operations.ts` holds the tool executors shared by MCP, Pi and OMP. No surface reimplements an operation
-- `src/mcp.ts` exports `createMcpServer()`, `src/commands/mcp.ts` runs it over stdio
-- `extensions/{pi,omp}/chains.ts` are the agent tools. The OMP file is a full copy, never a re-export
+- `src/tools.ts` holds one `defineTool` per tool, the only definition MCP, Pi, OMP and the CLI read. `src/tool-operations.ts` holds the executors behind them, loaded on the first call. No surface reimplements an operation
+- `src/cli.ts` runs `runCli` from `@agntn/tools/cli` over that list: `info` (alias `lookup`), `txid`, `identify`, `list` and `mcp`. `src/cli-commands.ts` adds `resolve` and `validate` and turns a rejected address or txid into exit 1, which a tool answer never is
+- `src/mcp.ts` exports `createMcpServer()` over `@agntn/tools/mcp`, `src/mcp-stdio.ts` serves it on stdio, and `src/server-info.ts` names the server without importing the SDK
+- `extensions/{pi,omp}/chains.ts` hand `chainTools` to `registerPiTools` and `registerOmpTools`. Neither declares a schema
 - `src/version.ts` is the version string
 - `test/unit/chains.test.ts` covers hierarchy, registry, metadata, and validation
 - `test/unit/mcp.test.ts` drives the MCP server over an in-memory transport
@@ -39,17 +39,16 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 
 ## Conventions
 
-- ESM-only. The core imports `@agntn/encodings` and `@agntn/hashes` at runtime, their subpaths only: each root loads the whole registry. The digests come from `@agntn/hashes` because `assertAddress` cannot await one: BLAKE-256 for Decred's checksum, BLAKE2b with its personalization for Zcash's F4Jumble, Keccak-256 for EIP-55 and Monero. Pin `@agntn/hashes` to the version `@agntn/encodings` pins, so an install holds one copy The CLI adds `citty` and `consola`, the MCP server adds `@modelcontextprotocol/sdk`, the extensions need `typebox` and `@earendil-works/pi-coding-agent`
-- `typebox` is an optional peer with the `"*"` range Pi 0.99 asks for, because Pi warns on every load of a package that lists it in `dependencies`. The exact pin sits in `devDependencies`. Pi maps the extension's import to its own copy, OMP to its TypeBox shim, and `build.config.ts` inlines one into `dist` for the CLI and the MCP server. `test/unit/host-peers.test.ts` guards the manifest and `test/unit/cli-loads.test.ts` checks that the bundled server loads no `typebox` package
-- Build with `obuild`, entries `src/index.ts`, `src/cli.ts`, `src/mcp.ts` and `src/tool-operations.ts`. `obuild` 0.4 accepts only `cwd`, `entries` and `hooks`, everything else is silently ignored
+- ESM-only. The core imports `@agntn/encodings` and `@agntn/hashes` at runtime, their subpaths only: each root loads the whole registry. The digests come from `@agntn/hashes` because `assertAddress` cannot await one: BLAKE-256 for Decred's checksum, BLAKE2b with its personalization for Zcash's F4Jumble, Keccak-256 for EIP-55 and Monero. Pin `@agntn/hashes` to the version `@agntn/encodings` pins, so an install holds one copy. The CLI, the MCP server and the extensions run on `@agntn/tools`, the stdio server adds `@modelcontextprotocol/server`
+- `typebox` stays out of the manifest. Schemas use `Type` from `@agntn/tools`, which bundles its own copy, because OMP rewrites a bare `typebox` import to a facade whose validation accepts anything. `test/unit/host-peers.test.ts` guards the manifest and `test/unit/cli-loads.test.ts` checks that the bundled server loads no `typebox` package
+- Build with `obuild`, entries `src/index.ts`, `src/cli.ts`, `src/mcp.ts`, `src/mcp-stdio.ts`, `src/tools.ts` and `src/tool-operations.ts`. `obuild` 0.4 accepts only `cwd`, `entries` and `hooks`, everything else is silently ignored
 - `sideEffects` names `dist/cli.mjs` and nothing else. That holds only while no module registers itself on import: put a `register()` call back at the top of a chain file and the class reaches the registry through a bare import, which a tree-shaker is free to drop. New chains go in `builtins`
 - `obuild` puts the whole core into one chunk, so `sideEffects` can't drop a module a consumer imports one name from: the bundler goes statement by statement. A call, spread or `Array.from` at module scope stays in every bundle along with whatever it reads, which is how `new Map(builtins.map(...))` used to ship all chains with a lone error class. Compute it inside the function that needs it or on first use, like the registry does. `test/unit/tree-shaking.test.ts` bundles `dist/` with rolldown and fails when a chain's import pulls in another chain
-- Extensions load `dist/tool-operations.mjs`, so `pnpm build` has to run before `tsc -p tsconfig.extensions.json`, and `test/unit/cli-loads.test.ts` runs `dist/cli.mjs`, so `pnpm test` builds first
-- `src/commands/mcp.ts` imports the server and the SDK inside `run()`. citty resolves every subcommand to print the usage, so a module-scope import there puts the whole SDK on `--help` and on every mistyped command
-- The OMP loader must keep both dynamic imports literal (`import("../../dist/tool-operations.mjs")` or `import("../../src/tool-operations.ts")`). An `import(url.href)` built from a runtime value loses bare-dependency resolution in the compiled OMP binary. Pi may keep the existsSync form.
-- MCP is built on the low-level `Server`, deprecated in the SDK, because `McpServer.registerTool` takes Standard Schema only and `typebox` 1.x is not one. The alternative is a second definition of every parameter
+- Extensions type their import against `dist/tools.d.mts`, so `pnpm build` has to run before `tsc -p tsconfig.extensions.json`, and `test/unit/cli-loads.test.ts` runs `dist/cli.mjs`, so `pnpm test` builds first
+- Nothing `src/cli.ts` imports statically may reach the MCP SDK, or it loads on `--help` and on every mistyped command. That's why `serverInfo` lives in `src/server-info.ts`, and `test/unit/cli-loads.test.ts` fails when `--help` loads `@modelcontextprotocol/server`
+- The OMP loader must keep both dynamic imports literal (`import("../../dist/tools.mjs")` or `import("../../src/tools.ts")`). An `import(url.href)` built from a runtime value loses bare-dependency resolution in the compiled OMP binary. Pi may keep the existsSync form.
 - An MCP client reads `content` and never `details`, so tool text has to carry whatever the next call needs
-- A shared result with `isError` reaches OMP unchanged, while the Pi extension throws its text instead, because Pi records every value `execute` returns as a success. `test/unit/extension-errors.test.ts` holds both adapters to it
+- A shared result with `isError` reaches OMP unchanged, while `registerPiTools` throws its text instead, because Pi up to 0.98 records every value `execute` returns as a success. `test/unit/extension-errors.test.ts` holds both adapters to it
 - Caller text reaches a tool's `content` or the CLI's own output through `quoted()` or `stripControlCharacters()` in `src/core/text.ts`, never raw: a newline in an address writes its own line of the answer. `details` keeps the value unchanged, so a surface that renders it owes its own escaping
 - Lint and format with `oxlint` plus `oxfmt` (`pnpm run fmt`)
 - Test with vitest (`pnpm run test`)

@@ -1,13 +1,10 @@
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { resolve as resolvePath } from "node:path";
-import { runCommand } from "citty";
-import consola from "consola";
+import { createCli } from "@agntn/tools/cli";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import list from "../../src/commands/list.ts";
+import { cliOptions } from "../../src/cli-commands.ts";
 import { Chain, register, type ChainKey } from "../../src/index.ts";
-import resolve from "../../src/commands/resolve.ts";
-import validate from "../../src/commands/validate.ts";
 
 /** No built-in chain lacks a txid check any more, so the CLI message needs a registered stand-in. */
 class Unvalidated extends Chain {
@@ -24,106 +21,132 @@ const ESCAPE = String.fromCodePoint(27);
 const CSI = String.fromCodePoint(155);
 const CONTROL = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
 
+/** What one command line wrote and how it exited. */
+interface Run {
+  readonly code: typeof process.exitCode;
+  readonly stderr: string;
+  readonly stdout: string;
+}
+
 /**
- * Runs one subcommand and returns what it wrote through the given consola level.
+ * Runs one command line through the CLI the bin builds and collects both streams.
  *
- * @param {"error" | "success" | "warn"} level - Consola method to capture.
- * @param {() => Promise<unknown>} execute - Bound command invocation.
- * @returns {Promise<string>} Text written through the selected level.
+ * @param args - Words after `chains`.
+ * @returns {Promise<Run>} The exit code and what reached stdout and stderr, trailing newline cut.
  */
-async function capture(
-  level: "error" | "success" | "warn",
-  execute: () => Promise<unknown>,
-): Promise<string> {
-  const spy = vi.spyOn(consola, level).mockImplementation(() => {});
-  await execute();
-  return spy.mock.calls.map(([first]) => String(first)).join("\n");
+async function run(...args: readonly string[]): Promise<Run> {
+  const written = { stdout: "", stderr: "" };
+  for (const stream of ["stdout", "stderr"] as const) {
+    vi.spyOn(process[stream], "write").mockImplementation((chunk: unknown) => {
+      written[stream] += String(chunk);
+      return true;
+    });
+  }
+  await createCli(cliOptions).run(args);
+  const code = process.exitCode;
+  vi.restoreAllMocks();
+  return { code, stdout: written.stdout.trimEnd(), stderr: written.stderr.trimEnd() };
 }
 
 afterEach(() => {
   vi.restoreAllMocks();
-  process.exitCode = 0;
+  process.exitCode = undefined;
 });
 
 describe("CLI output escaping", () => {
   it("quotes a rejected address instead of letting it write its own line", async () => {
     const address = `1BadAddress\n${ESCAPE}[32m Valid Bitcoin address`;
 
-    const written = await capture("error", () =>
-      runCommand(validate, { rawArgs: ["bitcoin", address] }),
-    );
+    const { code, stderr } = await run("validate", "bitcoin", address);
 
-    expect(written).not.toMatch(CONTROL);
-    expect(written).toBe(
-      'Invalid bitcoin address: "1BadAddress\\n\\u001b[32m Valid Bitcoin address" - 39 characters, more than the 35 this chain writes; 7 characters that are not base58 digits, the first "\\n" at position 12',
+    expect(code).toBe(1);
+    expect(stderr).not.toMatch(CONTROL);
+    expect(stderr).toBe(
+      'Invalid Bitcoin (bitcoin) address: "1BadAddress\\n\\u001b[32m Valid Bitcoin address" - 39 characters, more than the 35 this chain writes; 7 characters that are not base58 digits, the first "\\n" at position 12',
     );
   });
 
   it("blanks the C1 bytes JSON.stringify leaves alone in an unresolved chain", async () => {
-    const written = await capture("error", () =>
-      runCommand(resolve, { rawArgs: [`doge${CSI}31m`] }),
-    );
+    const { code, stderr } = await run("resolve", `doge${CSI}31m`);
 
-    expect(written).not.toMatch(CONTROL);
-    expect(written).toContain("Unsupported chain:");
+    expect(code).toBe(1);
+    for (const line of stderr.split("\n")) expect(line).not.toMatch(CONTROL);
+    expect(stderr).toContain("Unsupported chain:");
   });
 
-  it("quotes a family filter that matched nothing", async () => {
-    const written = await capture("warn", () =>
-      runCommand(list, { rawArgs: ["--type", "evm\nutxo"] }),
-    );
+  it("quotes a family filter that matched nothing and exits 1", async () => {
+    const { code, stderr } = await run("list", "evm\nutxo");
 
-    expect(written).not.toMatch(CONTROL);
-    expect(written).toBe('No registered chain has type: "evm\\nutxo"');
+    expect(code).toBe(1);
+    for (const line of stderr.split("\n")) expect(line).not.toMatch(CONTROL);
+    expect(stderr.split("\n")[0]).toBe('Unknown chain family: "evm\\nutxo"');
   });
 
   it("says why an EVM address fails", async () => {
     const address = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F98";
 
-    const written = await capture("error", () =>
-      runCommand(validate, { rawArgs: ["ethereum", address] }),
-    );
+    const { stderr } = await run("validate", "ethereum", address);
 
-    expect(written).toBe(`Invalid ethereum address: "${address}" - 39 hex digits after 0x, not 40`);
+    expect(stderr).toBe(
+      `Invalid Ethereum (ethereum) address: "${address}" - 39 hex digits after 0x, not 40`,
+    );
   });
 
   it("says what a valid address pays to", async () => {
-    const written = await capture("success", () =>
-      runCommand(validate, { rawArgs: ["bitcoin", "1GSMG1JC9wtdSwfwApgj2xcmJPAwx7prBe"] }),
-    );
+    const { code, stdout } = await run("validate", "bitcoin", "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2");
 
-    expect(written).toBe(
-      "Valid Bitcoin address - p2pkh, hash160 a9553269572a317e39f0f518cb87c1a0ee1dbae4",
+    expect(code).toBeUndefined();
+    expect(stdout).toBe(
+      'Valid Bitcoin (bitcoin) address: "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2" - p2pkh, hash160 77bff20c60e522dfaa3350c39b030a5d004e839a',
     );
   });
 
   it("still exits 1 on a rejected address", async () => {
-    await capture("error", () => runCommand(validate, { rawArgs: ["bitcoin", "not-an-address"] }));
-
-    expect(process.exitCode).toBe(1);
+    await expect(run("validate", "bitcoin", "not-an-address")).resolves.toMatchObject({ code: 1 });
   });
 
   it("quotes a rejected txid under --txid and exits 1", async () => {
     const txid = `deadbeef\n${ESCAPE}[32m Valid Bitcoin txid`;
 
-    const written = await capture("error", () =>
-      runCommand(validate, { rawArgs: ["bitcoin", txid, "--txid"] }),
-    );
+    const { code, stderr } = await run("validate", "bitcoin", txid, "--txid");
 
-    expect(written).not.toMatch(CONTROL);
-    expect(written).toBe(
-      'Invalid bitcoin txid: "deadbeef\\n\\u001b[32m Valid Bitcoin txid" - characters that are not hex digits; 33 characters, not 64',
+    expect(stderr).not.toMatch(CONTROL);
+    expect(stderr).toBe(
+      'Invalid Bitcoin (bitcoin) txid: "deadbeef\\n\\u001b[32m Valid Bitcoin txid" - characters that are not hex digits; 33 characters, not 64',
     );
-    expect(process.exitCode).toBe(1);
+    expect(code).toBe(1);
+  });
+
+  it("fails a rejected txid on the txid command as well", async () => {
+    const { code, stderr } = await run("txid", "ethereum", "0x12");
+
+    expect(stderr).toBe('Invalid Ethereum (ethereum) txid: "0x12" - 2 hex digits after 0x, not 64');
+    expect(code).toBe(1);
   });
 
   it("names the missing txid validator instead of a format failure", async () => {
-    const written = await capture("error", () =>
-      runCommand(validate, { rawArgs: ["unvalidated", "deadbeef", "--txid"] }),
-    );
+    const { code, stderr } = await run("validate", "unvalidated", "deadbeef", "--txid");
 
-    expect(written).toBe("Txid validation is not supported for unvalidated");
-    expect(process.exitCode).toBe(1);
+    expect(stderr).toBe("Unvalidated (unvalidated) carries no txid validator");
+    expect(code).toBe(1);
+  });
+});
+
+describe("CLI commands kept from citty", () => {
+  it("prints the bare canonical key for resolve", async () => {
+    await expect(run("resolve", "btc")).resolves.toEqual({
+      code: undefined,
+      stdout: "bitcoin",
+      stderr: "",
+    });
+  });
+
+  it("answers info through its lookup alias too", async () => {
+    const info = await run("info", "matic");
+    const lookup = await run("lookup", "matic");
+
+    expect(info.stdout.split("\n")[0]).toBe("Polygon PoS (polygon)");
+    expect(lookup).toEqual(info);
   });
 });
 
@@ -149,8 +172,6 @@ async function closedPipe(
     process.execPath,
     [resolvePath(import.meta.dirname, "../../src/cli.ts"), ...args],
     {
-      // consola keeps its output quiet under NODE_ENV=test, and the text has to reach the pipe.
-      env: { ...process.env, CONSOLA_LEVEL: "3" },
       stdio: ["ignore", "pipe", "pipe"],
       timeout: 10_000,
     },

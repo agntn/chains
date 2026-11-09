@@ -22,8 +22,8 @@ describe("packages the host supplies", () => {
     ).toEqual([]);
   });
 
-  it("leave typebox an optional peer with the range Pi asks for", () => {
-    expect(manifest.peerDependencies.typebox).toBe("*");
-    expect(manifest.peerDependenciesMeta.typebox).toEqual({ optional: true });
+  it("leave typebox out entirely, because @agntn/tools carries its own", () => {
+    expect(Object.keys(manifest.peerDependencies)).not.toContain("typebox");
+    expect(Object.keys(manifest.devDependencies)).not.toContain("typebox");
   });
 });

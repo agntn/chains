@@ -1,5 +1,5 @@
 /**
- * Tool executors shared by the MCP server and the Pi and OMP extensions.
+ * Tool executors behind the definitions in `src/tools.ts`, which every surface shares.
  *
  * Each executor returns the text a caller reads plus the structured details the
  * agent harnesses attach to the call. An MCP client sees only the text, so every
@@ -22,9 +22,6 @@ import {
   InvalidTxidError,
   TxidValidationUnsupportedError,
 } from "./index.ts";
-
-/** Re-exported so an agent surface throws inside the hierarchy, not a raw `Error`. */
-export { ChainsError };
 
 /** Canonical metadata for a resolved chain. */
 export interface ChainLookup {
@@ -101,7 +98,7 @@ export interface TxidCheck {
 export interface ToolResult<Details> {
   content: Array<{ type: "text"; text: string }>;
   details: Details;
-  /** Set when the tool could not answer. MCP and OMP read it, the Pi extension throws instead. */
+  /** Set when the tool could not answer. MCP and OMP read it, Pi gets it thrown. */
   isError?: boolean;
 }
 
