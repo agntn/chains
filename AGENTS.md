@@ -52,8 +52,8 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 - An MCP client reads `content` and never `details`, so tool text has to carry whatever the next call needs
 - A shared result with `isError` reaches OMP unchanged, while `registerPiTools` throws its text instead, because Pi up to 0.98 records every value `execute` returns as a success. `test/unit/extension-errors.test.ts` holds both adapters to it
 - Caller text reaches a tool's `content` or the CLI's own output through `quoted()` or `stripControlCharacters()` in `src/core/text.ts`, never raw: a newline in an address writes its own line of the answer. `details` keeps the value unchanged, so a surface that renders it owes its own escaping
-- Lint and format with `oxlint` plus `oxfmt` (`pnpm run fmt`)
-- Test with vitest (`pnpm run test`)
+- Lint, format and test run on Vite+ from one `vite.config.ts`, which spreads the `@agntn/ox` presets. `pnpm run fmt` fixes both, `pnpm lint` checks both, so CI fails on formatting too
+- Test with `vp test` (`pnpm run test`). Test files import from `vite-plus/test`, never `vitest`, which is no longer a direct dependency
 - `verbatimModuleSyntax: true`, so type imports use `import type`
 - `noImplicitOverride: true`, the same as the docs app's Nuxt tsconfig, which typechecks `src/` through its alias. A field that shadows an optional one on `Chain`, such as `bip44` or `caip2`, writes `override` like `decimals` does, and `tsc` asks for it when it's missing
 - `src/` runs under plain Node type stripping: relative imports end in `.ts`, never `.js`, and `erasableSyntaxOnly` keeps out `enum`, `namespace` and parameter properties

@@ -43,14 +43,12 @@ catalogs:
     ai: 7.0.165
     changelogen: 0.6.2
     obuild: 0.4.43
-    oxfmt: 0.75.0
-    oxlint: 1.90.0
-    oxlint-tsgolint: 7.0.2006
     rolldown: 1.2.12
     shiki: 4.5.0
     typescript: 7.0.2
-    vitest: 4.1.12
     wrangler: 4.128.0
+    vite: npm:@voidzero-dev/vite-plus-core@1.5.0
+    vite-plus: 1.5.0
   # Docus parses through @typescript-eslint, which wants a JS API TypeScript 7 no longer has.
   nuxt:
     typescript: 5.9.3
@@ -59,3 +57,12 @@ cleanupUnusedCatalogs: true
 
 # Keeps pnpm 12's env document out of the lockfile. GitHub reads that one as zero dependencies.
 pmOnFail: ignore
+
+overrides:
+  vite@*: catalog:dev
+
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: "*"

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { Bitcoin, BitcoinGold, InvalidAddressError, Litecoin, identify } from "../../src/index.ts";
 
 /** Paid to in block 965872, read through btgexplorer.com on 2026-09-24. */

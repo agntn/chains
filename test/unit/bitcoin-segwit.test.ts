@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { Bitcoin, InvalidAddressError, identify } from "../../src/index.ts";
 
 /** Published address vectors: https://github.com/bitcoin/bips/blob/master/bip-0350.mediawiki */

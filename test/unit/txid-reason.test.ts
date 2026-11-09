@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { hexTxidFault, type HexTxidShape } from "../../src/core/txid.ts";
 import {
   Bitcoin,

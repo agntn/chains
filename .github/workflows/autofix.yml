@@ -14,18 +14,16 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
-
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+      # The library alone. Nuxt and workerd stay home, lint never looks at docs/.
+      - uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
         with:
           node-version: 26.10.0
-          cache: pnpm
+          cache: true
+          run-install: |
+            - args: ['--filter', '@agntn/chains']
 
-      # The library alone. Nuxt and workerd stay home, lint never looks at docs/.
-      - run: pnpm install --filter @agntn/chains
-
-      - name: Fix lint issues
-        run: pnpm run lint:fix
+      - name: Fix lint and format issues
+        run: pnpm run fmt
 
       - uses: autofix-ci/action@7a166d7532b277f34e16238930461bf77f9d7ed8
         with:

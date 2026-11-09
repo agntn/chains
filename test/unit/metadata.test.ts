@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { builtins } from "../../src/chains/index.ts";
 import { UnknownChainError, metadata } from "../../src/index.ts";
 import type { ChainKey } from "../../src/index.ts";

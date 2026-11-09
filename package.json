@@ -45,12 +45,10 @@
     "build": "obuild",
     "dev": "obuild --stub",
     "docs": "pnpm --filter docs dev",
-    "fmt": "pnpm build && oxlint . --fix && oxfmt --write .",
-    "fmt:check": "pnpm build && oxlint . && oxfmt --check .",
-    "lint": "pnpm build && oxlint .",
-    "lint:fix": "pnpm build && oxlint . --fix",
-    "test": "pnpm build && vitest run",
-    "test:watch": "vitest",
+    "fmt": "pnpm build && vp lint --fix && vp fmt",
+    "lint": "pnpm build && vp lint && vp fmt --check",
+    "test": "pnpm build && vp test run",
+    "test:watch": "vp test watch",
     "typecheck": "tsc --noEmit && pnpm build && tsc --noEmit -p tsconfig.extensions.json",
     "prepack": "pnpm run build",
     "release": "pnpm test && pnpm build && changelogen --release --push"
@@ -70,12 +68,9 @@
     "ai": "catalog:dev",
     "changelogen": "catalog:dev",
     "obuild": "catalog:dev",
-    "oxfmt": "catalog:dev",
-    "oxlint": "catalog:dev",
-    "oxlint-tsgolint": "catalog:dev",
     "rolldown": "catalog:dev",
     "typescript": "catalog:dev",
-    "vitest": "catalog:dev"
+    "vite-plus": "catalog:dev"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": ">=0.84.2 <2",
