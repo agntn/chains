@@ -1,6 +1,6 @@
 import { base32 } from "@agntn/encodings/base32";
+import { crc16Xmodem } from "@agntn/hashes/crc";
 import { Chain } from "../core/chain.ts";
-import { crc16Xmodem } from "../core/crc16.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 import { hexTxidFault } from "../core/txid.ts";
 
@@ -30,6 +30,12 @@ function decodeBase32(input: string, expectedBytes: number): Uint8Array | undefi
   return canonical && decoded.length === expectedBytes ? decoded : undefined;
 }
 
+/**
+ * Checks a SEP-23 Strkey, whose CRC-16/XMODEM Stellar writes backwards from `crc16Xmodem`.
+ *
+ * @param {string} address - Candidate account, muxed account or contract address.
+ * @returns {boolean} Whether the address is a Strkey whose checksum holds.
+ */
 function isAddressStrkey(address: string): boolean {
   const type = STRKEY_TYPES[address[0] ?? ""];
   if (!type) return false;
@@ -42,7 +48,7 @@ function isAddressStrkey(address: string): boolean {
 
   const payload = decoded.subarray(0, -2);
   const checksum = crc16Xmodem(payload);
-  return decoded.at(-2) === (checksum & 0xff) && decoded.at(-1) === ((checksum >> 8) & 0xff);
+  return decoded.at(-2) === checksum[1] && decoded.at(-1) === checksum[0];
 }
 
 /** Stellar account, muxed-account and contract addresses encoded as SEP-23 Strkeys. */

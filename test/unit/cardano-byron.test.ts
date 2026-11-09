@@ -1,6 +1,5 @@
+import { crc32 } from "node:zlib";
 import { describe, expect, it } from "vitest";
-import { decodeBase58 } from "../../src/core/base58.ts";
-import { crc32 } from "../../src/core/crc32.ts";
 import { create, identify, InvalidAddressError } from "../../src/index.ts";
 import { identifyAddress, validateChainAddress } from "../../src/tool-operations.ts";
 
@@ -86,7 +85,7 @@ function envelope(
     0x58,
     payload.length,
     ...payload,
-    ...checksumBytes(crc32(payload)),
+    ...checksumBytes(crc32(Uint8Array.from(payload))),
   ]);
 }
 
@@ -101,22 +100,6 @@ function mistype(address: string, index: number, step = 1): string {
   const digit = ALPHABET.indexOf(address.charAt(index));
   return `${address.slice(0, index)}${ALPHABET.charAt((digit + step) % 58)}${address.slice(index + 1)}`;
 }
-
-describe("CRC-32", () => {
-  it("matches the catalogue check value for 123456789 and zero for nothing", () => {
-    expect(crc32(new TextEncoder().encode("123456789"))).toBe(0xcbf43926);
-    expect(crc32(new Uint8Array(0))).toBe(0);
-  });
-
-  it("reads the four bytes the Daedalus address ends with", () => {
-    const bytes = decodeBase58(live[1], 128);
-    expect(bytes).toBeDefined();
-    if (bytes === undefined) return;
-    const payload = bytes.subarray(5, 5 + (bytes[4] ?? 0));
-    expect(crc32(payload)).toBe(0xed0518a1);
-    expect([...bytes.subarray(-5)]).toEqual([0x1a, 0xed, 0x05, 0x18, 0xa1]);
-  });
-});
 
 describe("Byron address checksum", () => {
   const cardano = create("cardano");

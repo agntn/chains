@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { crc16Xmodem } from "../../src/core/crc16.ts";
 import { create, identify, InvalidAddressError } from "../../src/index.ts";
 import { identifyAddress, validateChainAddress } from "../../src/tool-operations.ts";
 
@@ -42,20 +41,6 @@ function mistype(address: string, index: number, step = 1): string {
   const digit = ALPHABET.indexOf(address.charAt(index));
   return `${address.slice(0, index)}${ALPHABET.charAt((digit + step) % 64)}${address.slice(index + 1)}`;
 }
-
-describe("CRC-16/XMODEM", () => {
-  it("matches the catalogue check value for 123456789 and zero for nothing", () => {
-    expect(crc16Xmodem(new TextEncoder().encode("123456789"))).toBe(0x31c3);
-    expect(crc16Xmodem(new Uint8Array(0))).toBe(0);
-  });
-
-  it("reads the two bytes the USDT jetton master ends with", () => {
-    const binary = atob(live[0].replaceAll("-", "+").replaceAll("_", "/"));
-    const bytes = Uint8Array.from(binary, (character) => character.codePointAt(0) ?? 0);
-    expect(crc16Xmodem(bytes.subarray(0, 34))).toBe(0xc0ec);
-    expect([bytes[34], bytes[35]]).toEqual([0xc0, 0xec]);
-  });
-});
 
 describe("TON address checksum", () => {
   const ton = create("ton");

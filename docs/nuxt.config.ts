@@ -16,6 +16,7 @@ const libraryEntries = [
   "@agntn/encodings/bech32",
   "@agntn/hashes/blake256",
   "@agntn/hashes/blake2b",
+  "@agntn/hashes/crc",
   "@agntn/hashes/keccak",
 ];
 

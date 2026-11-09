@@ -1,6 +1,6 @@
 import { base64 } from "@agntn/encodings/base64";
+import { crc16Xmodem } from "@agntn/hashes/crc";
 import { Chain } from "../core/chain.ts";
-import { crc16Xmodem } from "../core/crc16.ts";
 import { InvalidAddressError, InvalidTxidError } from "../core/errors.ts";
 import { hexTxidFault } from "../core/txid.ts";
 
@@ -50,7 +50,7 @@ function friendlyBytes(address: string): Uint8Array | undefined {
     alphabet: "url",
   });
   const checksum = crc16Xmodem(bytes.subarray(0, 34));
-  return bytes[34] === checksum >> 8 && bytes[35] === (checksum & 0xff) ? bytes : undefined;
+  return bytes[34] === checksum[0] && bytes[35] === checksum[1] ? bytes : undefined;
 }
 
 export class Ton extends Chain {
