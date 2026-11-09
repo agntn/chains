@@ -179,7 +179,22 @@ omp install @agntn/chains
 }
 ```
 
-Five tools, the same five on MCP, Pi and OMP. A rejected address is an answer, not a tool error. An unknown chain comes back with the keys that do exist. And fourteen EVM matches are fourteen possibilities, the tool says so itself. [Agents guide](https://chains.agntn.dev/guide/agents).
+On the AI SDK? Skip the wrappers, they're already written:
+
+```ts
+import { anthropic } from "@ai-sdk/anthropic";
+import { chainsAiTools } from "@agntn/chains/ai";
+import { generateText, isStepCount } from "ai";
+
+const { text } = await generateText({
+  model: anthropic("claude-sonnet-5-5"),
+  tools: chainsAiTools,
+  stopWhen: isStepCount(5),
+  prompt: "Which chains accept 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed?",
+});
+```
+
+Five tools, the same five on MCP, Pi, OMP and the AI SDK. A rejected address is an answer, not a tool error. An unknown chain comes back with the keys that do exist. And fourteen EVM matches are fourteen possibilities, the tool says so itself. [Agents guide](https://chains.agntn.dev/guide/agents).
 
 ## 🚫 What this does not do
 

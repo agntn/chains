@@ -23,14 +23,16 @@ Scope: canonical blockchain classes, aliases, address validation and txid valida
 - `src/chains/*.ts` is one concrete blockchain class per file
 - `src/chains/index.ts` holds `builtins`, the ordered list the registry is seeded from. A chain file that is not in it is not in the registry
 - `src/index.ts` is the public API
-- `src/tools.ts` holds one `defineTool` per tool, the only definition MCP, Pi, OMP and the CLI read. `src/tool-operations.ts` holds the executors behind them, loaded on the first call. No surface reimplements an operation
+- `src/tools.ts` holds one `defineTool` per tool, the only definition MCP, Pi, OMP, the AI SDK and the CLI read. `src/tool-operations.ts` holds the executors behind them, loaded on the first call. No surface reimplements an operation
 - `src/cli.ts` runs `runCli` from `@agntn/tools/cli` over that list: `info` (alias `lookup`), `txid`, `identify`, `list` and `mcp`. `src/cli-commands.ts` adds `resolve` and `validate` and turns a rejected address or txid into exit 1, which a tool answer never is
+- `src/ai.ts` exports `chainsAiTools`, the AI SDK tool map `toAiTools` from `@agntn/tools/ai` builds from that list, behind the `./ai` export. `ai` is an optional peer
 - `src/mcp.ts` exports `createMcpServer()` over `@agntn/tools/mcp`, `src/mcp-stdio.ts` serves it on stdio, and `src/server-info.ts` names the server without importing the SDK
 - `extensions/{pi,omp}/chains.ts` hand `chainTools` to `registerPiTools` and `registerOmpTools`. Neither declares a schema
 - `src/version.ts` is the version string
 - `test/unit/chains.test.ts` covers hierarchy, registry, metadata, and validation
 - `test/unit/mcp.test.ts` drives the MCP server over an in-memory transport
-- `test/unit/cli-loads.test.ts` runs the built bin's usage paths under `test/record-loads.ts`: `--help`, `-h`, `mcp --help`, no arguments and an unknown command must not load the MCP SDK, and `mcp` must load it. It also checks which server `mcp` serves, the source inside a checkout and the bundle everywhere else, and that every module in `src/` imports under plain Node
+- `test/unit/ai.test.ts` drives `chainsAiTools` through `generateText` with a mock model and holds its text to the MCP answer
+- `test/unit/cli-loads.test.ts` runs the built bin's usage paths under `test/record-loads.ts`: `--help`, `-h`, `mcp --help`, no arguments and an unknown command must not load the MCP SDK, and `mcp` must load it. It also checks which server `mcp` serves, the source inside a checkout and the bundle everywhere else, that every module in `src/` imports under plain Node, and that `src/ai.ts` loads `src/tools.ts` and no other source module
 - `docs/` is the Docus site behind chains.agntn.dev, with its own `AGENTS.md`. It aliases `@agntn/chains` to `src/index.ts` and bundles the sources itself, so it needs neither `dist/` nor the root `node_modules`
 
 ## Shape
@@ -41,7 +43,7 @@ Constructor registry. Concrete blockchain classes own their metadata and behavio
 
 - ESM-only. The core imports `@agntn/encodings` and `@agntn/hashes` at runtime, their subpaths only: each root loads the whole registry. The digests come from `@agntn/hashes` because `assertAddress` cannot await one: BLAKE-256 for Decred's checksum, BLAKE2b with its personalization for Zcash's F4Jumble, Keccak-256 for EIP-55 and Monero. Pin `@agntn/hashes` to the version `@agntn/encodings` pins, so an install holds one copy. The CLI, the MCP server and the extensions run on `@agntn/tools`, the stdio server adds `@modelcontextprotocol/server`
 - `typebox` stays out of the manifest. Schemas use `Type` from `@agntn/tools`, which bundles its own copy, because OMP rewrites a bare `typebox` import to a facade whose validation accepts anything. `test/unit/host-peers.test.ts` guards the manifest and `test/unit/cli-loads.test.ts` checks that the bundled server loads no `typebox` package
-- Build with `obuild`, entries `src/index.ts`, `src/cli.ts`, `src/mcp.ts`, `src/mcp-stdio.ts`, `src/tools.ts` and `src/tool-operations.ts`. `obuild` 0.4 accepts only `cwd`, `entries` and `hooks`, everything else is silently ignored
+- Build with `obuild`, entries `src/index.ts`, `src/ai.ts`, `src/cli.ts`, `src/mcp.ts`, `src/mcp-stdio.ts`, `src/tools.ts` and `src/tool-operations.ts`. `obuild` 0.4 accepts only `cwd`, `entries` and `hooks`, everything else is silently ignored
 - `sideEffects` names `dist/cli.mjs` and nothing else. That holds only while no module registers itself on import: put a `register()` call back at the top of a chain file and the class reaches the registry through a bare import, which a tree-shaker is free to drop. New chains go in `builtins`
 - `obuild` puts the whole core into one chunk, so `sideEffects` can't drop a module a consumer imports one name from: the bundler goes statement by statement. A call, spread or `Array.from` at module scope stays in every bundle along with whatever it reads, which is how `new Map(builtins.map(...))` used to ship all chains with a lone error class. Compute it inside the function that needs it or on first use, like the registry does. `test/unit/tree-shaking.test.ts` bundles `dist/` with rolldown and fails when a chain's import pulls in another chain
 - Extensions type their import against `dist/tools.d.mts`, so `pnpm build` has to run before `tsc -p tsconfig.extensions.json`, and `test/unit/cli-loads.test.ts` runs `dist/cli.mjs`, so `pnpm test` builds first

@@ -233,4 +233,18 @@ describe("chains source under plain Node", () => {
       expect.arrayContaining(modules.map((file) => pathToFileURL(join(root, file)).href)),
     );
   });
+
+  it("imports the AI SDK entry without the MCP SDK, the executors or a single chain", () => {
+    const entry = pathToFileURL(join(root, "src/ai.ts")).href;
+    const prefix = `${pathToFileURL(root).href}/`;
+    const run = runNode(["--input-type=module", "-e", `await import(${JSON.stringify(entry)});`]);
+    const source = run.loaded
+      .filter((url) => url.startsWith(`${prefix}src/`))
+      .map((url) => url.slice(prefix.length));
+
+    expect(run.status).toBe(0);
+    expect(packagesOf(run.loaded)).toContain("ai");
+    expect(packagesOf(run.loaded)).not.toContain("@modelcontextprotocol/server");
+    expect(source).toEqual(["src/ai.ts", "src/tools.ts"]);
+  });
 });

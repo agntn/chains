@@ -1,7 +1,7 @@
 /**
- * The chain tools, declared once for MCP, Pi, OMP and the CLI. Executors load on the first call.
- * `Type` comes from `@agntn/tools`, never a bare `typebox`: OMP rewrites that import to its own
- * facade, and validation then accepts any value.
+ * The chain tools, declared once for MCP, Pi, OMP, the AI SDK and the CLI. Executors load on the
+ * first call. `Type` comes from `@agntn/tools`, never a bare `typebox`: OMP rewrites that import to
+ * its own facade, and validation then accepts any value.
  */
 
 import { defineTool, type TString, type ToolDefinition, Type } from "@agntn/tools";
@@ -165,7 +165,7 @@ export const listTool = defineTool({
   execute: async ({ family }) => (await loadOperations()).listChains(family),
 });
 
-/** Every chain tool, in the order MCP lists them. */
+/** Every chain tool in the order MCP lists them, each keeping its literal name for `toAiTools`. */
 export const chainTools = [
   lookupTool,
   addressValidateTool,
