@@ -17,10 +17,10 @@
     "nuxt": "4.5.2"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "1.2.144",
-    "@iconify-json/simple-icons": "1.2.100",
+    "@iconify-json/lucide": "1.2.151",
+    "@iconify-json/simple-icons": "1.2.101",
     "@iconify-json/token": "1.2.42",
-    "@iconify-json/vscode-icons": "1.2.89",
+    "@iconify-json/vscode-icons": "1.2.96",
     "wrangler": "4.128.0"
   },
   "packageManager": "pnpm@11.3.0"
