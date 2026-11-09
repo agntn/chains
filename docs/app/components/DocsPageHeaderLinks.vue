@@ -5,17 +5,21 @@
  * the MCP pair, since this site doesn't serve `/mcp`.
  */
 import { useClipboard } from "@vueuse/core";
-import { withTrailingSlash } from "ufo";
+import { joinURL } from "ufo";
 
 const route = useRoute();
 const runtimeConfig = useRuntimeConfig();
 const appBaseURL = runtimeConfig.app?.baseURL || "/";
+/** Where `nuxt-agent-discovery` serves each page's markdown, `/raw` unless configured. */
+const rawPrefix =
+  (runtimeConfig.public.agentDiscovery as { rawPrefix?: string } | undefined)?.rawPrefix || "/raw";
 
 const { copy, copied } = useClipboard();
 const { t } = useDocusI18n();
 
+const rawPath = computed(() => `${joinURL(rawPrefix, route.path)}.md`);
 const markdownLink = computed(
-  () => `${window?.location?.origin}${withTrailingSlash(appBaseURL)}raw${route.path}.md`,
+  () => `${window?.location?.origin}${joinURL(appBaseURL, rawPath.value)}`,
 );
 const items = computed(() => [
   [
@@ -58,7 +62,7 @@ const MENU_UI = {
 };
 
 async function copyPage() {
-  const page = await $fetch<string>(`/raw${route.path}.md`);
+  const page = await $fetch<string>(rawPath.value);
   await copy(page);
 }
 </script>
