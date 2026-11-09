@@ -1,5 +1,5 @@
 import { base58, createBase58check, type Base58Alphabet } from "@agntn/encodings/base58";
-import { BASE58_DIGIT, decodeBase58 } from "./base58.ts";
+import { base58TextFaults, decodeBase58 } from "./base58.ts";
 
 /** An alphabet with SHA-256 behind the checksum, or the hash Decred puts there instead. */
 export type Base58CheckScheme = Base58Alphabet | Parameters<typeof createBase58check>[0];
@@ -29,42 +29,6 @@ function hexByte(byte: number): string {
 }
 
 /**
- * Names the characters that stop the text from decoding at all, counted and the first one
- * placed, so a model sees where to look without a list as long as the input.
- * @param {string} input - Text that failed to decode.
- * @param {number} maxLength - Maximum accepted character count.
- * @returns {string[]} The faults, empty for the length alone.
- */
-function textFaults(input: string, maxLength: number): string[] {
-  const faults: string[] = [];
-  if (input.length === 0) return ["empty"];
-  if (input.length > maxLength) {
-    faults.push(`${input.length} characters, more than the ${maxLength} this chain writes`);
-  }
-  let count = 0;
-  let first: string | undefined;
-  let position = 0;
-  let index = 0;
-  for (const character of input) {
-    index++;
-    if (BASE58_DIGIT.test(character)) continue;
-    count++;
-    if (first === undefined) {
-      first = character;
-      position = index;
-    }
-  }
-  if (first !== undefined) {
-    const noun =
-      count === 1
-        ? "character that is not a base58 digit"
-        : "characters that are not base58 digits";
-    faults.push(`${count} ${noun}, the first ${JSON.stringify(first)} at position ${position}`);
-  }
-  return faults;
-}
-
-/**
  * Reads Base58Check and names every rule the text breaks on the way, so validity and reason
  * come out of one pass and can't disagree.
  *
@@ -84,7 +48,7 @@ export function readBase58Check(
 ): Base58CheckRead {
   const alphabet = typeof scheme === "string" ? scheme : "bitcoin";
   const bytes = decodeBase58(input, maxLength, alphabet);
-  if (bytes === undefined) return { faults: textFaults(input, maxLength) };
+  if (bytes === undefined) return { faults: base58TextFaults(input, maxLength) };
   if (bytes.length < 4) return { bytes, faults: ["too short to carry a checksum"] };
   if (checksumHolds(input, scheme)) return { bytes, faults: [] };
   return { bytes, faults: ["the Base58Check checksum does not hold, so a character is wrong"] };
