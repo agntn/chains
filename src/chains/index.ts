@@ -22,6 +22,7 @@ import { Gnosis } from "./gnosis.ts";
 import { Linea } from "./linea.ts";
 import { Litecoin } from "./litecoin.ts";
 import { Monero } from "./monero.ts";
+import { Near } from "./near.ts";
 import { Octra } from "./octra.ts";
 import { Optimism } from "./optimism.ts";
 import { Pepecoin } from "./pepecoin.ts";
@@ -74,4 +75,5 @@ export const builtins: readonly ChainConstructor[] = [
   BitcoinGold,
   Dash,
   Zcash,
+  Near,
 ];

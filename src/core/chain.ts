@@ -53,6 +53,16 @@ export abstract class Chain implements ChainInfo {
   }
 
   /**
+   * Whether identify names this chain for an address it accepted; a catchall format says no.
+   *
+   * @param {string} _address - An address {@link assertAddress} accepted.
+   * @returns {boolean} Whether identify should report the match.
+   */
+  claimsAddress(_address: string): boolean {
+    return true;
+  }
+
+  /**
    * Checks the address, then says what it pays to: `account` here, a script kind on the UTXO chains.
    *
    * @param {string} address - Candidate address.

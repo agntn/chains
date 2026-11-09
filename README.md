@@ -5,7 +5,7 @@
 [![license](https://npmx.dev/api/registry/badge/license/@agntn/chains)](https://npmx.dev/package/@agntn/chains)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/agntn/chains)
 
-⛓️ Thirty-six blockchains as classes, and an address check that actually decodes. Ask for `matic` and you get Polygon, chain ID and coin type included. Paste an address and you get the chains that would take it. Same thing from the terminal, from TypeScript or from an agent.
+⛓️ Blockchains as classes, and an address check that actually decodes. Ask for `matic` and you get Polygon, chain ID and coin type included. Paste an address and you get the chains that would take it. Same thing from the terminal, from TypeScript or from an agent.
 
 ## Why?
 
@@ -15,12 +15,12 @@ Docs, one page per chain and a playground are at [chains.agntn.dev](https://chai
 
 ## ✨ Features
 
-- 🧬 **Thirty-six chains, one abstract `Chain`.** Each chain is its own class with its own facts. `EVM` and `Move` hold what a family shares.
+- 🧬 **One abstract `Chain`, a class per chain.** Each chain carries its own facts. `EVM` and `Move` hold what a family shares.
 - 🏷️ **Aliases people actually type.** `matic`, `btc`, `arb`, `ripple`. Display names work too, so `BNB Chain` comes back as `bsc`.
 - 🔍 **Validators that decode.** Base58Check, Bech32, CashAddr, CIP-19, whatever the chain uses. Checksums get checked.
 - 🧩 **Addresses read back.** The validator decodes anyway, so `decodeAddress` hands you what it found: `p2wpkh` and the 20-byte hash, not just a yes.
 - 🕵️ **Identify an address of unknown origin.** Every validator gets a go and you learn the family.
-- 🔗 **Transaction ids, same idea.** `0x` and 64 hex on the EVM chains and Aptos, 64 hex on the UTXO chains, Monero, TRON and the XRP Ledger, lowercase only on Stellar and Octra because their nodes read nothing else, base58 decoded to 64 bytes on Solana and 32 on Sui, hex or padded base64 on TON, 43 base64url characters on Arweave. A txid pasted wrong fails here, not three calls later inside an RPC.
+- 🔗 **Transaction ids, same idea.** Each one in the shape its own node writes. A txid pasted wrong fails here, not three calls later inside an RPC. [The rules](https://chains.agntn.dev/guide/validation#transaction-ids).
 - 🧾 **Metadata checked, not remembered.** Every `decimals` value was looked up at the source. XEC really has two.
 - 🫙 **Missing stays missing.** Octra has no coin type and no CAIP-2, so you get `undefined`. Nothing made up.
 - 🪶 **The core depends on family and nothing else.** Base58 and Bech32 come from `@agntn/encodings`, Keccak and BLAKE from `@agntn/hashes`, which encodings brought along anyway. Nothing registers itself on import, so your bundler drops the chains you don't use.
@@ -62,7 +62,7 @@ chains identify 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984
 ```
 
 ```
-"0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984" matches 14 of 36 checked chains.
+"0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984" matches 14 of 37 checked chains.
 evm (14): ethereum, base, arbitrum, optimism, polygon, bsc, avalanche, fantom, gnosis, linea, zksync, scroll, berachain, arc
 A format match narrows the family; it does not prove the address is used on any of these chains.
 ```
@@ -74,7 +74,7 @@ chains identify bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a
 ```
 
 ```
-"bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a" matches 1 of 36 checked chains.
+"bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a" matches 1 of 37 checked chains.
 utxo (1): bitcoin
 A format match narrows the family; it does not prove the address is used on any of these chains.
 ```
@@ -160,8 +160,9 @@ Most of the API is right there. `create(key)` wants the canonical key. `getChain
 | `octra`   | octra                                                                                                              | `oct` and 44 characters, that's the whole format                                                                                                                                                                                                      |
 | `arweave` | arweave                                                                                                            | 43 characters of base64url, a 32-byte hash                                                                                                                                                                                                            |
 | `monero`  | monero                                                                                                             | Block base58, the network byte, the 69 or 77 byte envelope and the Keccak checksum                                                                                                                                                                    |
+| `near`    | near                                                                                                               | NEAR's account ID grammar, `alice.near` or an implicit hex key. No checksum exists, so there's none to verify                                                                                                                                         |
 
-Transaction ids: `0x` and 64 hex digits on `evm` and Aptos, 64 hex digits on `utxo`, `monero`, `tron` and `xrpl`, the same 64 in lowercase only on `stellar` and `octra`, base58 decoding to 64 bytes on `solana` and 32 on Sui, 64 hex digits or 44 characters of padded base64 on `ton`, the address rule on `arweave`. Testnet addresses are refused wherever the format can tell. Each chain's page says which checksum is verified and which is left alone: [Chains](https://chains.agntn.dev/chains).
+Transaction ids get the same care: hex, base58 or base64, whatever the chain's node writes, and the [validation guide](https://chains.agntn.dev/guide/validation#transaction-ids) has the table. Testnet addresses are refused wherever the format can tell. Each chain's page says which checksum is verified and which is left alone: [Chains](https://chains.agntn.dev/chains).
 
 ## 🤖 Agents
 

@@ -15,7 +15,9 @@ export interface AddressMatches {
  * and chains that carry no validator and so could not be asked.
  *
  * A match is about format only. Every EVM chain shares one format, so a match
- * narrows the family rather than naming the chain an address is used on.
+ * narrows the family rather than naming the chain an address is used on. A chain
+ * can also accept an address and still decline it here: NEAR takes `bc1…` as an
+ * account name, and only {@link Chain.claimsAddress} keeps it off that answer.
  *
  * @param {string} address - Address to check against every registered validator.
  * @returns {AddressMatches} Matching chains and chains without a validator.
@@ -32,7 +34,7 @@ export function identify(address: string): AddressMatches {
     }
     try {
       chain.assertAddress(address);
-      matches.push(chain);
+      if (chain.claimsAddress(address)) matches.push(chain);
     } catch (error) {
       if (!(error instanceof InvalidAddressError)) throw error;
     }
