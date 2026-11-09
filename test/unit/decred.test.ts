@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { blake256 } from "@agntn/hashes/blake256";
 import { Chain, InvalidAddressError, getChain, identify } from "../../src/index.ts";
 import {

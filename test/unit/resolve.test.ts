@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { Chain, chains, getChain, register, type ChainKey } from "../../src/index.ts";
 
 /**

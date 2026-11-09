@@ -214,10 +214,10 @@ Missing one? Extend `Chain`, add a `key`, a `type`, the metadata and an `assertA
 ```bash
 pnpm install     # installs the library and docs/
 pnpm dev         # obuild --stub
-pnpm fmt         # builds, then oxlint --fix and oxfmt
-pnpm lint        # builds, then oxlint
+pnpm fmt         # builds, then vp lint --fix and vp fmt
+pnpm lint        # builds, then vp lint and vp fmt --check
 pnpm typecheck   # tsc, then a build and the extensions against dist/
-pnpm test        # vitest
+pnpm test        # builds, then vp test run
 pnpm build       # obuild
 pnpm run docs    # the Docus site, bundled from src/
 ```

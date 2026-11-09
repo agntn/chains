@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { InvalidAddressError, InvalidTxidError, create, identify } from "../../src/index.ts";
 import { validateChainAddress, validateChainTxid } from "../../src/tool-operations.ts";
 

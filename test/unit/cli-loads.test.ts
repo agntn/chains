@@ -3,7 +3,7 @@ import { cpSync, existsSync, globSync, mkdirSync, mkdtempSync, rmSync, symlinkSy
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vite-plus/test";
 
 const root = resolve(import.meta.dirname, "../..");
 const bin = resolve(root, "dist/cli.mjs");

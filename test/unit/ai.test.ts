@@ -1,7 +1,7 @@
 import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
 import { generateText, isStepCount } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { chainsAiTools } from "../../src/ai.ts";
 import { createMcpServer } from "../../src/mcp.ts";
 import { chainTools } from "../../src/tools.ts";

@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 import { rolldown } from "rolldown";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { builtins } from "../../src/chains/index.ts";
 
 const entry = resolve(import.meta.dirname, "../../dist/index.mjs");

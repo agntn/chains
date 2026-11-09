@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { bech32, bech32m } from "@agntn/encodings/bech32";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { blake2b } from "@agntn/hashes/blake2b";
 import { f4jumbleInverse } from "../../src/core/f4jumble.ts";
 import { identify, InvalidAddressError, Zcash } from "../../src/index.ts";

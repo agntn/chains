@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { InvalidAddressError, Litecoin, identify } from "../../src/index.ts";
 
 /** Published MWEB receiving addresses, each from a different project's donation page or README. */

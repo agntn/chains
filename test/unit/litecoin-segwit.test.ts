@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { Bitcoin, InvalidAddressError, Litecoin, identify } from "../../src/index.ts";
 
 const p2wpkh = "ltc1qhdhvrwe6rgqns8fz28tee0hphr5x7ulw5exv4w";

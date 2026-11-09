@@ -1,5 +1,5 @@
 import { createCli } from "@agntn/tools/cli";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { cliOptions } from "../../src/cli-commands.ts";
 import { chains, create, getChain, type ChainKey } from "../../src/index.ts";
 import { lookupChain } from "../../src/tool-operations.ts";

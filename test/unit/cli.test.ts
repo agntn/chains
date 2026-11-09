@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { resolve as resolvePath } from "node:path";
 import { createCli } from "@agntn/tools/cli";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { cliOptions } from "../../src/cli-commands.ts";
 import { Chain, register, type ChainKey } from "../../src/index.ts";
 

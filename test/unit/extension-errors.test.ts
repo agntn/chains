@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import ompExtension from "../../extensions/omp/chains.ts";
 import piExtension from "../../extensions/pi/chains.ts";
 import { lookupChain } from "../../src/tool-operations.ts";

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { readdirSync, readFileSync } from "node:fs";
 import { decodeBase58 } from "../../src/core/base58.ts";
 import { listTool } from "../../src/tools.ts";
