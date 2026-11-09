@@ -8,8 +8,8 @@ import { beforeAll, describe, expect, it } from "vitest";
 const root = resolve(import.meta.dirname, "../..");
 const bin = resolve(root, "dist/cli.mjs");
 const hook = resolve(root, "test/record-loads.ts");
-const server = pathToFileURL(resolve(root, "dist/mcp.mjs")).href;
-const sourceServer = pathToFileURL(resolve(root, "src/mcp.ts")).href;
+const server = pathToFileURL(resolve(root, "dist/mcp-stdio.mjs")).href;
+const sourceServer = pathToFileURL(resolve(root, "src/mcp-stdio.ts")).href;
 const initialize = `${JSON.stringify({
   jsonrpc: "2.0",
   id: 1,
@@ -25,11 +25,12 @@ const initialize = `${JSON.stringify({
 interface BinRun {
   readonly loaded: readonly string[];
   readonly status: number | null;
+  readonly stderr: string;
   readonly stdout: string;
 }
 
 /**
- * Runs plain Node under the load hook. citty exits the process itself, so the hook reports then.
+ * Runs plain Node under the load hook, which reports when the process exits.
  *
  * @param {readonly string[]} args - Node arguments after the hook import.
  * @param {string} input - What the child reads on stdin, empty by default.
@@ -57,7 +58,8 @@ function runNode(
   if (!Array.isArray(loaded)) {
     throw new TypeError(`the load hook reported something other than a list: ${report}`);
   }
-  return { loaded: loaded.map(String), status: result.status, stdout: result.stdout };
+  const stderr = result.stderr.replace(/\n@loaded \[.*\]\n$/u, "");
+  return { loaded: loaded.map(String), status: result.status, stderr, stdout: result.stdout };
 }
 
 /**
@@ -115,29 +117,53 @@ describe("chains usage paths", () => {
   });
 
   it.each([
-    { args: ["--help"], status: 0 },
-    { args: ["-h"], status: 0 },
-    { args: ["mcp", "--help"], status: 0 },
-    { args: [], status: 1 },
-    { args: ["no-such-command"], status: 1 },
-  ])("chains $args prints the usage without the MCP server", ({ args, status }) => {
-    const run = runBin(args);
-    const packages = packagesOf(run.loaded);
+    {
+      args: ["--help"],
+      status: 0,
+      stream: "stdout",
+      usage: /^USAGE chains <command>.*\n(?:.*\n)*\s+mcp\s/mu,
+    },
+    {
+      args: ["-h"],
+      status: 0,
+      stream: "stdout",
+      usage: /^USAGE chains <command>.*\n(?:.*\n)*\s+mcp\s/mu,
+    },
+    { args: ["mcp", "--help"], status: 0, stream: "stdout", usage: /^USAGE chains mcp$/mu },
+    {
+      args: [],
+      status: 1,
+      stream: "stderr",
+      usage: /^USAGE chains <command>.*\n(?:.*\n)*\s+mcp\s/mu,
+    },
+    {
+      args: ["no-such-command"],
+      status: 1,
+      stream: "stderr",
+      usage: /^Run chains --help for the commands$/mu,
+    },
+  ] as const)(
+    "chains $args prints the usage without the MCP server",
+    ({ args, status, stream, usage }) => {
+      const run = runBin(args);
+      const packages = packagesOf(run.loaded);
 
-    expect(run.status).toBe(status);
-    expect(run.stdout).toMatch(/USAGE.*chains .*mcp/u);
-    expect(packages).toContain("citty");
-    expect(packages).not.toContain("@modelcontextprotocol/sdk");
-    expect(packages).not.toContain("zod");
-    expect(run.loaded).not.toContain(server);
-  });
+      expect(run.status).toBe(status);
+      expect(run[stream]).toMatch(usage);
+      expect(packages).toContain("@agntn/tools");
+      expect(packages).not.toContain("@modelcontextprotocol/server");
+      expect(packages).not.toContain("@modelcontextprotocol/sdk");
+      expect(packages).not.toContain("zod");
+      expect(run.loaded).not.toContain(server);
+    },
+  );
 
   it("chains mcp serves the live source inside a checkout", () => {
     const run = runBin(["mcp"], initialize);
 
     expect(run.status).toBe(0);
     expect(firstResponse(run)).toMatchObject({ id: 1, result: { serverInfo: { name: "chains" } } });
-    expect(packagesOf(run.loaded)).toContain("@modelcontextprotocol/sdk");
+    expect(packagesOf(run.loaded)).toContain("@modelcontextprotocol/server");
     expect(run.loaded).toContain(sourceServer);
     expect(run.loaded).not.toContain(server);
   });
@@ -164,7 +190,7 @@ describe("chains usage paths", () => {
       const copiedSource = pathToFileURL(join(copy, "src/")).href;
 
       expect(run.status).toBe(0);
-      expect(run.loaded).toContain(pathToFileURL(join(copy, "dist/mcp.mjs")).href);
+      expect(run.loaded).toContain(pathToFileURL(join(copy, "dist/mcp-stdio.mjs")).href);
       expect(run.loaded.filter((url) => url.startsWith(copiedSource))).toEqual([]);
     } finally {
       rmSync(copy, { recursive: true, force: true });
@@ -184,7 +210,7 @@ describe("chains usage paths", () => {
         id: 1,
         result: { serverInfo: { name: "chains" } },
       });
-      expect(run.loaded).toContain(pathToFileURL(join(copy, "dist/mcp.mjs")).href);
+      expect(run.loaded).toContain(pathToFileURL(join(copy, "dist/mcp-stdio.mjs")).href);
     } finally {
       rmSync(copy, { recursive: true, force: true });
     }

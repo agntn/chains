@@ -1,77 +1,59 @@
 #!/usr/bin/env node
 
+/** Chains CLI: a command per tool, plus `resolve`, `validate` and `mcp`. */
 import { existsSync } from "node:fs";
 import { sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { defineCommand, runMain } from "citty";
-import type McpCommand from "./commands/mcp.ts";
-import { version } from "./version.ts";
+import { runCli } from "@agntn/tools/cli";
+import { cliOptions } from "./cli-commands.ts";
+import type { serveStdio } from "./mcp-stdio.ts";
 
-/** The same file from `src/cli.ts` and `dist/cli.mjs`; the npm package does not ship it. */
-const sourceMcpCommand = new URL("../src/commands/mcp.ts", import.meta.url);
-const sourceMcpCommandPath = fileURLToPath(sourceMcpCommand);
+/** The same file from `src/cli.ts` and `dist/cli.mjs`; the npm package ships only `dist`. */
+const sourceStdio = new URL("../src/mcp-stdio.ts", import.meta.url);
+const sourceStdioPath = fileURLToPath(sourceStdio);
 
 /**
  * Narrows the module a runtime URL import returned, which TypeScript types as `any`.
  *
- * @param {unknown} value - The imported module namespace.
- * @returns {value is { default: typeof McpCommand }} Whether it exports a default command.
+ * @param value - The imported module namespace.
+ * @returns {value is { serveStdio: typeof serveStdio }} Whether it exports the server.
  */
-function isCommandModule(value: unknown): value is { default: typeof McpCommand } {
-  return typeof value === "object" && value !== null && "default" in value;
+function isStdioModule(value: unknown): value is { serveStdio: typeof serveStdio } {
+  return typeof value === "object" && value !== null && "serveStdio" in value;
 }
 
 /**
- * Loads the MCP command. A built bin inside a checkout runs the live source, so a local server
- * needs a restart after a change instead of `pnpm build`. Node never strips types under
- * `node_modules`, so an installed copy keeps the bundle, and `CHAINS_DIST=1` keeps it everywhere,
- * for tests of the built output. The URL is built at runtime so the bundler leaves `src` out.
+ * A checkout serves the live source, so a change costs a restart, not `pnpm build`.
+ * `node_modules` and `CHAINS_DIST=1` keep the bundle; the runtime URL keeps `src` out of it.
  *
- * @returns {Promise<typeof McpCommand>} The citty command that starts the stdio server.
+ * @returns {Promise<typeof serveStdio>} What starts the stdio server.
  */
-async function loadMcpCommand(): Promise<typeof McpCommand> {
+async function loadServer(): Promise<typeof serveStdio> {
   const fromSource =
     !import.meta.url.endsWith(".ts") &&
     process.env.CHAINS_DIST !== "1" &&
-    !sourceMcpCommandPath.includes(`${sep}node_modules${sep}`) &&
-    existsSync(sourceMcpCommandPath);
-  if (!fromSource) return (await import("./commands/mcp.ts")).default;
-  const module: unknown = await import(sourceMcpCommand.href);
-  if (!isCommandModule(module)) {
-    throw new TypeError(`${sourceMcpCommandPath} has no default command`);
-  }
-  return module.default;
+    !sourceStdioPath.includes(`${sep}node_modules${sep}`) &&
+    existsSync(sourceStdioPath);
+  if (!fromSource) return (await import("./mcp-stdio.ts")).serveStdio;
+  const module: unknown = await import(sourceStdio.href);
+  if (!isStdioModule(module)) throw new TypeError(`${sourceStdioPath} has no serveStdio`);
+  return module.serveStdio;
 }
 
 /**
- * Ends the process once the reader of stdout or stderr is gone, as after `| head -1` or a pager
- * that quits early. Node ignores SIGPIPE, so without a listener the next write throws `EPIPE` with
- * a stack trace. The exit code stays whatever the command set.
+ * `mcp` alone or with option terminators starts the server; `mcp --help` stays with `runCli`.
  *
- * @param {Readonly<NodeJS.ErrnoException>} error - The error the stream emitted.
+ * @param args - Every argument after the bin.
+ * @returns {boolean} Whether the line starts the stdio server.
  */
-function exitOnClosedPipe(error: Readonly<NodeJS.ErrnoException>): void {
-  if (error.code !== "EPIPE") throw error;
-  process.exit();
+function servesStdio(args: readonly string[]): boolean {
+  const [command, ...rest] = args;
+  return command === "mcp" && rest.every((word) => word === "--");
 }
 
-process.stdout.on("error", exitOnClosedPipe);
-process.stderr.on("error", exitOnClosedPipe);
-
-const main = defineCommand({
-  meta: {
-    name: "chains",
-    version,
-    description: "Canonical blockchain metadata, aliases, and address validation",
-  },
-  subCommands: {
-    info: () => import("./commands/info.ts").then((m) => m.default),
-    resolve: () => import("./commands/resolve.ts").then((m) => m.default),
-    validate: () => import("./commands/validate.ts").then((m) => m.default),
-    identify: () => import("./commands/identify.ts").then((m) => m.default),
-    list: () => import("./commands/list.ts").then((m) => m.default),
-    mcp: loadMcpCommand,
-  },
-});
-
-await runMain(main);
+const argv = process.argv.slice(2);
+if (servesStdio(argv)) {
+  (await loadServer())();
+} else {
+  await runCli(cliOptions, argv);
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { decodeBase58 } from "../../src/core/base58.ts";
+import { listTool } from "../../src/tools.ts";
 import {
   AddressValidationUnsupportedError,
   Arbitrum,
@@ -550,34 +551,24 @@ describe("txid validation", () => {
 });
 
 describe("agent extensions", () => {
-  it("shares tool definitions with the Pi extension", () => {
-    const pi = readFileSync(new URL("../../extensions/pi/chains.ts", import.meta.url), "utf8");
-    const omp = readFileSync(new URL("../../extensions/omp/chains.ts", import.meta.url), "utf8");
-    expect(omp.slice(omp.indexOf("export default"))).toBe(pi.slice(pi.indexOf("export default")));
+  it("loads both extensions from the one tool list instead of declaring schemas", () => {
+    for (const host of ["pi", "omp"]) {
+      const source = readFileSync(
+        new URL(`../../extensions/${host}/chains.ts`, import.meta.url),
+        "utf8",
+      );
+      expect(source).toContain("src/tools.ts");
+      expect(source).toContain("dist/tools.mjs");
+      expect(source).not.toMatch(/\bType\.|registerTool\(/u);
+    }
   });
-
-  /**
-   * The family names a static sentence carries, pulled out of the given source text.
-   *
-   * @param {string} source - Source file to read the sentence from.
-   * @param {Readonly<RegExp>} sentence - Pattern whose first group holds the comma-separated names.
-   * @returns {string[]} The named families, sorted.
-   */
-  function familiesNamedIn(source: string, sentence: Readonly<RegExp>): string[] {
-    const names = source.match(sentence)?.[1] ?? "";
-    return names.split(/,\s*|\s+and\s+/).sort();
-  }
 
   it("names every registered family where the family filter is described", () => {
     const families = [...new Set(chains().map((key) => create(key).type))].sort();
-    const read = (path: string): string => readFileSync(new URL(path, import.meta.url), "utf8");
+    const sentence = (listTool.guidelines ?? []).find((line) => line.startsWith("Families are "));
+    const named = /^Families are ([^.]+)\.$/u.exec(sentence ?? "")?.[1] ?? "";
 
-    expect(
-      familiesNamedIn(read("../../extensions/pi/chains.ts"), /"Families are ([^".]+)\."/),
-    ).toEqual(families);
-    expect(familiesNamedIn(read("../../src/commands/list.ts"), /this family \(([^)]+)\)/)).toEqual(
-      families,
-    );
+    expect(named.split(/,\s*|\s+and\s+/u).sort()).toEqual(families);
   });
 });
 

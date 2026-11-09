@@ -1,5 +1,4 @@
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
 import { afterEach, describe, expect, it } from "vitest";
 import { createMcpServer } from "../../src/mcp.ts";
 
@@ -35,7 +34,25 @@ describe("chains MCP server", () => {
       type: "object",
       required: ["chain"],
     });
-    expect(response.tools[1]?.annotations).toMatchObject({ readOnlyHint: true });
+    for (const tool of response.tools) {
+      expect(tool.annotations).toEqual({
+        title: tool.title,
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      });
+      expect(tool.outputSchema).toBeUndefined();
+    }
+  });
+
+  /** A client that sees structured output prefers it and would hide the readable answer. */
+  it("answers in content alone, without structuredContent", async () => {
+    const client = await connectTestClient();
+
+    const response = await client.callTool({ name: "chains_list", arguments: {} });
+
+    expect(response.structuredContent).toBeUndefined();
   });
 
   it("resolves an alias to canonical metadata", async () => {
@@ -315,6 +332,7 @@ describe("chains MCP server", () => {
     expect(response.content).toEqual([{ type: "text", text: 'Unknown chains tool: "toString"' }]);
   });
 
+  /** The C1 CSI and the `R` after it read as one terminal sequence, so both go. */
   it("keeps control characters from forging lines in unknown-tool errors", async () => {
     const client = await connectTestClient();
     const escape = String.fromCodePoint(27);
@@ -326,7 +344,9 @@ describe("chains MCP server", () => {
     expect(response.isError).toBe(true);
     const [part] = response.content as Array<{ text: string }>;
     expect(part?.text).not.toMatch(/\p{Cc}/u);
-    expect(part?.text).toContain("\\nKnown chain keys: attacker\\u001b[31m RED");
+    expect(part?.text).toBe(
+      'Unknown chains tool: "fake\\nKnown chain keys: attacker\\u001b[31mED"',
+    );
   });
 
   it("reports a valid address as a successful answer", async () => {

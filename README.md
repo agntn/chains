@@ -24,7 +24,7 @@ Docs, one page per chain and a playground are at [chains.agntn.dev](https://chai
 - 🧾 **Metadata checked, not remembered.** Every `decimals` value was looked up at the source. XEC really has two.
 - 🫙 **Missing stays missing.** Octra has no coin type and no CAIP-2, so you get `undefined`. Nothing made up.
 - 🪶 **The core depends on family and nothing else.** Base58 and Bech32 come from `@agntn/encodings`, Keccak and BLAKE from `@agntn/hashes`, which encodings brought along anyway. Nothing registers itself on import, so your bundler drops the chains you don't use.
-- 🤖 **CLI, library and agent tools give the same answer.** Six commands, five tools, one set of executors.
+- 🤖 **CLI, library and agent tools give the same answer.** Seven commands, five tools, and each tool written down once.
 - 🧯 **Errors you catch by type.** `InvalidAddressError` carries `.chain` and `.address`. No message parsing.
 
 ## 📦 Install
@@ -43,14 +43,14 @@ npx @agntn/chains info matic
 
 ```
 Polygon PoS (polygon)
-  symbol      POL
-  decimals    18
-  type        evm
-  bip44       60
-  chainId     0x89
-  caip2       eip155:137
-  explorer    https://polygonscan.com
-  rpc         https://polygon-bor-rpc.publicnode.com
+symbol: POL
+decimals: 18
+type: evm
+chainId: 0x89
+caip2: eip155:137
+bip44: 60
+explorer: https://polygonscan.com
+rpc: https://polygon-bor-rpc.publicnode.com
 ```
 
 No key, no config, no network. All of that sits in the `Polygon` class. `matic` is an alias, `POL` is the token's name these days, `polygon` is the canonical key. From here on I'll write plain `chains`. That's `pnpm exec chains` in a project, or `pnpm add -g @agntn/chains` once.
@@ -62,20 +62,9 @@ chains identify 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984
 ```
 
 ```
-ethereum    evm     Ethereum
-base        evm     Base
-arbitrum    evm     Arbitrum One
-optimism    evm     Optimism
-polygon     evm     Polygon PoS
-bsc         evm     BNB Chain
-avalanche   evm     Avalanche C-Chain
-fantom      evm     Fantom Opera
-gnosis      evm     Gnosis Chain
-linea       evm     Linea
-zksync      evm     zkSync Era
-scroll      evm     Scroll
-berachain   evm     Berachain
-arc         evm     Arc
+"0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984" matches 14 of 36 checked chains.
+evm (14): ethereum, base, arbitrum, optimism, polygon, bsc, avalanche, fantom, gnosis, linea, zksync, scroll, berachain, arc
+A format match narrows the family; it does not prove the address is used on any of these chains.
 ```
 
 Fourteen. Not helpful? It's the honest answer. Every EVM chain uses the same 20 bytes, so no decoder can tell them apart. Give it a format that belongs to one chain and the list gets short:
@@ -85,7 +74,9 @@ chains identify bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a
 ```
 
 ```
-bitcoin     utxo    Bitcoin
+"bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a" matches 1 of 36 checked chains.
+utxo (1): bitcoin
+A format match narrows the family; it does not prove the address is used on any of these chains.
 ```
 
 One. Now a typo. This is the Bitcoin wiki's example address with the last character changed from `2` to `3`:
@@ -95,37 +86,36 @@ chains validate btc 1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN3
 ```
 
 ```
-
- ERROR  Invalid bitcoin address: "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN3"
-
+Invalid Bitcoin (bitcoin) address: "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN3" - the Base58Check checksum does not hold, so a character is wrong
 ```
 
-Right length, right alphabet, right first character. The checksum still says no. Exit code is 1, so scripts can trust it.
+Right length, right alphabet, right first character. The checksum still says no, and says so out loud. Exit code is 1, so scripts can trust it.
 
 A few more:
 
 ```bash
 chains resolve "BNB Chain"
 chains resolve xrp
-chains list --type utxo
+chains list utxo
 chains info oct --json
 chains identify 11111111111111111111111111111111
 chains validate eth 0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060 --txid
-chains list --json | jq -r '.[] | select(.type == "move") | .key'
+chains list --json | jq -r '.chains[] | select(.type == "move") | .key'
 ```
 
 ### Commands
 
 | Command    | What it does                                                       | Example                       |
 | ---------- | ------------------------------------------------------------------ | ----------------------------- |
-| `info`     | Metadata for one chain, Ethereum if you name none                  | `chains info matic`           |
+| `info`     | Metadata for one chain, also answers to `lookup`                   | `chains info matic`           |
 | `resolve`  | Key, ticker, alias or display name in, key out                     | `chains resolve "BNB Chain"`  |
 | `validate` | One address, or with `--txid` one txid, against one chain's format | `chains validate btc bc1q...` |
+| `txid`     | One txid against one chain's format                                | `chains txid eth 0x5c50...`   |
 | `identify` | Every registered chain that accepts an address                     | `chains identify 0x1f98...`   |
-| `list`     | The registry, `--type` for one family                              | `chains list --type utxo`     |
+| `list`     | The registry, or one family when you name it                       | `chains list utxo`            |
 | `mcp`      | The MCP server on stdio                                            | `chains mcp`                  |
 
-`--json` on `info`, `identify` and `list`. `info`, `resolve` and `validate` exit 1 when they fail. `identify` doesn't, a miss is an answer too. More in the [CLI guide](https://chains.agntn.dev/guide/cli).
+Every command but `resolve` prints the exact text the agent tool hands a model, and `--json` swaps it for the structured answer. `info`, `resolve`, `validate`, `txid` and `list` exit 1 when they fail, a rejected address included. `identify` doesn't, a miss is an answer too. More in the [CLI guide](https://chains.agntn.dev/guide/cli).
 
 ## 🧠 Library
 
@@ -139,8 +129,8 @@ polygon.caip2; // "eip155:137"
 
 getChain("btc").assertAddress("bc1qjvm9jkrjw9uvsn8905dwa6eau0guyc9laau03a"); // returns it
 getChain("eth").assertTxid("0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060"); // the first mainnet transaction, returned too
-getChain("btc").decodeAddress("1GSMG1JC9wtdSwfwApgj2xcmJPAwx7prBe");
-// { kind: "p2pkh", payload: "a9553269572a317e39f0f518cb87c1a0ee1dbae4", hash: "hash160" }
+getChain("btc").decodeAddress("1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2");
+// { kind: "p2pkh", payload: "77bff20c60e522dfaa3350c39b030a5d004e839a", hash: "hash160" }
 
 try {
   getChain("btc").assertAddress("1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN3");
