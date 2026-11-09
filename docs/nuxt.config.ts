@@ -1,11 +1,10 @@
 import { fileURLToPath } from "node:url";
 import { chainsTheme } from "./shiki-theme";
 
-/** Bundled from the checkout's sources: a deploy needs neither dist/ nor the root node_modules. */
-const repoRoot = fileURLToPath(new URL("../", import.meta.url));
+/** Bundled from the checkout's sources. No dist/ needed, and bare imports resolve from the root. */
 const librarySource = fileURLToPath(new URL("../src/index.ts", import.meta.url));
 
-/** Runtime deps under src/index.ts, installed here so they resolve from docs/node_modules. */
+/** Runtime deps under src/index.ts. The root package declares them, the site borrows its copy. */
 const libraryDependencies = ["@agntn/encodings", "@agntn/hashes"];
 
 /** Every subpath src/ imports, so dev bundles them up front, not on demand. */
@@ -22,24 +21,16 @@ const libraryEntries = [
 
 export default defineNuxtConfig({
   extends: ["docus"],
-  /** The repo root is its own pnpm workspace; Nuxt must not treat it as this site's. */
-  workspaceDir: fileURLToPath(new URL("./", import.meta.url)),
   alias: {
     "@agntn/chains": librarySource,
   },
   vite: {
     resolve: {
-      /** Bare imports in ../src resolve upwards from the importer and skip docs/node_modules. */
+      /** One copy each, whether ../src or a page asks for it. */
       dedupe: libraryDependencies,
     },
     optimizeDeps: {
       include: libraryEntries,
-    },
-    /** Dev serves workspaceDir only, and the library with its package.json sits one level up. */
-    server: {
-      fs: {
-        allow: [repoRoot],
-      },
     },
   },
   devtools: { enabled: false },

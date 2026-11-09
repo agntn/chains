@@ -32,7 +32,8 @@ Scope: canonical blockchain classes, aliases, address validation and txid valida
 - `test/unit/mcp.test.ts` drives the MCP server over an in-memory transport
 - `test/unit/ai.test.ts` drives `chainsAiTools` through `generateText` with a mock model and holds its text to the MCP answer
 - `test/unit/cli-loads.test.ts` runs the built bin's usage paths under `test/record-loads.ts`: `--help`, `-h`, `mcp --help`, no arguments and an unknown command must not load the MCP SDK, and `mcp` must load it. It also checks which server `mcp` serves, the source inside a checkout and the bundle everywhere else, that every module in `src/` imports under plain Node, and that `src/ai.ts` loads `src/tools.ts` and no other source module
-- `docs/` is the Docus site behind chains.agntn.dev, with its own `AGENTS.md`. It aliases `@agntn/chains` to `src/index.ts` and bundles the sources itself, so it needs neither `dist/` nor the root `node_modules`
+- `test/unit/docs-dependencies.test.ts` reads the bare imports of the site's own files and fails on a package `docs/package.json` doesn't declare, because the workspace hoists nothing
+- `docs/` is the Docus site behind chains.agntn.dev, with its own `AGENTS.md`. It aliases `@agntn/chains` to `src/index.ts` and bundles the sources itself, so it needs no `dist/`. It's a member of the root workspace: one install, one lockfile, versions in the catalogs of `pnpm-workspace.yaml`
 
 ## Shape
 

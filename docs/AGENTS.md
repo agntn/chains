@@ -28,7 +28,7 @@ docs/
 ## Commands
 
 ```bash
-pnpm install          # from docs/; the repo root needs neither an install nor a build
+pnpm install          # anywhere in the repo: one workspace, one lockfile at the root
 pnpm dev              # http://localhost:3000
 pnpm build            # Cloudflare Workers output in .output/, content routes prerendered
 pnpm deploy           # build, then wrangler deploy to chains.agntn.dev
@@ -37,12 +37,12 @@ pnpm generate         # static output; nothing on this site needs the worker at 
 
 Deployment: Nitro preset `cloudflare_module`. Nuxt Content wants a D1 binding named `DB`. `wrangler.jsonc` carries it plus the `NUXT_SITE_URL` var, and Nitro merges that into the generated `.output/server/wrangler.json`. Create the database once with `wrangler d1 create agntn-chains` and put the id in `wrangler.jsonc`. Until then the id is all zeros on purpose, `pnpm deploy` with zeros binds nothing, so don't run it before the id is real. No KV binding. Nothing is fetched, so nothing is cached.
 
-`@agntn/chains` is an alias in `nuxt.config.ts` for `../src/index.ts`. Vite and Nitro bundle the checkout's sources into the page and the worker, so `dist/` and the root `node_modules` are never touched. That is what Workers Builds needs: it installs `docs/` alone, and the earlier `file:..` dependency copied the parent at install time, before anything had built `dist/`, so the deploy failed to resolve the import. The subgraph under `src/index.ts` imports two packages from npm, `@agntn/encodings` and `@agntn/hashes`. A bare import there resolves upwards from `../src`, into a root `node_modules` the deploy never installs, so it needs an entry in `docs/package.json`, in `libraryDependencies` (deduped into `docs/node_modules`) and its subpaths in `libraryEntries`, plus a check of both the browser bundle and the worker before anyone relies on it. The CLI, MCP and tool entries stay out of the alias.
+`@agntn/chains` is an alias in `nuxt.config.ts` for `../src/index.ts`. Vite and Nitro bundle the checkout's sources into the page and the worker, so `dist/` is never touched. `docs/` is a member of the root workspace. Workers Builds runs its install in `docs/`, pnpm walks up to the root lockfile and fills both `node_modules`. The subgraph under `src/index.ts` imports two packages from npm, `@agntn/encodings` and `@agntn/hashes`. The root package declares them and a bare import in `../src` resolves there, so `docs/package.json` doesn't repeat them. A new one still goes into `libraryDependencies` and its subpaths into `libraryEntries`, plus a check of both the browser bundle and the worker before anyone relies on it. The CLI, MCP and tool entries stay out of the alias.
 
-Two resolution traps, both because the repo root is its own pnpm workspace:
+Two things follow from the shared workspace:
 
-- `pnpm-workspace.yaml` sets `shamefullyHoist: true`. Without it `docs/node_modules` holds only direct dependencies, Node walks up to the root `node_modules`, and the server bundle can end up with a second copy of Vue.
-- `nuxt.config.ts` pins `workspaceDir` to `docs/` and disables devtools and telemetry, which would otherwise resolve from the root.
+- Nothing is hoisted, so every package the site's own files import sits in `docs/package.json`, and `test/unit/docs-dependencies.test.ts` at the root fails on the one you forgot. Versions live in the catalogs of the root `pnpm-workspace.yaml`.
+- Peers resolve from the workspace root, and the root's TypeScript 7 has no JS API. Docus parses through `@typescript-eslint`, which needs one, so the site takes its own TypeScript from the `nuxt` catalog.
 
 ## Live values
 

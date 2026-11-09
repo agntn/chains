@@ -212,15 +212,17 @@ Missing one? Extend `Chain`, add a `key`, a `type`, the metadata and an `assertA
 ## 🛠️ Development
 
 ```bash
-pnpm install
+pnpm install     # installs the library and docs/
 pnpm dev         # obuild --stub
 pnpm fmt         # builds, then oxlint --fix and oxfmt
 pnpm lint        # builds, then oxlint
 pnpm typecheck   # tsc, then a build and the extensions against dist/
 pnpm test        # vitest
 pnpm build       # obuild
-pnpm docs        # the Docus site, bundled from src/
+pnpm run docs    # the Docus site, bundled from src/
 ```
+
+pnpm 12 keeps `pnpm docs` for itself and asks which package you meant.
 
 ## 💛 Thanks
 
