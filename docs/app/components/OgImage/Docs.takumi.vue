@@ -17,7 +17,7 @@ const { name: siteName } = useSiteConfig();
 
 const TOOLS = ["chains_lookup", "chains_address_validate", "chains_address_identify", "chains_list"];
 
-/** A chain page shows the chain's facts. The description would arrive with its commas stripped. */
+/** A chain page shows the chain's facts from the library, which say more than its description. */
 const entry = CHAINS.find((row) => row.chain.name === title);
 
 const subtitle = entry

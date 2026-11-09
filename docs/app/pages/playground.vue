@@ -7,7 +7,7 @@ definePageMeta({ layout: "default" });
 const title = "Playground";
 const description =
   "Resolve a chain by any spelling, check an address against its format, or run one address through every validator. In the browser, same library the CLI and the agent tools run.";
-/** The OG pipeline drops commas from its props, so the card gets a version written without them. */
+/** The card cuts a description at 160 characters, and the page's runs to 175. */
 const cardDescription =
   "Resolve a chain by any spelling. Check an address against its format. Run one address through every validator. In the browser with the library itself.";
 
@@ -17,6 +17,12 @@ useSeo({
   type: "article",
   breadcrumbs: [{ title: "Playground", path: "/playground" }],
 });
+
+/** `useSeo` points agents at `/playground.md`, a twin this page doesn't have, so the link goes. */
+const dropMarkdownTwin = injectHead().hooks?.hook("tags:resolve", (ctx) => {
+  ctx.tags = ctx.tags.filter((tag) => !(tag.tag === "link" && tag.props.type === "text/markdown"));
+});
+onScopeDispose(() => dropMarkdownTwin?.());
 
 defineOgImage(
   "Docs",

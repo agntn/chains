@@ -47,6 +47,14 @@ export default defineNuxtConfig({
     url: "https://chains.agntn.dev",
     name: "@agntn/chains",
   },
+  /** The playground has no markdown twin, so agents get the page itself, not a `/raw` 404. */
+  agentDiscovery: {
+    excludePrefixes: { extend: ["/playground"] },
+  },
+  /** Docus lists `content/` only and leaves app routes out, so the Vue pages come from here. */
+  sitemap: {
+    sources: ["/api/__sitemap__/pages"],
+  },
   llms: {
     domain: "https://chains.agntn.dev",
     title: "@agntn/chains",
@@ -63,6 +71,17 @@ export default defineNuxtConfig({
             description: "The library running in the page: lookup, validate, identify and list.",
           },
         ],
+      },
+      /** Spelled out, or agent discovery sees the link above and leaves every content page out. */
+      {
+        title: "Guide",
+        contentCollection: "docs",
+        contentFilters: [{ field: "path", operator: "LIKE", value: "/guide%" }],
+      },
+      {
+        title: "Chains",
+        contentCollection: "docs",
+        contentFilters: [{ field: "path", operator: "LIKE", value: "/chains%" }],
       },
     ],
   },
@@ -176,14 +195,17 @@ export default defineNuxtConfig({
   nitro: {
     preset: "cloudflare_module",
     compatibilityDate: "2026-09-03",
-    prerender: {
-      crawlLinks: true,
-      routes: ["/", "/playground", "/sitemap.xml", "/robots.txt", "/llms.txt", "/llms-full.txt"],
-    },
+    /** Nitro targets ES2019 unless told otherwise, and the library writes BigInt literals. */
+    esbuild: { options: { target: "es2024" } },
     cloudflare: {
       deployConfig: true,
       nodeCompat: true,
     },
+  },
+  /** Nuxt's own prerender option. The same keys under `nitro.prerender` are deprecated. */
+  prerender: {
+    crawlLinks: true,
+    routes: ["/", "/playground", "/sitemap.xml", "/robots.txt", "/llms.txt", "/llms-full.txt"],
   },
   compatibilityDate: "2026-09-03",
   /** Fonts live in public/fonts and app/assets/fonts.css, where nuxt-og-image reads them from. */

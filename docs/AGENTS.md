@@ -18,7 +18,7 @@ docs/
 ├── app/composables/               # useLandingChain (one clock for every live instrument), useSubNavigation, useCopied, useRosterFlip
 ├── app/utils/                     # chains table (icons, aliases, samples over the library), tools.ts (the tool text, ported), tokens.ts and tool-response.ts (snippet and response colouring), roster.ts, formatting
 ├── app/pages/playground.vue       # playground, own route outside the docs layout, its own useSeo and OG image
-├── server/routes/sitemap.xml.ts   # Docus sitemap plus the Vue pages it cannot see
+├── server/api/__sitemap__/pages.ts # the Vue pages the Docus sitemap cannot see, for `sitemap.sources`
 ├── public/                        # fonts, favicon.svg and the icons and manifest cut from it, image.png (the landing OG card, for Pi)
 ├── content/index.md               # landing
 ├── content/1.guide/               # getting started, registry, validation, identify, metadata, cli, agents, custom, playground
@@ -57,14 +57,14 @@ Two resolution traps, both because the repo root is its own pnpm workspace:
 ## SEO
 
 - `seo.schema` in `app/app.config.ts` emits the landing JSON-LD: `WebSite`, the agntn `Organization` as publisher, and a free `SoftwareApplication` with `sameAs` on GitHub and npm. Docs pages get `Article` plus `BreadcrumbList` from Docus on their own.
-- The Docus sitemap reads content collections only. `server/routes/sitemap.xml.ts` wraps it and appends the Vue pages listed in `PAGES`; a new page under `app/pages/` goes there too, and into `llms.sections` in `nuxt.config.ts`, or it's invisible to crawlers and to `llms.txt`.
+- The Docus sitemap reads content collections only. `server/api/__sitemap__/pages.ts` hands the Vue pages in `PAGES` to `@nuxtjs/sitemap` through `sitemap.sources`. A new page under `app/pages/` goes there too, and into `llms.sections` and `agentDiscovery.excludePrefixes` in `nuxt.config.ts`, or crawlers don't see it and agents get a `/raw` link that 404s.
 - Docus links `/favicon.ico` without shipping one. `public/favicon.svg` is the source, the PNGs come from `rsvg-convert` and the `.ico` from ImageMagick, `app.head` in `nuxt.config.ts` links them with the manifest and theme colours.
 
 ## OG images
 
 - `app/components/OgImage/Docs.takumi.vue` and `Landing.takumi.vue` override the Docus templates of the same name and are rendered by Takumi at build time. Takumi has no CSS variables, so the theme colours from `app.css` are repeated there as literals. Annoying, but that's what it is.
 - nuxt-og-image doesn't see the faces `@nuxt/fonts` generates on this Nuxt version, but it does parse `@font-face` rules from the files in `css`. That's why `app/assets/fonts.css` declares the four Figtree and Fira Code TTFs in `public/fonts` and `fonts.families` uses the `local` provider. Site and OG images share the same files.
-- The landing OG file is named from the SEO description. Nitro refuses to write a prerender path containing `..`, so a description ending in a period is silently skipped and the landing ships with a dead `og:image`. Keep the description in `content/index.md` without a trailing period.
+- Since Docus 5.15 the OG files are named by a hash, so a description never reaches a file name and may end in a period.
 
 ## Constraints
 
