@@ -21,5 +21,24 @@
       "enabled": true,
       "invocation_logs": true
     }
+  },
+  // Nuxt Content reimports its dump into whatever D1 it finds, so a preview never gets production's.
+  "previews": {
+    "vars": {
+      "NUXT_SITE_URL": "https://chains.agntn.dev"
+    },
+    "d1_databases": [
+      {
+        "binding": "DB",
+        "database_name": "agntn-chains-preview",
+        "database_id": "523e9b27-ef1b-42dc-9bc8-6fa4732cedbd"
+      }
+    ],
+    "observability": {
+      "logs": {
+        "enabled": true,
+        "invocation_logs": true
+      }
+    }
   }
 }
