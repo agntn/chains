@@ -7,7 +7,7 @@ import { defineConfig } from "vite-plus";
 export default defineConfig({
   fmt: {
     ...oxfmt,
-    ignorePatterns: ["dist", "coverage", "docs", "CHANGELOG.md"],
+    ignorePatterns: ["dist", "coverage", "docs"],
   },
   lint: {
     ...oxlint,
