@@ -139,7 +139,8 @@ try {
   (error as InvalidAddressError).chain; // "bitcoin"
 }
 
-identify("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984").matches.length; // 13
+const { matches } = identify("0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984");
+matches.every((chain) => chain.type === "evm"); // true, and that's as far as a 0x address narrows
 create("bitcoin").decimals; // 8
 metadata("decred").symbol; // "DCR", read from a table, no Decred class behind it
 ```

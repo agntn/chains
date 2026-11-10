@@ -1,10 +1,9 @@
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { resolve as resolvePath } from "node:path";
-import { createCli } from "@agntn/tools/cli";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { cliOptions } from "../../src/cli-commands.ts";
 import { Chain, register, type ChainKey } from "../../src/index.ts";
+import { run } from "../run-cli.ts";
 
 /** No built-in chain lacks a txid check any more, so the CLI message needs a registered stand-in. */
 class Unvalidated extends Chain {
@@ -20,33 +19,6 @@ register(Unvalidated);
 const ESCAPE = String.fromCodePoint(27);
 const CSI = String.fromCodePoint(155);
 const CONTROL = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
-
-/** What one command line wrote and how it exited. */
-interface Run {
-  readonly code: typeof process.exitCode;
-  readonly stderr: string;
-  readonly stdout: string;
-}
-
-/**
- * Runs one command line through the CLI the bin builds and collects both streams.
- *
- * @param args - Words after `chains`.
- * @returns {Promise<Run>} The exit code and what reached stdout and stderr, trailing newline cut.
- */
-async function run(...args: readonly string[]): Promise<Run> {
-  const written = { stdout: "", stderr: "" };
-  for (const stream of ["stdout", "stderr"] as const) {
-    vi.spyOn(process[stream], "write").mockImplementation((chunk: unknown) => {
-      written[stream] += String(chunk);
-      return true;
-    });
-  }
-  await createCli(cliOptions).run(args);
-  const code = process.exitCode;
-  vi.restoreAllMocks();
-  return { code, stdout: written.stdout.trimEnd(), stderr: written.stderr.trimEnd() };
-}
 
 afterEach(() => {
   vi.restoreAllMocks();
