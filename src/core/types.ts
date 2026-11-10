@@ -1,3 +1,4 @@
+/** The chain by name, never by ticker: `ethereum`, not `eth`. Tickers live in the alias table. */
 export type ChainKey =
   | "ethereum"
   | "base"
@@ -72,9 +73,9 @@ export interface ChainInfo {
   readonly chainId?: string;
   readonly type: ChainType;
   readonly caip2?: string;
-  /** Mainnet P2P message start, four bytes as lowercase hex in wire order. */
+  /** Mainnet P2P start, four bytes as lowercase hex in wire order: `netMagic`, not `diskMagic`. */
   readonly magic?: string;
-  /** Mainnet proof-of-work algorithm. */
+  /** The work the node's own header check demands, read from its code, not a pool's coin list. */
   readonly pow?: PowAlgorithm;
   readonly explorer: string;
   readonly rpcDefault?: string;

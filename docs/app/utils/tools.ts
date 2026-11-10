@@ -4,7 +4,7 @@ import { chains, create, identify, type Chain, type DecodedAddress } from "@agnt
  * The text the five tools hand a model, rebuilt here because `src/tool-operations.ts` is
  * not a package export. Mirrors `lookupChain`, `validateChainAddress`, `validateChainTxid`,
  * `identifyAddress` and `listChains` in the library line for line; a change there is a
- * change here.
+ * change here, and `test/unit/docs-site.test.ts` goes red until both agree.
  */
 
 /** Mirrors `stripControlCharacters` in `src/core/text.ts`: control characters blanked. */
