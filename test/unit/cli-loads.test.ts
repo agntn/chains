@@ -1,7 +1,10 @@
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import { once } from "node:events";
 import { cpSync, existsSync, globSync, mkdirSync, mkdtempSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { text } from "node:stream/consumers";
+import { setTimeout as sleep } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
 import { beforeAll, describe, expect, it } from "vite-plus/test";
 
@@ -30,6 +33,24 @@ interface BinRun {
 }
 
 /**
+ * Reads the hook's report out of what a child wrote on stderr.
+ *
+ * @param {string} stderr - Everything the child wrote on stderr.
+ * @returns {string[]} The loaded module URLs.
+ */
+function loadedFrom(stderr: string): string[] {
+  const report = /^@loaded (\[.*\])$/mu.exec(stderr)?.[1];
+  if (report === undefined) {
+    throw new Error(`the load hook reported nothing:\n${stderr.slice(-2000)}`);
+  }
+  const loaded: unknown = JSON.parse(report);
+  if (!Array.isArray(loaded)) {
+    throw new TypeError(`the load hook reported something other than a list: ${report}`);
+  }
+  return loaded.map(String);
+}
+
+/**
  * Runs plain Node under the load hook, which reports when the process exits.
  *
  * @param {readonly string[]} args - Node arguments after the hook import.
@@ -50,16 +71,9 @@ function runNode(
     input,
     timeout: 20_000,
   });
-  const report = /^@loaded (\[.*\])$/mu.exec(result.stderr)?.[1];
-  if (report === undefined) {
-    throw new Error(`the load hook reported nothing:\n${result.stderr}`);
-  }
-  const loaded: unknown = JSON.parse(report);
-  if (!Array.isArray(loaded)) {
-    throw new TypeError(`the load hook reported something other than a list: ${report}`);
-  }
+  const loaded = loadedFrom(result.stderr);
   const stderr = result.stderr.replace(/\n@loaded \[.*\]\n$/u, "");
-  return { loaded: loaded.map(String), status: result.status, stderr, stdout: result.stdout };
+  return { loaded, status: result.status, stderr, stdout: result.stdout };
 }
 
 /**
@@ -215,6 +229,27 @@ describe("chains usage paths", () => {
       rmSync(copy, { recursive: true, force: true });
     }
   });
+});
+
+describe("the load hook", () => {
+  /* The reader looks away until the child is done importing, so the report meets a full pipe. */
+  it("reports every load to a reader that falls behind", async () => {
+    const marker = "data:text/javascript,//";
+    const script = `process.stderr;
+for (let index = 0; index < 6000; index += 1) {
+  await import(${JSON.stringify(marker)} + String(index).padStart(120, "0"));
+}
+console.log("imported");`;
+    const child = spawn(process.execPath, ["--import", hook, "--input-type=module", "-e", script], {
+      cwd: root,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    await once(child.stdout, "data");
+    await sleep(200);
+    const loaded = loadedFrom(await text(child.stderr));
+
+    expect(loaded.filter((url) => url.startsWith(marker))).toHaveLength(6000);
+  }, 20_000);
 });
 
 describe("chains source under plain Node", () => {

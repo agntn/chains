@@ -14,6 +14,19 @@ registerHooks({
   },
 });
 
-process.on("exit", () => {
-  writeSync(2, `\n@loaded ${JSON.stringify(loaded)}\n`);
-});
+/** A full pipe takes the report in parts and answers `EAGAIN` in between, so keep writing. */
+function report(): void {
+  const bytes = Buffer.from(`\n@loaded ${JSON.stringify(loaded)}\n`);
+  let offset = 0;
+  while (offset < bytes.length) {
+    try {
+      offset += writeSync(2, bytes, offset);
+    } catch (error) {
+      if (!(error instanceof Error && "code" in error && error.code === "EAGAIN")) {
+        throw error;
+      }
+    }
+  }
+}
+
+process.on("exit", report);
