@@ -50,8 +50,7 @@
     "test": "pnpm build && vp test run",
     "test:watch": "vp test watch",
     "typecheck": "tsc --noEmit && pnpm build && tsc --noEmit -p tsconfig.extensions.json",
-    "prepack": "pnpm run build",
-    "release": "pnpm test && pnpm build && changelogen --release --push"
+    "prepack": "pnpm run build"
   },
   "dependencies": {
     "@agntn/encodings": "catalog:deps",
@@ -66,7 +65,6 @@
     "@oh-my-pi/pi-coding-agent": "catalog:dev",
     "@types/node": "catalog:dev",
     "ai": "catalog:dev",
-    "changelogen": "catalog:dev",
     "obuild": "catalog:dev",
     "rolldown": "catalog:dev",
     "typescript": "catalog:dev",
