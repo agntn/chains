@@ -22,9 +22,10 @@ const EVM_SAMPLE = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984";
 
 /**
  * Icon, one spelling `getChain` accepts and a sample address per chain. Icons come from the
- * monochrome `token` collection; Pepecoin and Octra have none there, so they keep a Lucide glyph.
- * The samples are public test vectors and well known contracts, checked against `dist/`
- * before they were written down. Everything else comes from `create(key)`.
+ * monochrome `token` collection; Pepecoin and Octra have none there, so they keep a Lucide glyph
+ * (`token:pepe` is the ERC-20 memecoin, a different animal).
+ * The samples are public test vectors and well known contracts, and `test/unit/docs-site.test.ts`
+ * runs every one through its chain. Everything else comes from `create(key)`.
  */
 const PRESENTATION: Record<ChainKey, { icon: string; alias: string; sample: string }> = {
   ethereum: { icon: "i-token-eth", alias: "eth", sample: EVM_SAMPLE },
