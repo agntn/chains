@@ -29,7 +29,7 @@ catalogs:
     ufo: 1.6.4
   dev:
     "@agntn/ox": 0.1.0
-    "@earendil-works/pi-coding-agent": 1.5.0
+    "@earendil-works/pi-coding-agent": 1.5.2
     "@iconify-json/lucide": 1.2.151
     "@iconify-json/simple-icons": 1.2.101
     "@iconify-json/token": 1.2.42
