@@ -19,9 +19,9 @@ minimumReleaseAgeExclude:
 # One version per name, shared by the library and docs/, which bundles the library from ../src.
 catalogs:
   deps:
-    "@agntn/encodings": 0.2.0
-    "@agntn/hashes": 0.7.2
-    "@agntn/tools": 0.3.0
+    "@agntn/encodings": 0.2.1
+    "@agntn/hashes": 0.7.3
+    "@agntn/tools": 0.3.1
     "@modelcontextprotocol/server": 2.4.0
     better-sqlite3: 12.11.1
     docus: 5.15.0
