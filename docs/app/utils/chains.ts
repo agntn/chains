@@ -15,6 +15,7 @@ export const FAMILIES: ReadonlyArray<{ key: ChainType; label: string }> = [
   { key: "monero", label: "Monero" },
   { key: "near", label: "NEAR" },
   { key: "waves", label: "Waves" },
+  { key: "cosmos", label: "Cosmos" },
 ];
 
 /** The address every EVM chain accepts: the UNI token contract, 40 hex digits behind 0x. */
@@ -124,6 +125,11 @@ const PRESENTATION: Record<ChainKey, { icon: string; alias: string; sample: stri
   decred: { icon: "i-token-dcr", alias: "dcr", sample: "DsUZxxoHJSty8DCfwfartwTYbuhmVct7tJu" },
   near: { icon: "i-token-near", alias: "NEAR Protocol", sample: "wrap.near" },
   waves: { icon: "i-token-waves", alias: "Waves", sample: "3PPbMwqLtwBGcJrTA5whqJfY95GqnNnFMDX" },
+  cosmos: {
+    icon: "i-token-atom",
+    alias: "atom",
+    sample: "cosmos19rl4cm2hmr8afy4kldpxz3fka4jguq0auqdal4",
+  },
 };
 
 export interface ChainEntry {

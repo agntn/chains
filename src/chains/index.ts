@@ -12,6 +12,7 @@ import { BitcoinGold } from "./bitcoingold.ts";
 import { BitcoinSv } from "./bitcoinsv.ts";
 import { Bsc } from "./bsc.ts";
 import { Cardano } from "./cardano.ts";
+import { Cosmos } from "./cosmos.ts";
 import { Dash } from "./dash.ts";
 import { Decred } from "./decred.ts";
 import { Dogecoin } from "./dogecoin.ts";
@@ -78,4 +79,5 @@ export const builtins: readonly ChainConstructor[] = [
   Zcash,
   Near,
   Waves,
+  Cosmos,
 ];
