@@ -48,6 +48,8 @@ const aliases: Readonly<Record<string, ChainKey>> = {
   ar: "arweave",
   xmr: "monero",
   dcr: "decred",
+  atom: "cosmos",
+  cosmoshub: "cosmos",
   "arc-mainnet": "arc",
   circle: "arc",
   usdc: "arc",

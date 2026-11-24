@@ -13,6 +13,7 @@ import {
   BitcoinSv,
   Cardano,
   Chain,
+  Cosmos,
   ChainsError,
   Dash,
   Decred,
@@ -96,6 +97,7 @@ describe("chain registry", () => {
       "zcash",
       "near",
       "waves",
+      "cosmos",
     ]);
     expect(has("ethereum")).toBe(true);
   });
@@ -140,6 +142,7 @@ describe("chain registry", () => {
     expect(create("zcash")).toBeInstanceOf(Zcash);
     expect(create("near")).toBeInstanceOf(Near);
     expect(create("waves")).toBeInstanceOf(Waves);
+    expect(create("cosmos")).toBeInstanceOf(Cosmos);
   });
 });
 
@@ -357,6 +360,21 @@ describe("chain metadata", () => {
       caip2: "waves:087",
       explorer: "https://wavesexplorer.com",
       rpcDefault: "https://nodes.wavesnodes.com",
+    });
+  });
+
+  /** SLIP-44 118, CAIP-2 from the ChainAgnostic cosmos namespace, the current chain_id. */
+  it("carries Cosmos Hub mainnet metadata", () => {
+    expect(create("cosmos")).toMatchObject({
+      key: "cosmos",
+      name: "Cosmos Hub",
+      symbol: "ATOM",
+      decimals: 6,
+      type: "cosmos",
+      bip44: 118,
+      caip2: "cosmos:cosmoshub-4",
+      explorer: "https://www.mintscan.io/cosmos",
+      rpcDefault: "https://cosmos-rpc.publicnode.com",
     });
   });
 

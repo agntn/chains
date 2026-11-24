@@ -124,6 +124,7 @@ export default defineNuxtConfig({
         "token:ar",
         "token:arbitrum-one",
         "token:arc",
+        "token:atom",
         "token:avax",
         "token:base",
         "token:bch",

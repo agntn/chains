@@ -99,6 +99,12 @@ const METADATA: Readonly<Record<ChainKey, ChainMetadata>> = {
   zcash: { name: "Zcash", symbol: "ZEC", decimals: 8, explorer: "https://blockchair.com/zcash" },
   near: { name: "NEAR Protocol", symbol: "NEAR", decimals: 24, explorer: "https://nearblocks.io" },
   waves: { name: "Waves", symbol: "WAVES", decimals: 8, explorer: "https://wavesexplorer.com" },
+  cosmos: {
+    name: "Cosmos Hub",
+    symbol: "ATOM",
+    decimals: 6,
+    explorer: "https://www.mintscan.io/cosmos",
+  },
 };
 
 /**
